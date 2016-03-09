@@ -72,7 +72,7 @@ Among the enhancements to Casper's built-in package management are:
   # Dependencies
   s.required_ruby_version = '>= 2.0.0'
 
-  s.add_runtime_dependency 'ruby-jss', '>= 0.6.0'
+  s.add_runtime_dependency 'ruby-jss', '>= 0.6.2'
   s.add_runtime_dependency 'ruby-keychain', '> 0.2.0'
 
 
