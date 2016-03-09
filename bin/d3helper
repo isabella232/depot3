@@ -1,0 +1,260 @@
+#!/usr/bin/ruby
+### Copyright 2016 Pixar
+###
+###    Licensed under the Apache License, Version 2.0 (the "Apache License")
+###    with the following modification; you may not use this file except in
+###    compliance with the Apache License and the following modification to it:
+###    Section 6. Trademarks. is deleted and replaced with:
+###
+###    6. Trademarks. This License does not grant permission to use the trade
+###       names, trademarks, service marks, or product names of the Licensor
+###       and its affiliates, except as required to comply with Section 4(c) of
+###       the License and to reproduce the content of the NOTICE file.
+###
+###    You may obtain a copy of the Apache License at
+###
+###        http://www.apache.org/licenses/LICENSE-2.0
+###
+###    Unless required by applicable law or agreed to in writing, software
+###    distributed under the Apache License with the above modification is
+###    distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+###    KIND, either express or implied. See the Apache License for the specific
+###    language governing permissions and limitations under the Apache License.
+###
+###
+
+######################################
+# == Synopsis
+# d3helper [action]
+#
+# d3helper: perform various helper tasks for d3
+#
+# Copyright Pixar Animation Studios
+#
+# Author: Chris Lasell chrisl@pixar.com
+#
+#
+######################################
+
+
+############
+# Modules, Libraries, etc
+############
+# Load libraries
+require 'd3'
+
+############
+# The App Object
+############
+
+class App
+
+  ############################################
+  ### Constants - paths, settings, and other values used throughout
+
+  ACTIONS = {
+    "--display-puppy-notification" =>  :display_puppy_notification,
+    "--rcpts-for-ea" => :rcpts_for_ea,
+    "--puppyq-for-ea" => :puppyq_for_ea,
+    "--config" => :configure,
+    "--help" => :help
+  }
+
+  USAGE = "#{File.basename(__FILE__)} [--help] [action]\nwhere action is one of: #{ACTIONS.keys.join(', ')}"
+
+
+  attr_reader :debug
+
+  ############################################
+  ### Setup
+  ### Initialization should only be used to set variables
+  ### and set up the infrasctructure. No actual processing/error checking
+  ### until the run method is called.
+  ###
+  def initialize(args)
+    opts = GetoptLong.new(
+      [ '--help', '-h', '-H', GetoptLong::NO_ARGUMENT ],
+      [ '--debug', '-d', GetoptLong::NO_ARGUMENT ],
+      [ '--display-puppy-notification', GetoptLong::NO_ARGUMENT ],
+      [ '--rcpts-for-ea', GetoptLong::NO_ARGUMENT ],
+      [ '--puppyq-for-ea', GetoptLong::NO_ARGUMENT ],
+      [ '--configure', GetoptLong::NO_ARGUMENT ]
+    )
+
+   opts.each do |opt, arg|
+      case opt
+      when '--help'
+        @action = ACTIONS[opt]
+      when '--debug'
+        @debug = true
+      when '--display-puppy-notification'
+        @action = ACTIONS[opt]
+      when '--rcpts-for-ea'
+        @action = ACTIONS[opt]
+      when '--puppyq-for-ea'
+        @action = ACTIONS[opt]
+      when '--configure'
+        @action = ACTIONS[opt]
+      end # case
+    end # opts.each
+
+    unless @action
+      puts USAGE
+      exit 1
+    end
+
+    D3::LOG.progname = File.basename(__FILE__)
+  end # init
+
+  ############################################
+  ### Run
+  def run
+    if @action == :help
+      help
+      return
+    end
+
+    # Must be root to do these things
+    raise D3::PermissionError, "Only root can use this program" unless JSS.superuser?
+
+    # connect to the server  servernames are defined in JSS::CONFIG
+    D3::Client.connect
+
+    # do something
+    self.send @action
+
+  end # run
+
+  ############################################
+  ### Instance Methods
+
+  ############
+  # spew out help
+  def help
+
+    puts <<-USAGEBLURB
+#{USAGE}
+
+  --display-puppy-notification      Tell users that puppies need walking.
+  --configure                       Set d3 client settings
+  --rcpts-for-ea                    Generate Extension Attribute data about
+                                      the d3 receipts on this machine.
+  --help, -h, -H                    Show this help.
+
+USAGEBLURB
+
+  end # show_help
+
+
+  ###
+  def display_puppy_notification
+    puppy_notification_env = D3::Client::ENV_STATES[:puppytime_notification]
+
+    pending_puppy_names = ENV[puppy_notification_env]
+    pending_puppy_names ||= "(No Puppies to walk! why are you seeing this?)"
+
+    description = "Please log out ASAP for software installs and updates.
+Watch a parade of cute puppies while these items are installed:
+#{pending_puppy_names}"
+
+    image_path = D3::CONFIG.puppy_notify_image_path ? Pathname.new(D3::CONFIG.puppy_notify_image_path) : nil
+
+    image_path = D3::PuppyTime::DFT_NOTIFY_IMAGE unless image_path && image_path.file?
+
+    # fork off the jamf helper, then detach it so the policy running this doesn't
+    # hang aound
+    alert_pid = Process.fork do
+      JSS::Client.jamf_helper( :hud, :lock_hud => true,
+        :window_position => :ur,
+        :title => "The puppies await you",
+        :align_heading => :center,
+        :heading => "It's PuppyTime!",
+        :description => description,
+        :align_description => :left,
+        :icon => image_path.to_s,
+        :icon_size => 300,
+        :button1 => "OK",
+        :default_button => 1
+      )
+    end # fork
+    Process.detach(alert_pid)
+
+  end
+
+
+  ### output a JSON string with miminal data about the receipts on this machine
+  ### wrapped in a <result> tag, to be used in the CONFIG.report_receipts_ext_attr_name
+  ### extension attribute
+  ###
+  def rcpts_for_ea
+    begin
+      ea_data = {}
+      D3::Client::Receipt.all.values.each { |r|
+        this_r = {}
+        this_r[:version] = r.version
+        this_r[:revision] = r.revision
+        this_r[:status] = r.status
+        this_r[:installed_at] = r.installed_at
+        this_r[:admin] = r.admin
+        this_r[:frozen] = r.frozen?
+        this_r[:manual] = r.manually_installed
+        this_r[:custom_expiration] = r.custom_expiration
+        this_r[:last_usage] = r.last_usage
+        ea_data[r.basename] = this_r
+      } # D3::Client::Receipt.all.values do |r|
+
+      res = JSON.dump ea_data
+    rescue
+      res =  "ERROR:#{$!}:#{$@.first}"
+    end
+    puts "<result>#{res}</result>"
+  end
+
+
+  ### output a JSON string with  data about the pending puppytime (logout)
+  ### installs on this machine wrapped in a <result> tag, to be used in the
+  ### CONFIG.report_puppyq_ext_attr_name extension attribute
+  ###
+  def puppyq_for_ea
+     begin
+      ea_data = {}
+      D3::PUPPY_Q.queue.values.each { |pup|
+        this_pup = {}
+        this_pup[:version] = pup.version
+        this_pup[:revision] = pup.revision
+        this_pup[:status] = pup.status
+        this_pup[:queued_at] = pup.queued_at
+        this_pup[:admin] = pup.admin
+        this_pup[:custom_expiration] = pup.custom_expiration
+        ea_data[pup.basename] = this_pup
+      } # D3::Client::Receipt.all.values do |r|
+
+      res = JSON.dump ea_data
+    rescue
+      res =  "ERROR:#{$!}:#{$@.first}"
+    end
+    puts "<result>#{res}</result>"
+  end
+
+
+  ###
+  def configure
+
+  end
+
+end # class App
+
+
+############
+# Go
+############
+begin
+  app = nil
+  app = App.new(ARGV)
+  app.run
+  exit 0
+rescue
+  $stderr.puts "An error occurred: #{$!}"
+  $stderr.puts $@ if D3::CONFIG.log_level == :debug or (app and app.debug)
+  exit 1
+end # begin

@@ -1,0 +1,4 @@
+.DS_Store
+*.gem
+d3-notes.rb
+d3-testing.rb

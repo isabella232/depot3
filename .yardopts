@@ -1,0 +1,7 @@
+--title "Depot 3 - Extended package/patch management for the Casper Suite"
+--readme README.md
+--embed-mixins
+-
+LICENSE.txt
+CHANGES.md
+THANKS.md

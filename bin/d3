@@ -1,0 +1,320 @@
+#!/usr/bin/ruby
+### Copyright 2016 Pixar
+###
+###    Licensed under the Apache License, Version 2.0 (the "Apache License")
+###    with the following modification; you may not use this file except in
+###    compliance with the Apache License and the following modification to it:
+###    Section 6. Trademarks. is deleted and replaced with:
+###
+###    6. Trademarks. This License does not grant permission to use the trade
+###       names, trademarks, service marks, or product names of the Licensor
+###       and its affiliates, except as required to comply with Section 4(c) of
+###       the License and to reproduce the content of the NOTICE file.
+###
+###    You may obtain a copy of the Apache License at
+###
+###        http://www.apache.org/licenses/LICENSE-2.0
+###
+###    Unless required by applicable law or agreed to in writing, software
+###    distributed under the Apache License with the above modification is
+###    distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+###    KIND, either express or implied. See the Apache License for the specific
+###    language governing permissions and limitations under the Apache License.
+###
+###
+
+
+######################################
+# d3 - a commandline interface to Casper package maintenance
+# and Patch Management
+#
+# Copyright 2010 Pixar Animation Studios
+#
+# Chris Lasell  chrisl@pixar.com  2010-04-22
+
+
+# TO DO - add commands for:
+## immediately remove a receipt
+## set up configuration on a client
+
+############
+# Modules, Libraries, etc
+############
+
+# Load libraries
+require 'd3'
+
+#####################################
+# Script Object
+#####################################
+
+class App
+
+  VERSION = "3.0a1"
+  
+  # the following d3 commands all require one or more arguments to work on
+  ACTIONS_NEEDING_ARGS = D3::Client::ACTIONS.select{|k,v| v[:arg] }
+
+  # the following d3 commands need @admin to be set
+  ACTIONS_NEEDING_ADMIN = D3::Client::ACTIONS.select{|k,v| v[:needs_admin] }
+
+  # the following d3 commands need a connection to the server
+  ACTIONS_NEEDING_SERVER = D3::Client::ACTIONS.select{|k,v| v[:needs_connection] }
+
+  ### set up
+  ###
+  def initialize(args)
+  
+    D3::LOG.progname = File.basename __FILE__
+    
+    # here's where we hold cmdline args &c
+    @options = OpenStruct.new
+
+    # parse the commandline and populate @action, @options and @targets
+    parse_cli
+    
+    # action OK?
+    D3::Client::ACTIONS.each do |aname,info|
+      @action = aname if @action_from_user == aname
+      break if @action
+      @action = aname if info[:aka] == @action_from_user
+      break if @action
+    end
+    raise ArgumentError,"Unknown d3 action: #{@action_from_user}. Use -H for help" unless @action
+    
+    # d3 must be run as root - even just listing stuff.
+    # (because root is needed to retrieve the passwords for automation)
+    if JSS.superuser?
+      # make sure some dirs exist
+      D3::SUPPORT_DIR.mkpath unless D3::SUPPORT_DIR.directory?
+      D3::SUPPORT_DIR.chmod 0755
+
+    # otherwise, yell if we need to be root.
+    else
+      raise D3::PermissionError, "You must be root to use d3." unless [:help, :version].include? @action
+    end #if root
+
+    # bail if the jamf binary isn't installed
+    unless  D3::Client::JAMF_BINARY.executable?
+      raise JSS::NoSuchItemError, "The jamf binary isn't installed properly."
+    end
+    
+
+    # Does this command need the name of an admin for recording who's doing it?
+    # The admin name cannot be one of D3::DISALLOWED_ADMINS, currently:
+    #     [nil, "", "root", "unknown", "auto-installed"]
+    # The D3.admin method will try to figure out the real non-root admin name.
+    #
+    # Syncing doesn't require an admin for auto-installs and updates, but
+    # any automated scripts that do a d3 command might need to provide an
+    # appropriate admin name.  E.g. if a policy runs a script that installs
+    # a d3 pkg, it should use something like
+    #     d3 install some-pkg --admin my-policy-script
+    # then the receipt for other-pkg will show that it was installed by
+    # 'my-policy-script'. Another useful example is a pre- or post-install script that
+    # installs another d3 pkg. That script should use the --admin option to
+    # indicate that it did the install
+    #
+    @options.admin ||= D3.admin
+    @options.admin = @options.admin.to_s
+    if ACTIONS_NEEDING_ADMIN.keys.include? @action and  D3::DISALLOWED_ADMINS.include? @options.admin
+      raise ArgumentError, "Cannot determine non-root admin name, please use --admin with '#{@action}'."
+    end
+    D3::Client.set_env :admin, @options_admin
+
+    # if we're installing or piloting, and have a custom expiration, it must be
+    # a positive integer
+    if @action == :install and @options.custom_expiration
+      unless @options.custom_expiration =~ /^\d+$/ and @options.custom_expiration.to_i >= 0
+        raise ArgumentError, "Expiration periods (in days) must be an integer >= 0"
+      end
+      @options.custom_expiration = @options.custom_expiration.to_i
+    end
+
+    # tell the client if the admin asked for no puppy notification
+    if @options.no_logout_notice
+      D3::Client.puppy_notification_ok_with_admin = false
+    end
+
+    # If the action needs targets, and there are none, say so
+    if ACTIONS_NEEDING_ARGS.keys.include?(@action) and @targets == 0
+      arg_type = D3::Client::ACTIONS[@action][:arg]
+      raise ArgumentError, "Action '#{@action}' needs one or more #{arg_type} targets."
+    end
+
+    # connect to d3
+    D3::Client.connect if ACTIONS_NEEDING_SERVER.keys.include?(@action)
+
+  end # init
+
+  ### Parse the command line - fill @options with our options.
+  ###
+  def parse_cli
+
+    # when finished, this leaves the d3 command and its arg in ARGV
+    opts = GetoptLong.new( *D3::Client::OPTIONS.values.map{|opt| opt[:cli]} )
+
+    opts.each do |opt, arg|
+      case opt
+        when '--help'
+          @show_help = :show_help
+
+        when '--version'
+          @show_help = :show_version
+
+        when '--quiet'
+          @options.quiet = true
+          D3.verbosity = D3.verbosity + 1
+
+        when '--verbose'
+          @options.verbose = true
+          D3.verbosity = D3.verbosity - 1
+
+        when '--no-puppy-notification'
+          @options.no_logout_notice = true
+
+        when '--puppies'
+          @options.puppies = true
+
+        when '--force'
+          @options.force = true
+          D3::force
+        when '--admin'
+          @options.admin = arg
+
+        when '--expiration'
+          @options.custom_expiration = arg
+
+        when '--debug'
+          @options.debug = true
+          @options.verbose = true
+          D3.verbosity = :debug
+          D3::LOG.level = :debug
+          D3::Client.set_env :debug
+      end # case
+    end # opts.each
+
+    ARGV.unshift "help" if @show_help
+
+    # gotta have a least an action....
+    if ARGV.empty?
+      show_usage
+      raise ArgumentError, "action required. Use -H for help"
+    end
+
+    @action_from_user = ARGV.shift.to_sym
+
+    #@targets = ARGV
+    @targets = ARGV
+
+  end # parse args
+
+  ### Do that d3 thing!
+  ###
+  def run
+    # Process the given d3 command
+    case @action
+
+      when :install then
+        D3::Client.install @targets, @options
+
+      when :uninstall then
+        D3::Client.uninstall @targets, @options
+
+      when :dequeue then
+        D3::Client.dequeue_puppies @targets
+
+      when :sync then
+        D3::Client.sync @options
+
+      when :freeze then
+        D3::Client.freeze_receipts @targets
+
+      when :thaw then
+        D3::Client.thaw_receipts @targets
+
+      when :list_available then
+        D3::Client.list_available @options.force
+
+      when :list_installed then
+        D3::Client.list_installed
+
+      when :list_manual then
+        D3::Client.list_manual
+
+      when :list_pilots then
+        D3::Client.list_pilots
+
+      when :list_frozen then
+        D3::Client.list_frozen
+
+      when :list_puppies then
+        D3::Client.list_pending_puppies
+
+      when :list_details then
+        D3::Client.list_details @targets
+
+      when :list_files then
+        D3::Client.list_files @targets
+
+      when :query_file then
+        D3::Client.query_files @targets
+
+      when :help
+        @show_help == :show_version ? show_version : show_help
+
+      else
+        show_usage
+    end # case
+  end #run
+
+  ### Show the usage line
+  def show_usage
+    STDERR.puts D3::Client::Help::USAGE
+  end # show_usage
+
+  ### Show the help message
+  ###
+  ### @return [void]
+  ###
+  def show_help
+    D3.less_text D3::Client::Help.help_text
+  end #show help
+
+  ### Show the current d3 version
+  def show_version
+    puts <<-ENDVERS
+d3 command version: #{VERSION}
+D3 module version: #{D3::VERSION}
+JSS module version: #{JSS::VERSION}
+ENDVERS
+  end
+
+
+end # class App
+
+############
+# Do it
+############
+stty_save = `stty -g`.chomp
+trap("SIGINT") { puts "\nCancelled! Woot!" ; system('stty', stty_save); exit 0 }
+
+begin
+  # if needed, set debugging even before we make the app
+  D3::LOG.level = :debug unless (ARGV & ["--debug", "-d"] ).empty?
+
+  # make and run d3
+  app = App.new(ARGV)
+  app.run
+
+rescue
+  # handle exceptions not handled elsewhere
+  D3.log "An error occurred: #{$!.class}: #{$!}", :fatal
+  D3.log_backtrace
+  exit 1
+ensure
+  if JSS::API.connected?
+    JSS::DistributionPoint.my_distribution_point.unmount if JSS::DistributionPoint.my_distribution_point.mounted?
+    D3::Client.disconnect
+  end # if
+end
