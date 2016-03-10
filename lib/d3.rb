@@ -29,7 +29,7 @@
 ###################
 # gems
 
-require 'ruby-jss'
+require 'jss'
 require 'keychain'
 
 ###################
