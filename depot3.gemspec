@@ -31,7 +31,10 @@ Gem::Specification.new do |s|
 
   s.name        = proj_name
   s.version     = D3::VERSION
-  s.license     = 'Modified Apache-2.0'
+  s.authors     = ["Chris Lasell"]
+  s.email       = 'd3@pixar.com'
+  s.homepage    = 'http://pixaranimationstudios.github.io/depot3/'
+  s.license     = 'Apache-2.0 WITH Modifications'
   s.date        = Time.now.utc.strftime("%Y-%m-%d")
   s.summary     = "A package/patch management system for OS X which extends the capabilites of the Casper Suite."
   s.description = <<-EOD
@@ -49,32 +52,28 @@ Among the enhancements to Casper's built-in package management are:
 - Scoping by Computer Groups, no policies needed
 - Installs requiring reboots are performed at logout while
   displaying a slideshow of cute puppies. (or any desired
-  images with captions)
+  images)
 - Automatic uninstalls of unused packages
-
   EOD
 
-  s.authors     = ["Chris Lasell"]
-  s.email       = 'd3@pixar.com'
-  s.homepage    = 'http://pixaranimationstudios.github.io/depot3/'
-
+  # files
   s.files       = Dir['lib/**/*.rb']
   s.files      += Dir['data/**/*']
   s.files      << '.yardopts'
+  s.files      += Dir['bin/d3RepoMan/**/*']
 
-  s.files += Dir['bin/d3RepoMan/**/*']
-
+  # executables
   s.executables << "d3"
   s.executables << "d3admin"
   s.executables << "d3helper"
   s.executables << "puppytime"
 
-  # Dependencies
+  # Ruby version
   s.required_ruby_version = '>= 2.0.0'
 
-  s.add_runtime_dependency 'ruby-jss', '>= 0.6.2'
-  s.add_runtime_dependency 'ruby-keychain', '> 0.2.0'
-
+  # Dependencies
+  s.add_runtime_dependency 'ruby-keychain', '~> 0.2', '> 0.2.0'
+  s.add_runtime_dependency 'ruby-jss', '~> 0.6', '>= 0.6.2'
 
   # Rdoc
   s.has_rdoc = true
