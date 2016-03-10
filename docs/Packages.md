@@ -1,133 +1,139 @@
 # Packages in d3
 
-([Table of contents](TOC#table-of-contents))
-
 A package in d3 is a package in Casper. d3 stores extra data about packages, which provide enhancements over standard Casper package handling, such as [automatic updates](#sync), [conditional installs](#conditional-installs), [piloting](#piloting), [expiration](#expiration), and so on.
 
-A d3 package has all the attributes of a Casper package, plus those listed here. While it's possible to edit the Casper attributes via Casper Admin or the JSS web UI, we recommend using [d3admin](#d3admin) for all work with d3 packages, since d3admin will help enforce data-integrity. 
+This page describes the many attributes of d3 packages. For info about installing packages on client computers, see [Installing Packages](Client#installing-packages). For info about adding, editing, and deleting packages in d3, see [d3admin](Admin#d3admin).
 
+A d3 package has all the attributes of a Casper package, plus those listed here. While it's possible to edit the Casper attributes via Casper Admin or the JSS web UI, we recommend using [d3admin](#d3admin) for all work with d3 packages, since d3admin will help enforce d3-specific data-integrity. 
 
 ## status
+As a package spends time in d3, its status will change.
 
-As a package spends time in d3, its status will change. These are the statuses:
+##### pilot
 
-### pilot
+Packages that are newer in d3 than the currently [live](#live) package for their [basename](home#basename) have the status 'pilot'.
 
-  Packages that are newer in d3 than the currently [live](#live) package for their [basename](#basename).
+All packages are pilots when first added to d3. Pilot packages can be manually installed on clients using the [`d3 install`](Client#piloting) command with the package's [edition](home#edition). 
+
+Once installed, the pilot package's [basename](home#basename) is skipped during a [`d3 sync`](Client#syncing) so it won't get any automatic updates if another edition is made live. 
+
+##### live
+
+Once a package has been [piloted](Client#piloting) and is ready for general deployment, it is released by [changing it's status to 'live'](Admin#make-live).
   
-  All packages are pilots when first added to d3. Pilots can be installed on clients using the
-  'd3 pilot' command with the [edition](#edition).
+There can only be one live package per [basename](home#basename) at a time, and using a basename to refer to a package will always yield the currently live one (if any).
 
-### live
+When a package is made live...
 
-  Once a package has been [piloted](#piloting) and is ready for full deployment, 
-  it is released by making it 'live'.
+  * It becomes default for its basename.
+    
+    It's the package installed with [`d3 install <basename>`](Client#installing-packages).
+    
+  * It automatically installs on scoped computers.
+    
+    At the next [`d3 sync`](Client#syncing), it will be installed if the computer is a member of any of the package's [auto-install groups](#auto-groups).
+    
+  * It automatically updates any older [editions](home#edition). 
+
+    At the next [`d3 sync`](Client#syncing), if an older edition is installed, and not a pilot, the new live one is installed.
   
-  There can only be one live package per [basename](#basename) at a time, and using a basename to refer
-  to a package will always yield the currently live one (if any). 
-  
-  Once made live, the package will be the one installed when the '[d3](#d3) [install](#installing) _basename_' command is given. 
-  
-  The package will be automatically installed at the next '[d3](#d3) [sync](#sync)' on any machine
-  where the basename is already installed and is not in pilot, or where the machine is in one of 
-  the [auto-install computer groups](#auto-groups).
 
-### deprecated
+##### deprecated
 
-  A package that was once live, but has been superceded by a newer edition of it's
-  basename being made live.
+A package that was once live, but has been superceded by a newer edition of it's  basename, becomes 'deprecated'.  Deprecated packages stay on the server until deleted either manually with [`d3admin delete`](Admin#delete) or with [auto-cleaning](Admin#auto-cleaning)
 
-### skipped
+##### skipped
 
-  A package that is older than the currently live one for its basename, but was never
-  made live itself.
-
-
-## auto groups
-
-These are Casper computer groups (static or smart) whose members automatically get certain packages installed at the next '[d3](#d3) [sync](#sync)'. 
-
-Packages in d3 have an attribute 'auto_groups' that contains a list of computer groups whose members should get this package automatically.  When d3 is [syncing](#sync), it looks for any live packages whose auto-groups contain the machine doing the sync, and installs them if needed.
-
-### standard auto-installs
-
-There is a special, pseudo-group-name used for auto-grouping called 'standard'. When a packages has the auto-group 'standard' it is auto-installed on _all_ d3 client computers.
-
-See also: [sync](#sync)
+A package that is older than the currently live one for its basename, but was never  made live itself is 'skipped'. Skipped packages stay on the server until deleted either manually with [`d3admin delete`](Admin#delete) or with [auto-cleaning](Admin#auto-cleaning)
 
 
 
-## excluded groups
+## Package properties
 
-Casper computer groups (static or smart) whose members are normally prohibitied from installing certain pacakges. Packages in d3 have an attribute 'excluded_groups' that contains a list of computer
-groups whose members should never get this package.  Such packages don't even show up as available for machines in those groups. If [force](#force) is used the packages can be listed and installed.
+### Description
 
-See also: [force](#force)
+This is a textual description of the package and what it installs. 
 
-## pre- and post- scripts
+Descriptions are important when you start to have many packages and many d3 admins. A good description not only says what is installed, but also includes urls or developer info and anything else to help an unfamiliar admin known what the packge is for.
 
-While .pkg installers might have internal pre- and post- install scripts, .dmg installers do not.  Also, while
-Casper policies can run Casper scripts before and after package (un)installation, the (un)installation can't easily
-be stopped if the pre- script fails.
+The description is stored in the "Notes" field of the Casper package settings.
 
-d3 provides pre- and post-install, and pre- and post-remove scripts. These scripts are also just Casper scripts, and they are run via the 'jamf runScript' command.
+### Auto groups
 
-When a d3 pre-install script runs, it's exit status must be 0 (zero - success) or else the package won't be installed.
+These are Casper computer groups (static or smart) whose members will have the package automatically installed at the next [`d3 sync`](Client#syncing). 
 
-Similiarly when a d3 pre-remove script runs, if it's exit status is not zero, it won't be uninstalled.
+##### Standard auto-installs
 
-### exit status 111 on pre- scripts
+There is a special, pseudo-group-name used for auto-grouping called 'standard'. When a package has the auto-group 'standard' it is auto-installed on _all_ d3 client computers.
+
+### Excluded groups
+
+One or more Casper computer groups (static or smart) whose members are normally prohibitied from installing the package 
+
+A computer in one of the package's excluded groups won't even see the package in the  [list of available packages](Client#getting-info-about-packages) 
+
+If [force](Client#force) is used, the package can be listed and installed.
+
+### Pre- and Post- scripts
+
+While .pkg installers might have internal pre- and post- install scripts, .dmg installers do not.  Also, while Casper policies can run Casper scripts before and after package (un)installation, the process can't easily be stopped if the pre- script fails.
+
+d3 provides pre- and post-install, and pre- and post-remove scripts. These scripts are just Casper scripts, and under the hood, they are run via the `jamf runScript` command.
+
+When a d3 pre-install script runs, its exit status must be 0 (zero - success) or else the package won't be installed.
+
+Similiarly when a d3 pre-remove script runs, if its exit status is not zero, it won't be uninstalled.
+
+#### Exit status 111 on pre- scripts
 Both pre-install and pre-remove scripts cause special behaviour when their exist status is 111:
 
-* If the pre-install script exits 111, the package will NOT be installed, but the d3 [receipt](#receipts) will be written as if it were.
+* If the pre-install script exits 111, the package will NOT be installed, but the d3 [receipt](Receipts) will be written as if it were.
 
-  A possible use-case for this is the CrashPlan client. Crashplan has its own client-update mechanism
-  that happens from it's own servers.
+  A possible use-case for this is the CrashPlan client. Crashplan has its own client-update mechanism that happens from it's own servers.
   
-  If some version of CrashPlan is initially installed via d3, the
-  pre-install script for the next version might check to see if Crashplan has already been updated by
-  its own server, and in that case, it exits 111, and d3 writes its receipt so that it knowns
-  things are up-to-date. On machines that don't have crashplan installed at all, the script can do
-  whatever pre-install actions it wants (such as putting customization files in place) and then exit
-  0 to allow a normal install to happen.
+  If some version of CrashPlan is initially installed via d3, the pre-install script for the next version might check to see if Crashplan has already been updated by its own server, and in that case, it exits 111. d3 the writes its receipt so that it knowns things are up-to-date. On machines that don't have crashplan installed at all, the script can do whatever pre-install actions needed  (such as putting customization files in place) and then exit 0 to allow a normal install to happen.
 
-* If the pre-remove script exits 111, the 'jamf uninstall' will not be run, but the d3 receipt will be removed.
+* If the pre-remove script exits 111, the `jamf uninstall` will not be run, but the d3 receipt will be removed.
 
   A use-case here is an application for which  there's an 'uninstaller' app or pkg.
   
-  A regular d3/jamf uninstall will just remove the files that were originally installed, but the
-  uninstaller provided by the app's developer might remove many other things, or do so in a way that
-  doesn't break other products.
+  A regular d3/jamf uninstall will just remove the files that were originally installed, but the uninstaller provided by the app's developer might remove many other things, or do so in a way that doesn't break other products.
   
-  In this case, the pre-remove script can just run the developers uninstaller, and then exit 111, which
-  causes d3 to remove its receipt and do no more.
+  In this case, the pre-remove script can just run the developers uninstaller, and then exit 111, which causes d3 to remove its receipt and do no more.
 
 
-## prohibiting process
+### Prohibiting process
 
 Packages can be configured with the name of a process which, if running at install time, prevents installation.
 
-The process name is compared to the output of `/bin/ps -A -c -o comm` and if it matches any whole line of that output, the process is considered to be running, and be package isn't installed.
+The process name is compared to the output of `/bin/ps -A -c -o comm` and if it matches a line of that output, the package isn't installed.
 
 
-## remove first
+### Remove first
 
-If this attribute is true, then before installing the package, any previously installed version of the same basename is [uninstalled](#uninstalling) first. 
+If this attribute is true, then before installing the package, any previously installed version of the same basename is [uninstalled](Client#uninstalling) first. 
+
+### Uninstallable
+
+Some packages should never be [uninstalled](Client#uninstalling), or serious problems will occur. Examples include: OS updates, security updates, and any Apple package that affects core frameworks of the OS. When this attribute is false, the package can never be uninstalled by d3.
 
 
-## os limitations
+### Reboot (PuppyTime!)
 
-This is the casper 'os limitations' setting. It is enhanced by the JSS module's ability to understand "minimum OS" in the format ">=10.9.5"
+This is the 'requires restart' setting for the Casper package. 
+
+However, when installed with [`d3 install`](Client#installing-packages) the package is not installed immediately, (unless the -p option is used). Instead, a reference to the package is added to the ['puppy queue'](Client#puppytime) and the user might [be notified](Configuration#policies-and-scripts-used-by-d3) to log out. 
+
+### OS limitations
+
+This is the casper 'os limitations' setting. It is enhanced by the JSS module's ability to understand "minimum OS" in the format ">=10.9.5", which it expands into a very long list of future OS versions. 
 
 
-## expiration
+### Expiration
 
-Expiration is d3's ability to automatically uninstall packages that haven't been used in some period of days. "Use" means the app has been in the foreground.
+Expiration is d3's ability to automatically uninstall packages that haven't been used in some time. When an installed package expires, it is automatically uninstalled during a [sync](Client#syncing).
 
-At the highest level, expiration is controled by the `client_expiration_allowed` key of the d3 configuration file
-on every client. If that key is not true, no expiration ever happens.
-
-If expiration is allowed, it is expected that [d3RepoMan](#d3RepoMan) is installed and properly running on each client. d3RepoMan records a timestamp into a plist every time an App is brought to the foreground in them GUI. See [d3RepoMan](#d3RepoMan) for more details.
+For details about how expiration happens, see [here](Client#expiration)
 
 Packages have two attributes related to expiration:
 
@@ -139,20 +145,5 @@ Packages have two attributes related to expiration:
 
   This is the path to the executable that must come to the foreground to be counted as "use"
 
-  For example,  a package might install /Applications/Foobar.app, withs an expiration of 20, and and expiration_path of /Applications/Foobar.app/Contents/MacOS/Foobar
+  For example, a package that installs /Applications/Foobar.app, might have  expiration_path of /Applications/Foobar.app/Contents/MacOS/Foobar
 
-Several things must be true before a package is ununstalled:
-
-- The client must have expirations allowed
-- The package must be removable
-- The package must have an expiration > 0
-- The package must have an expiration_path defined
-- The last time the expiration_path came to the foreground must be within the expiration period
-- d3 must be able to connect to the JSS and the database.
-- The expirpation_path cannot be in the list of currently-running processes
-- [d3RepoMan](#d3RepoMan) must be running
-- The usage-tracking plists must be up-to-date
-
-If any of these is not true, the package is not uninstalled.
-
-([Table of contents](TOC#table-of-contents))

@@ -155,3 +155,16 @@ Several things in d3 can be customised by way of Casper policies.
 ([Table of contents](TOC#table-of-contents))
 
 
+Several things must be true before a package is ununstalled:
+
+- The client must have expirations allowed
+- The package must be removable
+- The package must have an expiration > 0
+- The package must have an expiration_path defined
+- The last time the expiration_path came to the foreground must be within the expiration period
+- d3 must be able to connect to the JSS and the database.
+- The expirpation_path cannot be in the list of currently-running processes
+- [d3RepoMan](#d3RepoMan) must be running
+- The usage-tracking plists must be up-to-date
+
+If any of these is not true, the package is not uninstalled.
