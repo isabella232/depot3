@@ -1,3 +1,5 @@
+# Welcome to d3 
+
 ## What is d3?
 
 d3 is a package deployment and patch management system for OS X that enhances the 
@@ -15,17 +17,34 @@ d3 adds these capabilities and more to Casper's package handling:
 
 d3 is written in Ruby and available as a [github project](https://github.com/PixarAnimationStudios/depot3) and a [Ruby gem](https://rubygems.org/gems/depot3/) called 'depot3'. It interfaces with Casper mostly via it's REST API using the [JSS Ruby module](https://github.com/PixarAnimationStudios/ruby-jss). It also accesses the JSS's backend MySQL database directly to provide enhanced features.
 
+##### What d3 isn't
+d3 makes no attempt to automatically search and retrieve newly-available patches or updates from the internet. It works with packages you provide or create (d3 can build them for you!)
+
+An eventual goal is to integrate a tool like [AutoPkg](https://autopkg.github.io/autopkg/) for this purpose.
+
+
+
 ## History
 
-Many years ago, Pixar's original NFS-based software deployment system for Unix workstations was called "depot". When it had outgrown itself, a replacement based on RPM packages was created and called "depot2", or "d2" for short. When Mac OS X arrived at Pixar in 2002, the Mac team adopted many of the Linux team's existing tools, including d2. 
+#### depot and d2
+Nearly 30 years ago, Pixar's original NFS-based software deployment system for Unix workstations was called "depot". When it had outgrown itself, a replacement based on RPM packages was created and called "depot2", or "d2" for short. When Mac OS X arrived at Pixar in 2002, the Mac team adopted many of the Linux team's existing tools, including d2. 
 
-By 2008 the original developer of d2 had left, and d2's applicability and sustainability for the Macs (never great to start with) was waning. Also, the world of Mac Sys Admins was changing to become what it is today. In 2009 the Pixar Mac team starting looking at third-party tools that might replace d2.  
+#### PuppyTime!
+d2 was useful as far it went, but Macs aren't Linux, and d2 couldn't handle the installation of .pkg's, especially those requiring a reboot. To deal with those, Pixar's Mac team created PuppyTime! - a system that could install .pkgs from a server, and if they needed a reboot, would queue them to be installed at the next logout. 
+
+During logout installation, something had to be displayed on the screen, or the users would think the machine was crashed, and might force-reboot.  So puppytime would display a slideshow of cute puppies to let the users know what was up, and placate their mood.
+
+#### d3
+By 2008 the original developer of d2 had left, and d2's sustainability for the Macs was waning. Also, the world of Mac Sys Admins was changing to become what it is today. In 2009 the Pixar Mac team starting looking at third-party tools that might replace d2.  
 
 Nothing seemed to be an exact fit for our needs, but the Casper Suite from JAMF Software seemed promising, and offered other tools very similar to our own home-grown Mac infrastructure. We realized that with a little customization, Casper could provide the features we wanted.  The first version of d3 was created in 2010 to add those features. 
 
 The second version of d3, which utilised the newly-released Casper REST API, was presented at the 2012 JAMF Nation User Conference in Minneapolis. One of the first questions from the audience was "Is it open-sourced?", to which we had to say no. 
 
-Since then, work has been progressing on the third version of d3 with a goal of enhancing its features and refactoring the code-base for eventual open-source release. The first step towards that goal was the 2014 release of the JSS ruby module, which provides comprehensive access to the Casper REST API, and upon which d3 is built. D3 itself took another 18 months before the first upload to github.
+#### open-source
+Since then, work has been progressing on the third version of d3 with a goal of enhancing its features and refactoring the code-base for eventual open-source release. The first step towards that goal was the 2014 release of the [JSS ruby module](https://github.com/PixarAnimationStudios/ruby-jss), which provides extensive access to the Casper REST API. 
+
+The JSS module was created specifically as the API connection for d3, but has become useful in it's own right for all of our access to the API. d3 itself took another 18 months before the first upload to [github](https://github.com/PixarAnimationStudios/depot3).
 
 ## Basic Vocabulary
 
@@ -90,3 +109,25 @@ A package that is older than the currently live one for its basename, but was ne
 ##### missing
 
 A package that is still listed in d3, but has been removed from Casper.  Or, a [receipt](receipts) on a client computer where the matching package on the server has been removed from d3, or is marked as missing.
+
+### PuppyTime!
+
+Some packages require a reboot, so auto-installing them can be problematic. 
+
+When d3 installs a package that needs a reboot, it doesn't actually install it, but add's a reference to the "puppy queue" - a list of packages awaiting logout before they are installed.
+
+When a package is added to the puppy queue, a policy is potentially triggered which can notify the user to log out as soon as possible.
+
+When logout happens, a logout policy is execute which runs `puppytime`.
+
+Puppytime examines the queue, and installs any packages listed. While doing so, it displays a slideshow - originally of cute puppies, to let the user know the machine isn't hung.
+
+The default images that come with d3 are still puppies, but you can use any images you'd like.
+
+When the installs are complete, puppytime will either:
+
+- reboot the machine with `shutdown -r now`
+
+or
+
+- run a policy which will reboot the machine (and possibly do other things first)
