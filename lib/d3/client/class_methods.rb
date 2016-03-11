@@ -65,8 +65,6 @@ module D3
             ? "currently live #{desired_pkg.basename}"  \
             : "#{desired_pkg.edition} (#{desired_pkg.status})"
 
-          D3.log "Installing #{installing}...", :warn
-
           desired_pkg.install(
             :force => options.force,
             :admin => self.get_admin(desired_pkg, options),
@@ -719,6 +717,19 @@ module D3
       return pup.id
     end # basename in puppy queue
 
+
+    ### get the executable path of the current foreground GUI app
+    ###
+    ### @return [Pathname] the path to the executable of the current foreground app
+    ###
+    def self.foreground_executable_path
+      lsai = "/usr/bin/lsappinfo"
+      ls_app_id =  `#{lsai} front`.chomp
+
+      raw = `#{lsai} info -only executablepath '#{ls_app_id}'`.chomp
+      path = raw.split(/=\s*"/).last.chomp('"')
+      return Pathname.new path
+    end
   end # class
 end # module D3
 
