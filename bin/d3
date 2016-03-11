@@ -51,7 +51,7 @@ require 'd3'
 class App
 
   VERSION = "3.0a1"
-  
+
   # the following d3 commands all require one or more arguments to work on
   ACTIONS_NEEDING_ARGS = D3::Client::ACTIONS.select{|k,v| v[:arg] }
 
@@ -64,15 +64,15 @@ class App
   ### set up
   ###
   def initialize(args)
-  
+
     D3::LOG.progname = File.basename __FILE__
-    
+
     # here's where we hold cmdline args &c
     @options = OpenStruct.new
 
     # parse the commandline and populate @action, @options and @targets
     parse_cli
-    
+
     # action OK?
     D3::Client::ACTIONS.each do |aname,info|
       @action = aname if @action_from_user == aname
@@ -81,7 +81,7 @@ class App
       break if @action
     end
     raise ArgumentError,"Unknown d3 action: #{@action_from_user}. Use -H for help" unless @action
-    
+
     # d3 must be run as root - even just listing stuff.
     # (because root is needed to retrieve the passwords for automation)
     if JSS.superuser?
@@ -98,7 +98,7 @@ class App
     unless  D3::Client::JAMF_BINARY.executable?
       raise JSS::NoSuchItemError, "The jamf binary isn't installed properly."
     end
-    
+
 
     # Does this command need the name of an admin for recording who's doing it?
     # The admin name cannot be one of D3::DISALLOWED_ADMINS, currently:
@@ -202,7 +202,9 @@ class App
       raise ArgumentError, "action required. Use -H for help"
     end
 
-    @action_from_user = ARGV.shift.to_sym
+    # the gsub makes, eg, 'list-installed' into "list_installed"
+    # which are the keys of  D3::Client::ACTIONS
+    @action_from_user = ARGV.shift.gsub('-','_').to_sym
 
     #@targets = ARGV
     @targets = ARGV
