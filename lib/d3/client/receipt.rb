@@ -611,9 +611,9 @@ module D3
       def uninstall (verbose = false, force = D3::forced?)
 
         raise D3::UninstallError,  "#{edition} is not uninstallable" unless self.removable?
-        
-        depiloting = pilot?
-        
+
+        depiloting = pilot? && skipped?
+
         begin # ...ensure...
           if uninstall_prohibited_by_process? and (not force)
             raise D3::InstallError, "#{edition} cannot be uninstalled now because '#{@prohibiting_process}' is running."
