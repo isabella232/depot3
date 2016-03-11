@@ -377,6 +377,19 @@ module D3
       return recs
     end # self.table_records(table_def)
 
+    ### Print the sql for creating the d3_packages table
+    ### as defined in the PACKAGE_TABLE constant
+    ###
+    ### @return [void]
+    ###
+    def self.table_creation_sql
+      puts  self.create_table(:display)
+    end
+
+
+    private
+
+
     ### Given a table constant defining a d3 table (PACKAGES_TABLE, at this point),
     ### create the table in the database.
     ###
@@ -387,7 +400,10 @@ module D3
     ###
     ### @return [void]
     ###
-    def self.create_table(table_constant, print=false)
+    def self.create_table(display=false)
+
+      # as of now, only one table.
+      table_constant = PACKAGE_TABLE
 
       sql = "CREATE TABLE `#{table_constant[:table_name]}` ("
       indexes = ''
@@ -419,7 +435,7 @@ module D3
       sql.chomp! ","
       sql += "\n) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
 
-      if print
+      if display
         puts sql
         return
       end
@@ -428,6 +444,8 @@ module D3
       stmt.execute
 
     end # create d3 table
+
+
 
     ### @return [Array<String>] A list of all d3-related tables in the database
     ###
