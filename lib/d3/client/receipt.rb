@@ -642,12 +642,12 @@ module D3
           # if it isn't on the server any more....
           else
             D3.log "Package is gone from server, no index available", :info
-            
+
             # if forced, deleting the rcpt is 'uninstalling'
             if force
               D3.log "Force-deleting receipt for #{edition}.", :info
               uninstall_worked = true
-            
+
             # no force
             else
               # we can't do anything with dmgs
@@ -658,15 +658,15 @@ module D3
                 uninstall_worked = uninstall_via_apple_rcpt
               end # if @package_type == :dmg
             end # if force
-            
+
           end # JSS::Package.all_ids.include? @id
-          
+
           ## Uninstall worked, so do more things and stuffs
           if uninstall_worked
-          
+
             # remove this rcpt
             delete
-            D3.log "Uninstalled #{edition}", :info
+            D3.log "Done, uninstalled #{edition}", :warn
             # run a postflight if needed
             if post_remove_script?
               (exit_status, output) = run_post_remove verbose
@@ -674,7 +674,7 @@ module D3
                 raise D3::UninstallError,  "Error running post_remove script (exited #{exit_status}) for #{edition}"
               end
             end # if post_install_script?
-          
+
           # uninstall failed, but force deletes rececipt
           else
             if force
@@ -684,16 +684,16 @@ module D3
               raise D3::UninstallError, "There was a problem uninstalling #{edition}"
             end # if force
           end #if uninstall_worked
-          
+
           # do any sync-type auto installs if we just removed a pilot
           # then the machine will get any live edition if it should.
           D3::Client.do_auto_installs(OpenStruct.new) if depiloting
-        
+
         ensure
           D3::Client.unset_env :removing
         end # begin...ensure
-        
-        
+
+
       end #uninstall
 
       ### Run the pre-remove script, return the exit status and output
