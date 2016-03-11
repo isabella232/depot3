@@ -308,13 +308,13 @@ END_HEADER
 
         # and if we have an edition, we have default pkg and file names
         if dft_opts.edition
-          dft_opts.package_name = "#{dft_opts.edition}.#{dft_opts.package_build_type}"
-          dft_opts.filename = dft_opts.package_name
+          dft_opts.package_name = "#{dft_opts.edition}"
+          dft_opts.filename = "#{dft_opts.edition}.#{dft_opts.package_build_type}"
         end
 
         # then: any values stored in the admin prefs are applied...
         # use the workspace from the prefs if it exists
-        dft_opts.workspace = D3::Admin::Prefs.prefs[:workspace] 
+        dft_opts.workspace = D3::Admin::Prefs.prefs[:workspace]
         dft_opts.workspace ||= D3::Admin::DFT_WORKSPACE
 
 
@@ -347,20 +347,20 @@ END_HEADER
           next if pkg_val.nil?
           dft_opts[opt] = pkg_val
         end # do opt
-        
+
         # bump the revision by 1
         dft_opts.revision += 1
 
         # never use the older package name or filename
         dft_opts.package_name = nil
         dft_opts.filename = nil
-        
-        # grab the first pkg-id if it exists 
+
+        # grab the first pkg-id if it exists
         # we might use it to if making a new pkg
         if pkg.apple_receipt_data and pkg.apple_receipt_data[0] and pkg.apple_receipt_data[0][:apple_pkg_id]
           dft_opts.pkg_identifier = pkg.apple_receipt_data[0][:apple_pkg_id]
         end
-        
+
         dft_opts
       end # default_values_from_package(pkg)
 
