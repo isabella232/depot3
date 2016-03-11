@@ -58,9 +58,8 @@ Among the enhancements to Casper's built-in package management are:
 
   # files
   s.files       = Dir['lib/**/*.rb']
-  s.files      += Dir['data/**/*']
+  s.files      += Dir['data/d3/**/*']
   s.files      << '.yardopts'
-  s.files      += Dir['bin/d3RepoMan/**/*']
 
   # executables
   s.executables << "d3"
