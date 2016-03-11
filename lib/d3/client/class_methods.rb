@@ -184,10 +184,10 @@ module D3
       begin
         # update rcpts
         update_rcpts
-        
+
         # clean out any invalid puppies from the queue
         clean_doghouse
-        
+
         # install puppies now?
         do_puppy_queue_installs_from_sync options
 
@@ -220,7 +220,7 @@ module D3
     ### @return [void]
     ###
     def self.update_rcpts
-      D3.log "Updating d3 receipts", :info
+      D3.log "Updating receipts", :warn
       need_saving = false
 
       D3::Client::Receipt.all.each do |basename, rcpt|
@@ -299,27 +299,27 @@ module D3
 
         end # each do basename, rcpt
     end # update
-    
+
     ### remove any invalid puppies from the queue
     ### invalid = id is no longer in d3, or status is missing
     ###
     ### @return [void]
     ###
     def self.clean_doghouse
-      D3.log "Checking for invalid puppies in the queue", :info
-      D3::PuppyQueue.pending_puppies.each do |basename, pup|
+      D3.log "Checking for invalid puppies in the queue", :warn
+      D3::PUPPY_Q.pending_puppies.each do |basename, pup|
         unless D3::Package.all_ids.include? pup.id
           D3.log "Removing #{pup.edition} from puppy queue: no longer in d3", :info
-          D3::PuppyQueue - pup 
+          DD3::PuppyTime::PuppyQueue - pup
           next
         end
         if D3::Package.missing_data.keys.include? pup.id
           D3.log "Removing #{pup.edition} from puppy queue: status is 'missing'", :info
-          D3::PuppyQueue - pup 
+          D3::PuppyTime::PuppyQueue - pup
         end
       end
     end
-    
+
     ### Install any new live pkgs scoped for autoinstall on this machine.
     ###
     ### @param options[OpenStruct] the options from the commandline
@@ -329,7 +329,7 @@ module D3
     def self.do_auto_installs (options)
       verbose = options.verbose
       force =  options.force or D3.forced?
-      D3.log "Checking for new pkgs to auto-install", :info
+      D3.log "Checking for new pkgs to auto-install", :warn
       D3::Client.set_env :auto_install
       begin # for ensure below
         installed_basenames = D3::Client::Receipt.basenames :refresh
@@ -355,6 +355,15 @@ module D3
             next if D3::Client::Receipt.all.keys.include? auto_install_basename
 
             new_pkg = D3::Package.new :id => live_id
+
+            if new_pkg.reboot?
+              queued_id = puppy_in_queue new_pkg.basename
+              if queued_id && queued_id >= new_pkg.id
+                D3.log "Skipping auto-install of puppy-package #{new_pkg.edition}, there's a newer one in the queue already", :info
+                next
+              end # if queued_id && queued_id >= new_pkg.id
+            end #  if new_pkg.reboot?
+
             begin
               D3.log "Auto-installing #{new_pkg.basename} for group '#{group}'", :info
               new_pkg.install(
@@ -364,7 +373,7 @@ module D3
                 :puppywalk => options.puppies,
                 :alt_download_url => self.cloud_dist_point_to_use
               )
-              D3.log "Auto-installed #{new_pkg.basename}", :debug
+              D3.log "Auto-installed #{new_pkg.basename}", :warn
             rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
               D3.log "Skipping auto-install of #{new_pkg.edition}:\n   #{$!}", :error
               D3.log_backtrace
@@ -393,7 +402,7 @@ module D3
     def self.update_installed_pkgs (options)
       verbose = options.verbose
       force =  options.force or D3.forced?
-      D3.log "Checking for updates to installed packages", :info
+      D3.log "Checking for updates to installed packages", :warn
       D3::Client.set_env :auto_update
       begin # see ensure below
         # get the current list of live basenames and the ids of the live editions
@@ -401,40 +410,48 @@ module D3
 
         # loop through the install pkgs
         D3::Client::Receipt.all.values.each do |rcpt|
-          
+
           # skip unless the live id is higher than the rcpt id
-          unless live_basenames_to_ids[rcpt.basename] > rcpt.id
+          unless live_basenames_to_ids[rcpt.basename].to_i > rcpt.id
             D3.log "No update for #{rcpt.edition}", :debug
             next
           end
-          
+
           # skip any frozen receipts
           if rcpt.frozen?
-            D3.log "Skipping update check for #{rcpt.edition}: currently frozen on this machine.", :debug
+            D3.log "Skipping update check for #{rcpt.edition}: currently frozen on this machine.", :info
             next
           end
-          
+
           # skip installed pilots
           if rcpt.pilot?
-            D3.log "Skipping update for #{rcpt.edition}: currently in pilot", :debug
+            D3.log "Skipping update for #{rcpt.edition}: currently in pilot", :info
             next
           end
-          
+
           # skip skipped pkgs
           if rcpt.skipped?
-            D3.log "Skipping update for #{rcpt.edition}: piloted edition was skipped.", :debug
+            D3.log "Skipping update for #{rcpt.edition}: piloted edition was skipped.", :info
             # TO DO - some kind of notification policy ??
             next
           end
-          
+
           # skip any installed basename that doesn't have a live id
           unless live_basenames_to_ids.keys.include? rcpt.basename
-            D3.log "Skipping update check for #{rcpt.edition}: no currently live package for basename", :debug
+            D3.log "Skipping update check for #{rcpt.edition}: no currently live package for basename", :info
             next
           end
-          
+
           # if we're here, there's a new version to install
           new_pkg = D3::Package.new :id => live_basenames_to_ids[rcpt.basename]
+
+          if new_pkg.reboot?
+            queued_id = puppy_in_queue new_pkg.basename
+            if queued_id && queued_id >= new_pkg.id
+              D3.log "Skipping auto-update of puppy-package #{new_pkg.edition}, there's a newer one in the queue already", :info
+              next
+            end # if queued_id && queued_id >= new_pkg.id
+          end #  if new_pkg.reboot?
 
           # are we bringing over a custom expiration period?
           expiration = rcpt.custom_expiration ? rcpt.expiration : nil
@@ -449,7 +466,7 @@ module D3
               :puppywalk => options.puppies,
               :alt_download_url => self.cloud_dist_point_to_use
               )
-            D3.log "Updated #{rcpt.edition} to #{new_pkg.edition}", :debug
+            D3.log "Updated #{rcpt.edition} to #{new_pkg.edition}", :warn
           rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
             D3.log "Skipping update of #{rcpt.edition} to #{new_pkg.edition}:\n   #{$!}", :error
             D3.log_backtrace
@@ -576,7 +593,7 @@ module D3
     ###
     def self.do_expirations (verbose = false, force = D3.forced?)
       @@editions_expired = []
-      D3.log "Starting expiration check", :info
+      D3.log "Starting expiration check", :warn
 
       D3::Client::Receipt.all.values.each do |rcpt|
         begin
@@ -688,6 +705,19 @@ module D3
       return nil if urls[0].empty? and urls[1].empty?
       return urls[0].empty? ? urls[1] : urls[0]
     end
+
+    ### Given a basename, is any edition of it in the puppy queue?
+    ### If so, return the id of the queued pkg, else return nil
+    ###
+    ### @param basename[String]
+    ###
+    ### @return [Integer, nil] The id of the queued package for the basename, if any
+    ###
+    def self.puppy_in_queue (basename)
+      pup = D3::PUPPY_Q.queue[basename]
+      return nil unless pup
+      return pup.id
+    end # basename in puppy queue
 
   end # class
 end # module D3
