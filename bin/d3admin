@@ -141,10 +141,6 @@ class App
     @options = OpenStruct.new
 
     # cli option defaults
-    @options.removable = 'y'
-    @options.remove_first = 'n'
-    @options.reboot = 'n'
-    @options.pkg_preserve_owners = 'n'
     @options.helptype = :help
     @options.report_type = D3::Admin::Report::DFT_REPORT_TYPE
 
@@ -221,12 +217,37 @@ class App
           @options.cpu_type = arg
         when '--category'
           @options.category = arg
+
         when '--reboot'
-          @options.reboot =  arg.empty? ? 'y' : (arg =~ /^y(es)$/i ? 'y'  : 'n')
+          # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
+          # otherwise must be /^y(es)$/i
+          if arg.emtpy? or arg =~ /^n(o)$/i
+            @options.reboot =  nil
+          elsif arg =~ /^y(es)$/i
+            @options.reboot =  "y"
+          else
+            raise ArgumentError, "--reboot must be 'y' or 'n'"
+          end
         when '--remove-first'
-          @options.remove_first =  arg.empty? ? 'y' : (arg =~ /^y(es)$/i ? 'y'  : 'n')
+          # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
+          # otherwise must be /^y(es)$/i
+          if arg.emtpy? or arg =~ /^n(o)$/i
+            @options.remove_first =  nil
+          elsif arg =~ /^y(es)$/i
+            @options.remove_first =  "y"
+          else
+            raise ArgumentError, "--remove-first must be 'y' or 'n'"
+          end
         when '--removable'
-          @options.removable =  arg.empty? ? 'y' : (arg =~ /^y(es)$/i ? 'y'  : 'n')
+          # dft is yes, so if arg is empty or /^y(es)$/i, it should be nil,
+          # otherwise must be  /^n(o)$/i
+          if arg.emtpy? or arg =~ /^y(es)$/i
+            @options.removable =  nil
+          elsif arg =~ /^n(o)$/i
+            @options.removable =  "n"
+          else
+            raise ArgumentError, "--removable must be 'y' or 'n'"
+          end
         when '--oses'
           @options.oses = arg
         when '--expiration'
@@ -452,6 +473,7 @@ class App
     if @options.walkthru
       changes_to_make = D3::Admin::Edit.loop_thru_editing_walkthru pkg
     else
+
       changes_to_make = D3::Admin::Edit.validate_cli_edits (@options)
     end # if @options.walkthru
 

@@ -83,8 +83,8 @@ Action add and edit:
   -g, --auto-groups <groups>         Computer groups to get this pkg automatically
   -G, --excluded-groups <groups>     Computer groups that can't see this pkg
   -x, --prohibiting-process <proc>   Process name that prevents installation
-  -R, --reboot                       Reboot required after install, puppies!
-  -F, --remove-first                 Uninstall older versions before installing
+  -R, --reboot <y/n>                 Reboot required after install, puppies!
+  -F, --remove-first <y/n>           Uninstall older versions before installing
   -u, --removable <y/n>              Can this package be uninstalled?
   -o, --oses <oses>                  OS limitations for installation.
   -c, --cpu <type>                   Limit installation to 'intel' or 'ppc'
@@ -300,16 +300,16 @@ Action add and edit:
                                        If a match is found at install time,
                                        prevents installation. Use "n" for 'none'
 
-  -R, --reboot                       Reboot is required after install,
-                                       shows puppies!
-                                       Default is to not require reboot
-
-  -F, --remove-first                 Uninstall older versions before installing
-                                       this one, if they are removable.
-                                       Default is to install over the top
+  -R, --reboot <y/n>                 Reboot is required after install.
+                                       (PuppyTime!)
+                                       Default is 'n'
 
   -u, --removable <y/n>              Can this package be uninstalled?
-                                       Default is y
+                                       Default is 'y'
+
+  -F, --remove-first  <y/n>          Uninstall older versions before installing
+                                       this one, if they are removable.
+                                       Default is 'n'  (installs over the top)
 
   -o, --oses <oses>                  Comma-separated list of OS version to allow
                                        installation of this package.

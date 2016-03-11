@@ -258,7 +258,7 @@ module D3
           :validate => :validate_yes_no
         },
         removable: {
-          :default => false,
+          :default => true,
           :cli => [ '--removable', '-u',  GetoptLong::OPTIONAL_ARGUMENT ],
           :label => "Uninstallable",
           :display_conversion => DISPLAY_TRUE_FALSE,
