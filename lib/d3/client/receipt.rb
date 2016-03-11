@@ -1076,13 +1076,9 @@ Last brought to foreground: #{last_usage_display}
         now = Time.now
 
         # if it's in the foreground right now, return [now, 0]
-        # TODO: do this without shelling out to osascript
-        osa_cmd = 'tell application "System Events" to get POSIX path of application file of every process whose frontmost is true'
-        current_foreground_app = `/usr/bin/osascript -e '#{osa_cmd}'`.chomp
-
-        # did osascript give us real data?
-        if $?.exitstatus == 0 and current_foreground_app.start_with? "/"
-          now_in_forground = current_foreground_app.start_with? @expiration_path.to_s.chomp('/')
+        fgnd_path = D3::Client.foreground_executable_path
+        if fgnd_path
+          now_in_forground = (fgnd_path.to_s ==  @expiration_path.to_s.chomp('/'))
         else
           now_in_forground = nil
         end
@@ -1128,9 +1124,9 @@ Last brought to foreground: #{last_usage_display}
           @last_usage ||= @installed_at
 
           @last_usage_as_of = now
-          
+
           update
-          
+
         end # if JSS.superuser?
         return @last_usage
 
