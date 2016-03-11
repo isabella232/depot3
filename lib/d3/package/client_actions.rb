@@ -221,7 +221,7 @@ module D3
               D3.log "Post_install script for #{edition} failed, exit status: #{post_install_status}", :error
               raise D3::ScriptError, "Post_install script for #{edition} failed, exit status: #{post_install_status}"
             end
-            D3.log "Installed #{edition} (#{@status})#{@using_force}", :info
+            D3.log "Done installing #{edition}#{@using_force}", :warn
 
           else #  bad install
             raise D3::InstallError, "There was a problem installing #{edition}, 'jamf install' failed"
