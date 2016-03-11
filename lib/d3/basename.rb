@@ -198,13 +198,6 @@ module D3
       @status == :deprecated
     end
 
-    ### Is the status :skipped?
-    ###
-    ### @return [Boolean]
-    ###
-    def skipped?
-      @status == :deprecated
-    end
 
     ### Is the status :missing?
     ###
