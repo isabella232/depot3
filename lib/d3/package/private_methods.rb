@@ -179,15 +179,7 @@ module D3
 
       # gather the ids of all scripts used by all policies
       # this is a hash of arrays  pol_name => [id,id,id]
-      policy_scripts = {}
-      JSS::Policy.all_ids.each do |polid|
-        begin
-          pol = JSS::Policy.new(id: polid)
-        rescue JSS::NoSuchItemError
-          next
-        end
-        policy_scripts[pol.name] =  pol.scripts.map{|s| s[:id]}
-      end
+      policy_scripts = D3.policy_scripts
 
       script_deletion_actions = []
 
@@ -228,6 +220,8 @@ module D3
       return script_deletion_actions
 
     end # delete_scripts
+
+
 
   end # class Package
 end # module D3

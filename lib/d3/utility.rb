@@ -113,6 +113,25 @@ module D3
     end
   end #run policy
 
+  ### Get the ids of all scripts used by all policies
+  ### This is a hash of PolicyName => Array of Script id's
+  ### @return [Hash{String => Array<Integer>}]
+  ###
+  def self.policy_scripts
+    qry = <<-ENDQ
+    SELECT p.name, GROUP_CONCAT(ps.script_id) AS script_ids
+    FROM policies p
+    JOIN policy_scripts ps
+      ON p.policy_id = ps.policy_id
+    GROUP BY p.policy_id
+    ENDQ
+    res = JSS::DB_CNX.db.query qry
+    p_scripts = {}
+    res.each{|r| p_scripts[r[0]] = r[1].split(/,\s*/).map{|id| id.to_i}  }
+    p_scripts
+  end
+
+
   ### Generate a report of columned data, either fixed-width or tab-delimited.
   ### The title line(s) are pre-pended with '# ' for easier exclusion when using
   ### the report as input for some other program. If the :type is :fixed, so
