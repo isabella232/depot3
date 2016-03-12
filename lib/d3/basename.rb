@@ -79,17 +79,6 @@ module D3
       :deleted
     ]
 
-#     STATUSES =  {
-#       :unsaved => 0,
-#       :pilot => 1,
-#       :live => 2,
-#       :deprecated => 3,
-#       :skipped => 4,
-#       :missing => 5,
-#       :deleted => 6
-#     }
-
-
     ################# Attributes #################
 
     ### @return [String] the basname of the thing installed
@@ -118,12 +107,11 @@ module D3
     ###   installed or uninstalled
     attr_reader :prohibiting_process
 
-    # @return [nil,Integer] This package auto-uninstalls after this many days without launching.
+    # @return [nil,Integer] The number of days of disuse before an expiring package is uninstalled
     #  nil or zero mean don't expire ever
     attr_reader :expiration
 
-    # @return [String] the path to the app that needs to be launched to prevent expiration
-    #  e.g. "/Applications/Adobe After Effects CC 2014/Adobe After Effects CC 2014.app"
+    # @return [String] the path to the executable that needs come to the foreground to prevent expiration
     attr_reader :expiration_path
 
 

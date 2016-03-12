@@ -37,6 +37,8 @@ module D3
     ### for more human-usable code.
     ###
 
+    ### See also, the attributes mixed in from D3::Basename
+
     ### @return [Array<Hash>] the apple receipt data for the items installed by this pkg.
     ###   When .[m]pkgs are installed, their identifiers and metadata are recorded in the OS's receipts database
     ###   and are accessible via the pkgutil command. (e.g. pkgutil --pkg-info com.company.application). Storing it
@@ -85,13 +87,6 @@ module D3
 
     ### @return [Integer,nil] the JSS::Script id of the post-remove script, if any
     attr_reader :post_remove_script_id
-
-    ### @return [Integer] the days of no-launch before this pkg it expired
-    attr_reader :expiration
-
-    ### @return [String] the full path to the application that must be launched
-    ###   within @expiration days to prevent silent removal
-    attr_reader :expiration_path
 
     ### @return [Boolean] does this pkg exist in the d3 pkg table?
     attr_reader :in_d3
