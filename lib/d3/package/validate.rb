@@ -37,7 +37,8 @@ module D3
     ###
     def check_for_newer_version
       if D3::Client::Receipt.basenames.include? @basename and D3::Client::Receipt.all[@basename].id >= @id
-          raise D3::InstallError, "The installed #{@basename} (#{D3::Client::Receipt.all[@basename].edition}) is the same or newer. \nUse --force to re-install."
+          rcpt = D3::Client::Receipt.all[@basename]
+          raise D3::InstallError, "Sorry, #{rcpt.edition} (#{rcpt.status}) is installed and is the same or newer. \nUse --force if needed."
       end
     end # check for newer version
 
@@ -67,7 +68,7 @@ module D3
       excl_grps = D3::Client.computer_groups & @excluded_groups
       raise D3::InstallError,  "This machine is in these excluded groups for #{self.edition}: #{excl_grps.join ', '}.\nUse --force to install anyway." unless excl_grps.empty?
     end # check for exclusions
-    
+
     ### Check if this machine is OK wrt to the os limitations
     ### Raise an exception if not
     ###
@@ -77,7 +78,7 @@ module D3
        my_os = `/usr/bin/sw_vers -productVersion`.chomp
        raise D3::InstallError,  "This machine doesn't have the correct OS to install #{self.edition}." unless JSS.os_ok?  @os_requirements, my_os
     end
-    
+
     ### Check if this machine is OK wrt to the processor limitations
     ### Raise an exception if not
     ###
@@ -87,7 +88,7 @@ module D3
        my_cpu = `/usr/bin/uname -p`.chomp
        raise D3::InstallError,  "This machine doesn't have the correct OS to install #{self.edition}." unless  JSS.processor_ok?  @required_processor, my_cpu
     end
-    
+
 
     ### Raise an exception if this is pkg is live
     ### (used when installing pilots)
