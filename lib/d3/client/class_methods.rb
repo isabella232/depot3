@@ -718,7 +718,9 @@ module D3
     end # basename in puppy queue
 
 
-    ### get the executable path of the current foreground GUI app
+    ### get the executable path of the current foreground GUI app. NOTE, if you
+    ### have fast user switching on, or multi-user screensharing,
+    ### this only gets the one currenly using the physical console
     ###
     ### @return [Pathname] the path to the executable of the current foreground app
     ###
