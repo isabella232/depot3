@@ -52,7 +52,7 @@ require 'd3'
 ######################
 class App
 
-
+  VERSION = "3.0.0"
 
   ### Setup
   def initialize

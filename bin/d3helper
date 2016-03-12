@@ -52,6 +52,8 @@ class App
   ############################################
   ### Constants - paths, settings, and other values used throughout
 
+  VERSION = "3.0.0"
+
   ACTIONS = {
     "--display-puppy-notification" =>  :display_puppy_notification,
     "--rcpts-for-ea" => :rcpts_for_ea,
