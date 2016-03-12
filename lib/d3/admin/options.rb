@@ -295,7 +295,7 @@ module D3
         excluded_groups: {
           :default => nil,
           :cli => [ '--excluded-groups', '-G', GetoptLong::REQUIRED_ARGUMENT ],
-          :label => "Not installed for groups",
+          :label => "Excluded for groups",
           :display_conversion => DISPLAY_COMMA_SEP_LIST,
           :get => :get_excluded_groups,
           :validate => :validate_excluded_groups,
