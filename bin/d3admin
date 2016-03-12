@@ -461,9 +461,9 @@ class App
   ###
   ### @return [void]
   ###
-  def edit_package
+  def edit_package (pkg=nil)
 
-    pkg = get_pkg_from_cli_or_prompt
+    pkg ||= get_pkg_from_cli_or_prompt
 
     if pkg.nil?
       puts "No targets given to edit or no matching package found"

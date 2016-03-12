@@ -83,11 +83,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
       # we might be importing an existing JSS pkg to d3, which
       # means we need to create the d3 record, but the JSS record needs updating
-      if @import
-        create
-        super
-        return @id
-      end
+      create if @import and (not @in_d3)
 
       # update the JSS first, if needed
       super
@@ -360,16 +356,16 @@ INSERT INTO #{P_TABLE[:table_name]} (
     ###    (empty if delete_scripts is false)
     ###
     def delete (keep_in_jss: false, delete_scripts: false, admin: @admin, rwpw: nil)
-      
+
       unless keep_in_jss
         # raise an exception if any polcies are using this pkg.
         pols = policy_ids
         unless pols.empty?
           names = pols.map{|pid| JSS::Policy.map_all_ids_to(:name)[pid]}.join(', ')
-          raise JSS::UnsupportedError, "Can't delete package from JSS, used by these policies: #{names} " 
+          raise JSS::UnsupportedError, "Can't delete package from JSS, used by these policies: #{names} "
         end # unless pols.empty
       end # unles keep in jss
-      
+
       # use @ admin if its defined and needed
       admin ||= @admin
 
