@@ -64,7 +64,7 @@ class App
   # Set up
   def initialize(args)
 
-    D3::Client.connect
+    @show_version = (args.include? "--version") || (args.include? "-v")
 
     # debugging?
     if args.include? "--debug"
@@ -111,6 +111,12 @@ class App
 
   ### walk them puppies!
   def run
+
+    if @show_version
+      show_version
+      return
+    end
+
     D3.log "Starting PuppyTime", :warn
 
     # show the  opt-out window
@@ -139,6 +145,8 @@ class App
       D3.log "User cancelled puppytime.", :warn
       return true
     end
+
+    D3::Client.connect
 
     # start the slideshow
     # this sets up @write_to_slideshow as our end of the pipe to
@@ -170,6 +178,15 @@ class App
     do_reboot
 
   end # run
+
+
+  def show_version
+    puts <<-ENDVERS
+puppytime version: #{VERSION}
+D3 module version: #{D3::VERSION}
+JSS module version: #{JSS::VERSION}
+ENDVERS
+  end
 
   ### Update the slideshow with a new message
   ###

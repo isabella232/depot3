@@ -59,7 +59,8 @@ class App
     "--rcpts-for-ea" => :rcpts_for_ea,
     "--puppyq-for-ea" => :puppyq_for_ea,
     "--config" => :configure,
-    "--help" => :help
+    "--help" => :help,
+    "--version" => :show_version
   }
 
   USAGE = "#{File.basename(__FILE__)} [--help] [action]\nwhere action is one of: #{ACTIONS.keys.join(', ')}"
@@ -80,12 +81,15 @@ class App
       [ '--display-puppy-notification', GetoptLong::NO_ARGUMENT ],
       [ '--rcpts-for-ea', GetoptLong::NO_ARGUMENT ],
       [ '--puppyq-for-ea', GetoptLong::NO_ARGUMENT ],
+      [ '--version', '-v', GetoptLong::NO_ARGUMENT ],
       [ '--configure', GetoptLong::NO_ARGUMENT ]
     )
 
    opts.each do |opt, arg|
       case opt
       when '--help'
+        @action = ACTIONS[opt]
+      when '--version'
         @action = ACTIONS[opt]
       when '--debug'
         @debug = true
@@ -111,8 +115,8 @@ class App
   ############################################
   ### Run
   def run
-    if @action == :help
-      help
+    if @action == :help or @action == :show_version
+      self.send @action
       return
     end
 
@@ -147,6 +151,14 @@ USAGEBLURB
 
   end # show_help
 
+
+  def show_version
+    puts <<-ENDVERS
+d3helper version: #{VERSION}
+D3 module version: #{D3::VERSION}
+JSS module version: #{JSS::VERSION}
+ENDVERS
+  end
 
   ###
   def display_puppy_notification

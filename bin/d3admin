@@ -160,6 +160,14 @@ class App
           @action = "help"
           @options.helptype = :extended_help
           return
+        when '--debug'
+          D3::Admin.debug = true
+
+        when '--d3-version'
+          @action = "help"
+          @options.helptype = :show_d3_version
+          return
+
         when '--walkthru'
           @options.walkthru = true
         when '--auto-confirm'
@@ -265,8 +273,7 @@ class App
         when '--type'
           @options.report_type = arg
 
-        when '--debug'
-          D3::Admin.debug = true
+
       end # case
     end # opts.each
 
@@ -296,9 +303,28 @@ class App
   ### @return [void]
   ###
   def show_help (type)
-    text = type == :help ?  D3::Admin::Help.help_text :  D3::Admin::Help.extended_help_text
+    text = case type
+           when :help
+            D3::Admin::Help.help_text
+           when :extended_help
+             D3::Admin::Help.extended_help_text
+           when :show_d3_version
+             d3_version_text
+           end
     D3.less_text text
+    return true
   end #show help
+
+  ### the d3 version text to spew
+  ###
+  ### @return [String] the text
+  def d3_version_text
+  <<-ENDVERS
+d3admin version: #{VERSION}
+D3 module version: #{D3::VERSION}
+JSS module version: #{JSS::VERSION}
+ENDVERS
+  end
 
   ### Add a new pilot package from an existing
   ### JSS package

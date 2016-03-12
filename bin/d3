@@ -286,7 +286,7 @@ class App
   ### Show the current d3 version
   def show_version
     puts <<-ENDVERS
-d3 command version: #{VERSION}
+d3 version: #{VERSION}
 D3 module version: #{D3::VERSION}
 JSS module version: #{JSS::VERSION}
 ENDVERS

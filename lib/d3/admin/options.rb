@@ -412,6 +412,14 @@ module D3
           :display_conversion => DISPLAY_TRUE_FALSE,
           :get => nil,
           :validate => :validate_yes_no
+        },
+        d3_version: {
+          :default => false,
+          :cli => [ '--d3-version', GetoptLong::NO_ARGUMENT ],
+          :label => "Display the version of d3admin and its libraries",
+          :display_conversion => DISPLAY_TRUE_FALSE,
+          :get => nil,
+          :validate => nil
         }
       }
 
