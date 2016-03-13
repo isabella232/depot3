@@ -183,7 +183,8 @@ class App
           @options.report_q = true
         when '--frozen'
           @options.report_frozen = true
-
+        when  '--computer'
+          @options.report_by = :computer
       # add/edit
         when '--import'
           @options.import = true
@@ -757,7 +758,7 @@ ENDDEETS
   ###
   def show_report
     D3::Admin::Report.connect_for_reports
-    report_by = :search
+    @options.report_by ||= :search
 
     # targets are basenames or computer names
 
@@ -772,10 +773,10 @@ ENDDEETS
           required: false
         )
         if one_or_all == "all"
-          report_by = :basename
+          @options.report_by = :basename
           @targets = [(D3::Admin::Interactive.get_value :get_basename, nil, :validate_basename)]
         else
-          report_by = :computer
+          @options.report_by = :computer
           computer_id = D3::Admin::Interactive.get_value :get_computer, nil, :validate_computer
           @targets = [JSS::Computer.map_all_ids_to(:name)[computer_id]]
         end
@@ -813,13 +814,13 @@ ENDDEETS
 
       # do we know if the target is a basename or computer?
       # If not, look for a basename first
-      if report_by == :search
-        report_by = D3::Package.all_basenames.include?(target) ? :basename : :computer
+      if @options.report_by == :search
+        @options.report_by = D3::Package.all_basenames.include?(target) ? :basename : :computer
       end
 
       # report puppies
       if reporting == :puppies
-        if report_by == :computer
+        if @options.report_by == :computer
           D3::Admin::Report.report_single_puppy_queue target, @options.status
         else
           D3::Admin::Report.report_puppy_queues target, @options.status
@@ -827,7 +828,7 @@ ENDDEETS
 
       # report receipts
       else
-        if report_by == :computer
+        if @options.report_by == :computer
           D3::Admin::Report.report_single_computer_receipts target, @options.status
         else
           D3::Admin::Report.report_basename_receipts target, @options.status

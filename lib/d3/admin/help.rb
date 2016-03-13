@@ -104,6 +104,7 @@ Action report:
   -S, --status <status>              Limit receipt list to this status
   -z, --frozen                       Limit receipt list to frozen receipts
   -q, --queue                        List puppy queue items rather than rcpts
+  --computer                         Target is a computer name, ignore basenames
 
 
 ENDHELP
@@ -373,6 +374,8 @@ Action report:
   -q, --queue                        Report computer puppy queues rather than
                                        receipts.
 
+  --computer                         The target of the report is a computer name
+                                        so don't look for matching basenames
 
 
 ENDHELP
