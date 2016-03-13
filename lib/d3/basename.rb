@@ -79,6 +79,15 @@ module D3
       :deleted
     ]
 
+    ### When filtering lists of pkgs/rcpts, unsaved and deleted are meaningless, so use this list
+    STATUSES_FOR_FILTERS =  [
+      :pilot,
+      :live,
+      :deprecated,
+      :skipped,
+      :missing
+    ]
+
     ################# Attributes #################
 
     ### @return [String] the basname of the thing installed

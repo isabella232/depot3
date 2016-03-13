@@ -27,7 +27,7 @@ module D3
   module Admin
 
       # all the available actions
-      ACTIONS = %w{  add  edit  live  delete  info  show  report  config  help }
+      ACTIONS = %w{  add  edit  live  delete  info  search  report  config  help }
 
       # these actions write to the server and
       # need a legit admin, not one
@@ -174,7 +174,7 @@ module D3
         },
         package_build_type: {
           :default => DFT_PKG_TYPE,
-          :cli => [ '--dmg', '-D', GetoptLong::NO_ARGUMENT ],
+          :cli => [ '--dmg', GetoptLong::NO_ARGUMENT ],
           :label => "Package build type",
           :display_conversion => DISPLAY_PKG_TYPE,
           :get => :get_package_build_type,
@@ -251,7 +251,7 @@ module D3
         },
         reboot: {
           :default => false,
-          :cli => [ '--reboot', '-R', '--puppies', GetoptLong::OPTIONAL_ARGUMENT ],
+          :cli => [ '--reboot', '-R', GetoptLong::OPTIONAL_ARGUMENT ],
           :label => "Needs Reboot",
           :display_conversion => DISPLAY_TRUE_FALSE,
           :get => :get_reboot,
@@ -349,7 +349,7 @@ module D3
         },
         expiration_path: {
           :default => nil,
-          :cli => [ '--expiration-path', GetoptLong::REQUIRED_ARGUMENT ],
+          :cli => [ '--expiration-path', '-P', GetoptLong::REQUIRED_ARGUMENT ],
           :label=> "Expration Path",
           :display_conversion => DISPLAY_DFT_NONE,
           :get => :get_expiration_path,
@@ -366,24 +366,32 @@ module D3
           :validate => nil
         },
 
-        # Show
-        scoped_groups: {
+        # Search and Report
+        status: {
           :default => nil,
-          :cli => [ '--scoped-groups','-S', GetoptLong::REQUIRED_ARGUMENT ],
-          :label => "Scoped groups to list",
+          :cli => [ '--status', '-S', GetoptLong::REQUIRED_ARGUMENT ],
+          :label => "Status for search and report",
           :display_conversion => DISPLAY_LIST_TYPE,
           :get => :get_scoped_groups,
           :validate => :validate_scoped_groups
         },
 
-        # Report
-        report_type: {
+        frozen: {
           :default => nil,
-          :cli => [ '--type', GetoptLong::REQUIRED_ARGUMENT ],
-          :label => "Generate report type",
-          :display_conversion => DISPLAY_COMMA_SEP_LIST,
-          :get => :get_report_type,
-          :validate => :validate_report_type
+          :cli => [ '--frozen', '-z', GetoptLong::NO_ARGUMENT ],
+          :label => "Report frozen receipts",
+          :display_conversion => DISPLAY_LIST_TYPE,
+          :get => :get_scoped_groups,
+          :validate => :validate_scoped_groups
+        },
+
+        queue: {
+          :default => nil,
+          :cli => [ '--queue', '-q', GetoptLong::NO_ARGUMENT ],
+          :label => "Report pending puppies rather than receipts",
+          :display_conversion => DISPLAY_LIST_TYPE,
+          :get => :get_scoped_groups,
+          :validate => :validate_scoped_groups
         },
 
         # Delete
@@ -407,7 +415,7 @@ module D3
         # debug
         debug: {
           :default => false,
-          :cli => [ '--debug', GetoptLong::NO_ARGUMENT ],
+          :cli => [ '--debug', '-D', GetoptLong::NO_ARGUMENT ],
           :label => "Be more verbose",
           :display_conversion => DISPLAY_TRUE_FALSE,
           :get => nil,

@@ -114,7 +114,7 @@ class App
         show_package_info
 
       when /^s/ then
-        show_list
+        search
 
       when /^r/ then
         show_report
@@ -142,7 +142,10 @@ class App
 
     # cli option defaults
     @options.helptype = :help
-    @options.report_type = D3::Admin::Report::DFT_REPORT_TYPE
+
+    # --status can be given multiple times, or can be a comma-separated list.
+    # the results end up in this array
+    @options.status = []
 
     ### see Admin::CLIOpts
     opt_arry = D3::Admin::OPTIONS.values.map{|o| o[:cli] }
@@ -173,9 +176,13 @@ class App
         when '--auto-confirm'
           @options.auto_confirm = true
 
-      # show
-        when '--scoped-groups'
-          @options.scoped_groups =  arg
+      # search and report
+        when '--status'
+          @options.status +=  arg.split(/,\s*/)
+        when '--queue'
+          @options.report_q = true
+        when '--frozen'
+          @options.report_frozen = true
 
       # add/edit
         when '--import'
@@ -268,11 +275,6 @@ class App
           @options.delete_scripts = 'y'
         when '--keep-in-jss'
           @options.keep_in_jss = 'y'
-
-     # reports
-        when '--type'
-          @options.report_type = arg
-
 
       end # case
     end # opts.each
@@ -697,80 +699,142 @@ ENDDEETS
     puts
   end # show_package_info
 
-  ### show a list of packages in d3
+  ### search for and print a list of packages in d3
   ###
   ### @return [void]
   ###
-  def show_list
+  def search
+    D3::Admin::Report.connect_for_reports
 
-
-    # figure out what kind of list to show
     if @options.walkthru
-      what_to_show = @targets.first ? @targets.first.to_sym : nil
-      what_to_show ||= D3::Admin::Interactive.get_value(:get_show_type, "all", :validate_show_type).to_sym
-    else
-      what_to_show = @targets.first ? @targets.first.to_sym : :all
+      @targets = [D3::Admin::Interactive.get_search_target] if @targets.empty?
+      @options.status = D3::Admin::Interactive.get_status_for_filter.split(/,\s*/) if @options.status.empty?
     end
 
-    # auto and excl lists - we need a scoped group list
-    if [:auto, :excluded ].include?(what_to_show)
-      if @options.walkthru
-        @options.scoped_groups = D3::Admin::Interactive.get_value(:scoped_groups)
-      else
-        #@options.scoped_groups = D3::Package::Validate.validate_groups  @options.scoped_groups
-      end
+    @options.status = [] if @options.status.include? "all"
 
-      if what_to_show == :auto
-        D3::Admin::Report.list_auto_installs(@options.scoped_groups)
-      else
-        D3::Admin::Report.list_excl_installs(@options.scoped_groups)
-      end
-
-    # pkg lists
-    else
-      D3::Admin::Report.show_list what_to_show
+    if @targets.empty? or @targets.include? "all"
+      D3::Admin::Report.list_packages nil, @options.status
+      return
     end
 
-  end # show_list
+    @targets.each do |search_target|
+      found_basenames = D3::Package.all_basenames.select{|bn| bn =~ /#{search_target}/}
+      if found_basenames.empty?
+        puts "No basenames in d3 match '#{search_target}'"
+      else
+        found_basenames.each {|fbn| D3::Admin::Report.list_packages fbn, @options.status }
+      end # if found_basenames.empty?
+
+     found_groups = JSS::ComputerGroup.all_names.select{|gn| gn =~ /#{search_target}/}
+      if found_groups.empty?
+        puts "No computer groups in Casper match '#{search_target}'"
+      else
+        found_groups.each {|fgn|
+          D3::Admin::Report.list_scoped_installs fgn, @options.status, :auto
+          D3::Admin::Report.list_scoped_installs fgn, @options.status, :excluded
+        } # found_groups.each
+      end # if found_groups.empty?
+    end # @targets.each do |search_target|
+  end # def search
+
+
+
+  def show_scoping_list (group)
+    D3::Admin::Report.list_auto_installs group
+    D3::Admin::Report.list_excl_installs group
+  end
+
+  def show_package_list (basename, statuses)
+
+      D3::Admin::Report.show_list basename, @options.status
+
+  end # show_package_list
 
   ### show a report
   ###
   ### @return [void]
   ###
   def show_report
+    D3::Admin::Report.connect_for_reports
+    report_by = :search
 
-    # the option settings for report_type
-    opt_settings = D3::Admin::OPTIONS[:report_type]
+    # targets are basenames or computer names
 
     if @options.walkthru
-      @options.report_type = D3::Admin::Interactive.get_value(opt_settings[:get], @options.report_type, opt_settings[:validate])
+
+      # prompt for target?
       if @targets.empty?
-        if @options.report_type == "receipts"
+        one_or_all = D3::Admin::Interactive.prompt_for_data(
+          desc: "ALL COMPUTERS?\nAre you reporting for a single computer or all computers?\nEnter 'all' for all computers, '1' for one",
+          prompt: "All or 1",
+          default: 'all',
+          required: false
+        )
+        if one_or_all == "all"
+          report_by = :basename
+          @targets = [(D3::Admin::Interactive.get_value :get_basename, nil, :validate_basename)]
+        else
+          report_by = :computer
           computer_id = D3::Admin::Interactive.get_value :get_computer, nil, :validate_computer
           @targets = [JSS::Computer.map_all_ids_to(:name)[computer_id]]
-        else
-          @targets = [(D3::Admin::Interactive.get_value :get_basename, nil, :validate_basename)]
-        end # if @options.report_type == "receipts"
-      end # if targets.empty
+        end
+      end # if targets empty
 
-    else # Not walkthru
-      D3::Admin::Validate.validate @options.report_type, opt_settings[:validate]
-    end # if walkthru
+      # prompt for rcpts or puppies
+      rcpts_or_pups = D3::Admin::Interactive.prompt_for_data(
+          desc: "RECEIPTS OR PUPPIES?\nShould the report list receipts or pending puppytime installs?\nEnter 'r' for receipts, 'p' for puppies",
+          prompt: "Receipts or puppies",
+          required: false,
+          default: 'r'
+      )
+      @options.report_q  =  rcpts_or_pups =~ /^p/i ?  true : false
+
+      # prompt for status or frozen
+      @options.status = D3::Admin::Interactive.get_status_for_filter(:with_frozen).split(/,\s*/) if @options.status.empty?
+
+    end #if @options.walkthru
+
+    @options.status = [] if @options.status.include? "all"
+
+    # pass the --frozen option with the --status options, since
+    # its treated like a pseudo-status, and thats where walkthru puts it too
+    @options.status << "frozen" if @options.report_frozen
+
+    reporting = @options.report_q ? :puppies : :receipts
+
 
     if @targets.empty?
-      puts "No targets given for report"
+      puts "No basename or computer name given for report"
       return
     end
 
-    case @options.report_type
-      when 'installed' then D3::Admin::Report.basename_installs @targets
-      when 'pilot' then D3::Admin::Report.pilot_installs @targets
-      when 'deprecated' then D3::Admin::Report.deprecated_installs @targets
-      when 'frozen' then D3::Admin::Report.frozen_installs @targets
-      when 'receipts' then D3::Admin::Report.client_receipts @targets
-      when 'puppies' then D3::Admin::Report.puppy_installs @targets
-      else puts "Unknown report type: #{@options.report_type}"
-    end # case
+    @targets.each do |target|
+
+      # do we know if the target is a basename or computer?
+      # If not, look for a basename first
+      if report_by == :search
+        report_by = D3::Package.all_basenames.include?(target) ? :basename : :computer
+      end
+
+      # report puppies
+      if reporting == :puppies
+        if report_by == :computer
+          D3::Admin::Report.report_single_puppy_queue target, @options.status
+        else
+          D3::Admin::Report.report_puppy_queues target, @options.status
+        end
+
+      # report receipts
+      else
+        if report_by == :computer
+          D3::Admin::Report.report_single_computer_receipts target, @options.status
+        else
+          D3::Admin::Report.report_basename_receipts target, @options.status
+        end
+      end # if reporting puppies
+
+    end # targets each
   end # show_report
 
   ### Run the config, saving hostnames, usernames and pws

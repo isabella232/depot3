@@ -258,7 +258,7 @@ Enter:
       def get_basename (default = nil)
         desc = <<-END_DESC
 BASENAME
-Enter a d3 basename for this package.
+Enter a basename.
 Enter 'v' to view a list of all basenames in d3 and
 the newest edition for each.
         END_DESC
@@ -605,20 +605,40 @@ Enter 'v' to view list of computer groups.
         get_groups desc, :excluded_groups, default
       end # get auto
 
-      ### Prompt the admin for one or more groups for showing scoped group lists
+      ### Prompt the admin for text to search for package searchs
       ###
-      ### @param type[String] auto or excluded - the kind of scoping for the group
+      ### @return [String] whatever the admin typed
       ###
-      def get_scoped_groups (type)
-        scoped = type == :auto ? 'auto-installed' : 'excluded'
+      def get_search_target (default = false)
         desc = <<-END_PROMPT
-COMPUTER GROUPS
-Enter a comma-separated list of JSS Computer Group names
-to use for showing the #{scoped} packages.
-Enter 'v' to view list of computer groups.
+SEARCH TEXT
+Enter text to use in matching basenames or computer group names.
+Matching a basename will list all packages with the basename.
+Matching a group name will list all packages auto-installed or
+excluded for the group. (RegExp's OK)
+Enter 'all' to list all packages in d3.
         END_PROMPT
-        get_groups desc, :scoped_groups, :no_default
+        prompt_for_data( desc: desc, prompt: "Text to match or 'all'").chomp
       end # get auto
+
+
+      def get_status_for_filter (with_frozen = false)
+        if with_frozen
+          frozen_line = "\nUse 'frozen' to limit to frozen receipts"
+          frozen_title = " OR FROZEN"
+        else
+          frozen_line = ""
+          frozen_title = ""
+        end
+
+        desc = <<-END_PROMPT
+LIMIT TO STATUS#{frozen_title}
+Enter a comma-separate list of statuses for limiting the list.
+Valid Statuses are: #{D3::Basename::STATUSES_FOR_FILTERS.join(", ")}#{frozen_line}
+Enter 'all' to show all statuses
+        END_PROMPT
+        prompt_for_data( desc: desc, prompt: "Statuses", default: 'all').chomp
+      end
 
       ### Prompt the admin for one or more groups
       ###
@@ -866,35 +886,13 @@ END_DESC
         prompt_for_data(desc: desc, prompt: "Show packages", default: default, required: true)
       end
 
-      ### what kind of client report are we generating?
-      ###
-      ### @param default[String] the default answer when user hits return
-      ###
-      ### @return [String] the chosen report type
-      ###
-      def get_report_type (default = D3::Admin::Report::DFT_REPORT_TYPE)
-        desc = <<-END_DESC
-CLIENT COMPUTER REPORT TYPE
-Enter the type of report you'd like to generate about
-d3 client computers.
-One of:
-  installed  - computers with any edition of the target basename
-  pilot      - computers piloting the target basename
-  deprecated - computers with old editions of the target basename
-  frozen     - computers where the target basename is frozen
-  puppies    - computers where the target is in the puppy (logout) queue
-  receipts   - all d3 packages installed on target computer
-END_DESC
-        prompt_for_data(desc: desc, prompt: "Report type", default: default, required: true)
-      end
-
       ### What computer are we generating a receipt report for?
       ###
       ### @return [String] A computer name in the JSS
       ###
-      def get_computer
+      def get_computer (default = nil)
                 desc = <<-END_DESC
-JSS COMPUTER NAME
+COMPUTER NAME
 Enter the name of a computer Casper.
 Enter 'v' to view a list available computer names.
 END_DESC

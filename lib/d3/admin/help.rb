@@ -30,7 +30,7 @@ module D3
     module Help
       extend self
 
-      USAGE = "Usage: d3admin action target(s) [options]"
+      USAGE = "Usage: d3admin action target [options]"
 
       ### Return the d3amin help text
       ###
@@ -41,16 +41,16 @@ module D3
 
 #{USAGE}
 
-=== Actions ===
+=== Actions <target> ===
 
   add <basename>                     Add a new pilot package
   edit <basename/edition>            Change properties of existing package
   live <edition>                     Make existing pilot package live
   delete <basename/edition>          Delete a package
   info <basename/edition>            Show details of an package
-  show [filter]                      Show a [filtered] list of packages
-  report <basename/edition/computer> Report client installs
-  config  [setting]                  Set up d3admin on this machine
+  search <basename/group>            List matching pkgs on the server
+  report <basename/computer>         Report about receipts on computers
+  config <setting>                   Set up d3admin on this machine
   help                               Show this help.
 
 === Options ===
@@ -60,13 +60,14 @@ General:
   -a, --auto-confirm                 Don't ask for confirmation before acting
   -h, --help                         Show this help text
   -H, --extended-help                Show extended help
+  -D, --debug                        Show debug info and ruby backtraces
 
 Action add:
   -i, --import <name or id>          Import an existing JSS package
   -W, --workspace <path>             Folder in which to build .dmgs & .pkgs
   -I, --no-inherit                   Don't inherit values from last package
   -s, --source-path <path>           Path to a .pkg, .dmg, or root-folder
-  -D, --dmg                          Build a .dmg, rather than a .pkg
+  --dmg                              Build a .dmg, rather than a .pkg
   --preserve-owners                  Keep the ownership of contents in built .pkgs
   -p, --pkg-id <pkgid>               Apple pkg-identifier for built .pkgs
 
@@ -74,7 +75,7 @@ Action add and edit:
   -v, --version <version>            Version of the thing installed
   -r, --revision <revision>          Sequential packaging of the same version
   -n, --package-name <name>          The JSS 'display name' of the package
-  -f, --filename                     The filename on the distribution point
+  -f, --filename <name>              The filename on the distribution point
   -d, --description <desc>           A textual description of this package
   -e, --pre-install <script>         Name, id, or path to pre-install script
   -t, --post-install <script>        Name, id, or path to post-install script
@@ -89,20 +90,21 @@ Action add and edit:
   -o, --oses <oses>                  OS limitations for installation.
   -c, --cpu <type>                   Limit installation to 'intel' or 'ppc'
   -C, --category <category>          The JSS Category for this package
-  -X, --expiration <days>            Auto-uninstalls after no use in <days>
-   --expiration-path <Path>          Path to executable that must be used
+  -X, --expiration <days>            Auto-uninstall if unused for <days>
+  -P, --expiration-path <path>       Path to executable that must be used
 
 Action delete:
   --delete-scripts                   Delete scripts associated with this pkg
   --keep-in-jss                      Delete from d3 but leave in the JSS
 
-Action show:
-  -S, --scoped-groups                Groups to show with 'auto' or 'excluded'
+Action search or report:
+  -S, --status <status>              Limit package list to this status
 
 Action report:
-  --type <report type>               Report type: installed, pilot,
-                                        deprecated, frozen, puppies,
-                                        receipts
+  -S, --status <status>              Limit receipt list to this status
+  -z, --frozen                       Limit receipt list to frozen receipts
+  -q, --queue                        List puppy queue items rather than rcpts
+
 
 ENDHELP
       end # help text
@@ -124,69 +126,76 @@ For detailed documentation see:
 
 Important Terms:
 
-- basename:   A word used to identify all packages that install any version of the
-              same thing. E.g. 'filemaker' or 'transmogrifier' When a basename is
-              used to specify a package, it refers to the currently live package for
-              the basename. (see below)
+- basename:   A word used to identify all packages that install any version of
+              the same thing. E.g. 'filemaker' or 'transmogrifier' When a
+              basename is used to specify a package, it refers to the currently
+              live package for the basename. (see below)
 
-- edition:    A unique identifier for a package in d3 made of the package's
-              basename, version, and revision, joined by dashes.
-              E.g. 'transmogrifier-2.2.1-2' Editions are used to specify
-              individual packages regardless of their status.
+- edition:    A unique identifier for a package or receipt in d3. It is made of
+              the basename, version, and revision, joined by dashes.
+              E.g. 'transmogrifier-2.2.1-2'
+              Editions specify individual packages regardless of their status.
 
-- live:       The edition of a basename that is currently released for installation.
-              Each basename can have only one live edition at a time, and this
-              is the edition that is installed with 'd3 install <basename>'.
-              Editions in the basename that are older than the live one are
-              'deprecated' or 'skipped'. Newer editions are in 'pilot' and
-              can be installed on specific machines for testing before being
-              made 'live'.
+- live:       Each edition has a status: pilot, live, skipped, deprecated, or
+              missing. Only one edition per basename can be 'live' a a time.
+              When an edition is made live, it's approved for general deployment
+              and is the edition installed with 'd3 install <basename>'. It will
+              also auto-install on computers in the packages auto-groups, and it
+              will auto-update on any computers with older editions of the same
+              basename already installed.
 
-- walkthru:   Any action can take the -w/--walkthru option and you'll be prompted
-              for targets and options. Otherwise, default values are used when
-              applicable, or errors are raised.
-
-
-When the target of an action is a basename, the currently live edition of that
-basename is used. Editions specify individual packages regardless of status.
+- walkthru:   Any action can take the --walkthru option and you'll be prompted
+              for targets (if needed) and options.
+              Without --walkthru, you must provide all values with command-line
+              options. Anything not on the command-line will use a default or
+              inherited value, or cause an error if the option was required.
 
 #{USAGE}
 
+When refering to a package on the server, a basename imples the currently live
+edition for that basename. Refering to a package by edition specifies an
+individual package regardless of status.
+
+
 === Actions and their required targets & options ===
 
-  add          Add a new pilot package to d3
-                     Target = basename unless -w
-                     Without -w, requires -v, -r, & -s
+  add      Add a new pilot package to d3
+             Target = basename unless -w
+             Without -w, requires -v, -r, & -s
 
-  edit         Change properties of existing package in d3
-                     Target = basename or edition unless -w
+  edit     Change properties of existing package in d3
+             Target = basename or edition unless -w
 
-  live         Make existing pilot package live
-                     Target = edition unless -w
+  live     Make existing pilot package live
+             Target = edition unless -w
 
-  delete       Delete an existing package from d3
-                     Target = basename or edition unless -w
+  delete   Delete an existing package from d3
+             Target = basename or edition unless -w
 
-  info         Show details of an package in d3
-                     Target = basename or edition unless -w
+  info     Show details of an package in d3
+             Target = basename or edition unless -w
 
-  show         Show a list of packages in d3
-                     Target = all, pilot, live, skipped, deprecated,
-                     missing, auto, or excluded
-                     Defaults to all. auto and excluded require -S
+  search   Search for and list packages in d3.
+              Target = search text (RegExp matching)
+              No target = list all packages unless -w
 
-  report       Report what's installed on computers as of the last recon.
-                     Target = basename, or computer name unless -w
-                     --type can be: installed, pilot, deprecated,
-                     frozen, puppies or receipts.
-                     Defaults is installed.
+              If text matches any basenames, packages
+              for the basenames are listed
 
-  config       Set up server info and default values for d3admin.
-                     Target = all, jss, db, dist, workspace, pkg-id-prefix
-                     Defaults to all
-                     Runs 'all' automatically on first run.
+              If text machines any computer group names
+              packages scoped by the groups are listed
+              (auto-install or excluded)
 
-  help         Show this help. Use -H for extended help.
+
+  report   Report about d3 receipts or puppies on computers.
+             Target = basename, or computer name unless -w
+
+  config   Set up server info and default values for d3admin.
+             Target = all, jss, db, dist, workspace, pkg-id-prefix
+             Defaults to all
+             Runs 'all' automatically on first run.
+
+  help     Show this help. Use -H for extended help.
 
 
 
@@ -208,6 +217,10 @@ General:
 
   -H, --help                         Show this help text
 
+  -D, --debug                        Show LOTS of debugging info about whats
+                                       happening. If there's a Ruby error,
+                                       show the backtrace. Useful when reporting
+                                       problems.
 
 Action add:
 
@@ -225,7 +238,7 @@ Action add:
   -s, --source-path <path>             Path to a .pkg, .dmg, or root-folder
                                        from which to build one
 
-  -D, --dmg                          When building from a root folder, build
+  --dmg                          When building from a root folder, build
                                        a .dmg, rather than the default .pkg
 
   --preserve-owners                  When building .pkgs, keep the ownership of
@@ -329,9 +342,9 @@ Action add and edit:
                                        and expiration must be allowed in the
                                        client config.
 
-   --expiration-path <Path>          The path to the app the must be used within
-                                       the expiration period to avoid being
-                                       uninstalled
+  -P, --expiration-path <path>       The path to the executable the must be used
+                                       within the expiration period to avoid
+                                       being uninstalled
 
 Action delete:
 
@@ -343,27 +356,24 @@ Action delete:
                                        it from d3
 
 
-Action show:
+Action search:
 
-  -S, --scoped-groups                When using 'auto' or 'excluded' with the
-                                       'show' action, one or more JSS computer
-                                       groups (comma-separated) to report on.
+  -S, --status <status>              Limit the packages listed to those with
+                                       the given status. Can be used multiple
+                                       times to see multiple statuses.
 
 Action report:
 
-  --type <report type>               The type of report to generate about the
-                                     basename or computer given. Defaults to
-                                     'installed, but can be:
-                                       installed  - computers with any edition of
-                                                    the basename(s)
-                                       pilot      - computers piloting the basename(s)
-                                       deprecated - computers with old editions
-                                                    of the basename(s)
-                                       frozen     - computers with the basename(s)
-                                                    frozen
-                                       puppies    - computes with the basename(s)
-                                                    in the puppy queue
-                                       receipts  -  all d3 receipts on the computer
+  -S, --status <status>              Limit the receipts listed to those with
+                                       the given status. Can be used multiple
+                                       times to see multiple statuses.
+
+  -z, --frozen                       Limit the receipts listed to frozen ones.
+
+  -q, --queue                        Report computer puppy queues rather than
+                                       receipts.
+
+
 
 ENDHELP
       end # extended help text

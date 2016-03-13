@@ -27,221 +27,302 @@ module D3
     module Report
       extend self
 
-      REPORT_TYPES = %w{pilot frozen deprecated installed puppies receipts}
-      DFT_REPORT_TYPE = "installed"
-
-      SHOW_TYPES = %w{all pilot live deprecated skipped missing auto excluded}
-      DFT_SHOW_TYPE = "all"
-
       ### TODO add report of last_usage for expirable rcpts
 
       ###### Reports for 'd3admin report'
 
-      ### Show a report of all computers with a given basename installed,
-      ### possibly limited to pilots or deprecated pkgs
+      ### Report on all computer receipts for a given basename
+      def report_basename_receipts (basename, statuses)
+
+        unless  D3::Package.all_basenames.include? basename
+          puts "# No basename '#{basename}' in d3"
+          return
+        end
+
+        # get the raw data
+        raw_data = computer_receipts_data
+        got_ea = D3::CONFIG.report_receipts_ext_attr_name
+        if raw_data.nil? or raw_data.empty?
+          puts "# No computers with receipts for '#{basename}'"
+          return
+        end
+
+        # json leaves status as a string
+        statuses = statuses.map{|s| s.to_s}
+        # this separates out the frozen filtering from the status filtering
+        # statuses are OR'd,  all of them are ANDd with frozen
+        # and lets us build meaningful header lines
+        filter_frozen = statuses.include? "frozen"
+        if filter_frozen
+          statuses.delete("frozen")
+          status_display = " frozen  #{statuses.join(" or ")}"
+        else
+          status_display = " #{statuses.join(" or ")}"
+        end
+
+        # set the title... reporting on which recipts?
+        title = "All computers with#{status_display} '#{basename}' receipts"
+
+        # set the header
+        if got_ea
+          header = %w{Computer User Edition Status As_of Frozen Installed By}
+        else
+          header =%w{Computer User Edition Status As_of }
+        end # case
+
+        lines= []
+
+        raw_data.each do |computer|
+          next unless computer
+
+          # skip computers without this basename
+          next unless computer[:rcpts] and computer[:rcpts].keys.include?(basename)
+
+          rcpt = computer[:rcpts][basename]
+
+           # if we were asked for frozen, skip rcpts not frozen
+          if filter_frozen
+            next unless rcpt[:frozen]
+          end
+
+          # if we were asked for certain statuses,
+          # skip rcpts without that status
+          unless statuses.empty?
+            next unless statuses.include?  rcpt[:status]
+          end
+
+          # build a line for this rcpt
+          rcpt_line = []
+          rcpt_line << computer[:computer]
+          rcpt_line << computer[:user]
+          rcpt_line << "#{basename}-#{rcpt[:version]}-#{rcpt[:revision]}"
+          rcpt_line << rcpt[:status]
+          rcpt_line << (computer[:as_of] ? computer[:as_of].strftime("%Y-%m-%d %H:%M:%S") : nil)
+
+          if got_ea
+             rcpt_line << rcpt[:frozen] ? "frozen"  : "-"
+             rcpt_line << (rcpt[:installed_at] ? rcpt[:installed_at].strftime("%Y-%m-%d %H:%M:%S") : nil)
+             rcpt_line << rcpt[:admin]
+          end #  if rcpt[:installed_at]
+
+          lines << rcpt_line
+        end # raw_data.each do |computer|
+
+        if lines.empty?
+          puts "# No#{status_display} receipts for '#{basename}' were found"
+        else
+          D3.less_text D3.generate_report(lines.sort_by{|c| c[0]}, header_row: header, title: title)
+        end # if lines emtpy?
+
+      end # report_basename_receipts (basename, statuses)
+
+      ### Show a report of all current d3 rcpts on a given computer
       ###
-      ### @param basename[Array<String>] the basenames to report on
+      ### @param computer[String] the name of the computer to report on
       ###
-      ### @param type[Symbol] the type of install to report, either :all,
-      ###   :pilot, :deprecated
+      ### @param statuses[Array] the statuses to report on, all if empty
       ###
       ### @return [void]
       ###
-      def report_installs (basenames, type = :all)
-        connect_for_reports
-        report_data, data_source = client_install_report_data
-        basenames.each do |basename|
+      def report_single_computer_receipts (computer_name, statuses)
 
-          unless  D3::Package.all_basenames.include? basename
-            puts "# No basename '#{basename}' in d3"
-            next
+        unless JSS::Computer.all_names.include? computer_name
+          puts "# No computer named '#{computer_name}' in Casper"
+          return
+        end
+
+        computer = JSS::Computer.new name: computer_name
+
+        ea_name = D3::CONFIG.report_receipts_ext_attr_name
+
+        # data from EA?
+        if ea_name
+           ea_data = computer.extension_attributes.select{|ea| ea[:name] == ea_name}.first[:value]
+          if ea_data.empty?
+            puts "No d3 receipts on computer '#{computer_name}'"
+            return false
+          elsif not ea_data.start_with?('{')
+            puts "The '#{ea_name}' extention attribute data for computer '#{computer_name}' is bad"
+            return false
+          end # if ea_data.empty?
+
+          rcpt_data = JSON.parse ea_data , :symbolize_names => true
+
+        # no EA, use casper rcpts
+        else
+          pkg_filenames_to_ids = D3::Package.all_filenames.invert
+          rcpt_data = {}
+          computer.software[:installed_by_casper].each do |jrcpt|
+            rcpt_id = pkg_filenames_to_ids[jrcpt]
+            # some might be zipped
+            rcpt_id ||= pkg_filenames_to_ids[jrcpt + ".zip"]
+
+            next unless rcpt_id
+            pkg_data = D3::Package.package_data[rcpt_id]
+            next unless pkg_data
+
+            rcpt_data[pkg_data[:basename]] = {:version =>pkg_data[:version], :revision => pkg_data[:revision], :status => pkg_data[:status]}
+          end #  computer.software[:installed_by_casper].each
+
+        end #  if ea_name ... else
+
+        # now rcpt_data is a hash of hashes {basename => { version, etc...} }
+
+        # start building the report
+
+        # title
+        last_recon = computer.last_recon.strftime("%Y-%m-%d %H:%M:%S")
+        title = "Receipts on '#{computer_name}' (user: #{computer.username}) as of #{last_recon}"
+
+        # header...
+        if ea_name
+          header =  %w{Edition Status As_of Frozen Installed By }
+        else
+          header =  %w{Edition Status As_of }
+        end # case
+
+        # json leaves status as a string
+        statuses = statuses.map{|s| s.to_s}
+        # this separates out the frozen filtering from the status filtering
+        # statuses are OR'd,  all of them are ANDd with frozen
+        # and lets us build meaningful header lines
+        filter_frozen = statuses.include? "frozen"
+        if filter_frozen
+          statuses.delete("frozen")
+          status_display = " frozen #{statuses.join(" or ")}"
+        else
+          status_display = " #{statuses.join(" or ")}"
+        end
+
+
+        lines = []
+        # sort by basename
+        rcpt_data.keys.sort.each do |basename|
+          rcpt = rcpt_data[basename]
+          # skip unwanted stati
+          unless statuses.empty?
+            next unless statuses.include? rcpt[:status]
           end
-
-          # what are we reporting
-          case type
-          when :all
-            title = "All machines with '#{basename}' installed"
-          when :pilot
-            title = "All machines piloting '#{basename}'"
-          when :frozen
-            if data_source != :ea
-              puts "Reports of frozen packages require a special Extension Attribute. Please see the d3 documentation"
-              return false
-            end
-            title = "All machines with '#{basename}' frozen"
-          when :deprecated
-            title = "All machines with a deprecated '#{basename}'"
-          end  # case type
-
-          # start building the report
-          if data_source == :ea
-            header = %w{Computer User Edition Status Installed By As_of }
-            title += " (^=frozen)" unless type == :frozen
-          else
-            header = %w{Computer User Edition Status As_of }
+          # skip thawed if needed
+          if filter_frozen
+            next unless rcpt[:frozen]
           end
-          lines = []
+          rcpt_line = []
+          rcpt_line << "#{basename}-#{rcpt[:version]}-#{rcpt[:revision]}"
+          rcpt_line << rcpt[:status]
+          rcpt_line << computer.last_recon.strftime("%Y-%m-%d %H:%M:%S")
+          if ea_name
+            rcpt_line << (rcpt[:frozen] ? "frozen"  : "-")
+            rcpt_line << Time.parse(rcpt[:installed_at]).strftime("%Y-%m-%d %H:%M:%S")
+            rcpt_line << rcpt[:admin]
+          end #  rcpt[:installed_at]
+          lines << rcpt_line
+        end # rcpt_data.keys.sort do |basename|
 
-          report_data.each do |computer_to_report|
-            this_rcpt = computer_to_report[:rcpts][basename]
-            # skip those without this basename
-            next unless this_rcpt
-            case type
-            when :pilot
-              next unless this_rcpt[:status] == :pilot
-            when :deprecated
-              next unless this_rcpt[:status] == :deprecated
-            when :frozen
-              next unless this_rcpt[:frozen]
-            end # case type
+        if lines.empty?
+          statuses<<("frozen") if filter_frozen
+          stati = statuses.empty? ? '' : " #{ statuses.join(' or ')}"
+          puts "# No#{stati} receipts on '#{computer_name}'"
+        else
+          D3.less_text D3.generate_report lines, header_row: header, title: title
+        end
+      end # report_single_computer_receipts
 
-            edition = "#{basename}-#{this_rcpt[:version]}-#{this_rcpt[:revision]}"
-            edition += "^" if this_rcpt[:frozen] and type != :frozen
-            as_of = computer_to_report[:as_of].strftime "%Y-%m-%d"
+      ### Report a basename in all computers' puppy queues
+      ###
+      ### @param basename[String]
+      ###
+      ### @param statuses[Array<String,Symbol>]
+      ###
+      ### @return [void]
+      ###
+      def report_puppy_queues (basename, statuses)
 
-            if data_source == :ea
-              installed_at = this_rcpt[:installed_at].strftime "%Y-%m-%d"
-              line = [computer_to_report[:computer], computer_to_report[:user], edition, this_rcpt[:status], installed_at, this_rcpt[:admin], as_of]
-            else
-              line = [computer_to_report[:computer], computer_to_report[:user], edition, this_rcpt[:status], as_of]
-            end
-            lines << line
-          end
-
-
-          if lines.empty?
-            puts "# No matching installs of '#{basename}' were found"
-          else
-            D3.less_text D3.generate_report lines, header_row: header, title: title
-          end # if lines emtpy?
-          puts  # blank line between, for readability
-
-        end # do basename
-      end # report_installs (basename)
-
-      def basename_installs (basenames)
-        self.report_installs basenames, :all
-      end # basename_installs
-
-      def pilot_installs (basenames)
-        basenames = D3::Package.pilot_data.values.map{|pp| pp[:basename]}.sort.uniq if basenames.include? "all"
-        self.report_installs basenames, :pilot
-      end # pilot installs
-
-      def deprecated_installs (basenames)
-        basenames = D3::Package.deprecated_data.values.map{|pp| pp[:basename]}.uniq.sort if basenames.include? "all"
-        self.report_installs basenames, :deprecated
-      end # deprecated_installs
-
-      def frozen_installs (basenames)
-        self.report_installs basenames, :frozen
-      end # frozen_installs
-
-      def puppy_installs (basenames)
-        connect_for_reports
-        report_data = Report.client_puppyq_report_data
+        report_data = Report.computer_puppyq_data
         unless report_data
           puts "Reports of pending puppies require a special Extension Attribute. Please see the d3 documentation"
           return false
         end
-        basenames.each do |basename|
 
-          title = "All machines with '#{basename}' in the puppy queue"
-          header = %w{Computer User Edition Status Queued By As_of}
-          lines = []
+        # json loads symbols as strings
+        statuses = statuses.map{|s| s.to_s}
+        status_display = " #{statuses.join(", ")}"
 
-          report_data.each do |computer_to_report|
-            this_pup = computer_to_report[:pups][basename]
-            next unless this_pup
-            edition = "#{basename}-#{this_pup[:version]}-#{this_pup[:revision]}"
-            qd_at = this_pup[:queued_at].strftime "%Y-%m-%d"
-            as_of = computer_to_report[:as_of].strftime "%Y-%m-%d"
-            lines << [computer_to_report[:computer], computer_to_report[:user], edition, this_pup[:status], qd_at, this_pup[:admin], as_of]
-          end # report_data.each do |computer_to_report|
-          if lines.empty?
-            puts "# No computers with '#{basename}' queued."
-          else
-            D3.less_text D3.generate_report lines, header_row: header, title: title
-          end # if lines emtpy?
-          puts  # blank line between, for readability
-        end # basenames.each do |basename|
+        title = "All computers with '#{basename}' in the puppy queue"
+        header = %w{Computer User Edition Status Queued By As-of}
+        lines = []
+
+        report_data.each do |computer_to_report|
+          this_pup = computer_to_report[:pups][basename]
+          # skip if we don't have this basename
+          next unless this_pup
+          # skip unwanted statuses
+          unless statuses.empty?
+            next unless statuses.include? this_pup[:status]
+          end
+          edition = "#{basename}-#{this_pup[:version]}-#{this_pup[:revision]}"
+          qd_at = Time.parse(this_pup[:queued_at]).strftime "%Y-%m-%d"
+          as_of = Time.parse(computer_to_report[:as_of]).strftime "%Y-%m-%d"
+          lines << [computer_to_report[:computer], computer_to_report[:user], edition, this_pup[:status], qd_at, this_pup[:admin], as_of]
+        end # report_data.each do |computer_to_report|
+        if lines.empty?
+          puts "# No computers with '#{basename}' queued."
+        else
+          D3.less_text D3.generate_report lines, header_row: header, title: title
+        end # if lines emtpy?
       end # ef puppy_installs (basenames)
 
-      ### Show a report of all current d3 rcpts on a given computer
+      ### Report a single computer's puppy queue
       ###
-      ### @param client[String] the name of the computer to report on
+      ### @param computer_name[String]
+      ###
+      ### @param statuses[Array<String,Symbol>]
       ###
       ### @return [void]
       ###
-      def client_receipts (clients)
-        connect_for_reports
-        clients.each do |client|
-          unless JSS::Computer.all_names.include? client
-            puts "# No computer named '#{client}' in the JSS"
-            next
-          end
+      def report_single_puppy_queue (computer_name, statuses)
+        ea_name =  D3::CONFIG.report_puppyq_ext_attr_name
 
-          computer = JSS::Computer.new name: client
-          rcpts = nil
-          full_rcpts = false
-          if D3::CONFIG.report_receipts_ext_attr_name
-            idx = computer.extension_attributes.index{|ea| ea[:name] == D3::CONFIG.report_receipts_ext_attr_name }
-            if idx
-              raw_rcpts = computer.extension_attributes[idx][:value]
-              if raw_rcpts.start_with? "---\n"
-                rcpts = YAML.load raw_rcpts
-                full_rcpts = true
-              end if raw_rcpts.start_with? "---\n"
-            end # if idx
-          end #  if D3::CONFIG.report_receipts_ext_attr_name
+        unless ea_name
+          puts "Reports of pending puppies require a special Extension Attribute. Please see the d3 documentation"
+          return false
+        end
 
-          # didn't get any rcpts from the ext attr, so use the JAMF rcpts on the client
-          # to match with d3 pkgs.
-          unless rcpts
-            rcpts = computer.software[:installed_by_casper].sort
-          end
+        unless JSS::Computer.all_names.include? computer_name
+          puts "No computer named '#{computer_name}' in Casper"
+          return false
+        end
 
-          lines = []
-          last_recon = computer.last_recon.strftime "%Y-%m-%d %H:%M:%S"
+        computer = JSS::Computer.new name: computer_name
+        ea_data = computer.extension_attributes.select{|ea| ea[:name] == ea_name}.first[:value]
+        if ea_data.empty?
+          puts "No puppies in the queue on computer '#{computer_name}'"
+          return false
+        elsif not ea_data.start_with?('{')
+          puts "The '#{ea_name}' extention attribute data for computer '#{computer_name}' is bad"
+          return false
+        end
 
-          # if full rcpts, via the ext attr, we have all rcpt data as of the last recon
-          if full_rcpts
-            title = "Packages installed on '#{client}' as of #{last_recon} (^=frozen)"
-            header = %w{Basename Edition Status Installed By}
+        title = "All items in the puppy queue on '#{computer_name}' (user: #{computer.username})"
+        header = %w{Edition Status Queued By As-of}
+        lines = []
+        ea_data =  JSON.parse ea_data, :symbolize_names => true
 
-            ordered_basenames = rcpts.keys.sort
+        # in json data, symbols became strings
+        statuses = statues.map{|s| s.to_s}
+        status_display = " #{statuses.join(", ")}"
 
-            ordered_basenames.each do |basename|
-              rcpt = rcpts[basename]
-              installed_at = rcpt.installed_at.strftime "%Y-%m-%d"
-              bname = basename
-              bname += "^" if  rcpt.frozen?
-              lines << [bname, rcpt.edition, rcpt.status, installed_at, rcpt.admin ]
-            end
+        ea_data.each do |basename,pup|
+          next unless statuses.include? pup[:status]
+          edition = "#{basename}-#{pup[:version]}-#{pup[:revision]}"
+          qa = Time.parse(pup[:queued_at]).strftime "%Y-%m-%d"
+          as_of = computer.last_recon.strftime s"%Y-%m-%d"
+          lines << [edition, pup[:status], qa, pup[:admin], as_of]
+        end
+        D3.less_text D3.generate_report lines, header_row: header, title: title
 
-          # otherwise we only know what jamf receipts are on the machine, no info
-          # about when it was installed or anyting like that.
-          else
-            title = "Packages installed on #{client} as of #{last_recon}"
-            header = %w{Basename Edition Status}
-            d3_filenames_to_ids = D3::Package.all_filenames.invert
-            rcpts.each do |rcpt|
-               id = d3_filenames_to_ids[rcpt]
-               id ||= d3_filenames_to_ids["#{rcpt}.zip"]
-               next unless id
-               d3_data = D3::Package.package_data[id]
-               next unless d3_data
-               lines << [d3_data[:basename], d3_data[:edition], d3_data[:status]]
-            end
-          end
+      end #report_single_puppy_queue (computer_name, statuses)
 
-          if lines.empty?
-            puts "# No d3 installs on '#{client}'"
-          else
-            D3.less_text D3.generate_report lines, header_row: header, title: title
-          end
-        end # each do client
-      end # def client_receipts (clients
 
       ###### Lists for d3admin walkthru
 
@@ -297,7 +378,6 @@ module D3
         D3.less_text D3.generate_report lines, header_row: header, title: "JSS Packages available for importing to d3"
       end
 
-
       ### Show a list of computers in the JSS, to select one for reporting
       ###
       ### @return [void]
@@ -308,7 +388,7 @@ module D3
         D3.less_text D3.generate_report lines, header_row: header, title: "Computers in the JSS"
       end
 
-      ###### Reports for 'd3admin show'
+      ###### Lists for 'd3admin search'
 
       ### Display a list of pkgs on the server
       ###
@@ -317,9 +397,10 @@ module D3
       ### @param ids[Array] an array of pkgs id's about which to
       ###   display info.
       ###
+      ### @param no_match_text[String] the text to display when there are no ids
       ### @return [void]
       ###
-      def display_list (title, ids, no_match_text = "No matchings packages in d3" )
+      def display_package_list (title, ids, no_match_text = "No matchings packages" )
         date_fmt = "%Y-%m-%d"
         header =  %w{ Edition Status Added By Released By }
         lines = []
@@ -332,35 +413,44 @@ module D3
           lines << [p[:edition], p[:status], date_added, p[:added_by], date_released, rel_by]
         end
 
-        puts
-
         if lines.empty?
           puts no_match_text
-          puts
+          puts # empty line between
           return
         end
         lines.sort_by! {|l| l[0]}
         D3.less_text D3.generate_report(lines, header_row: header, title: title)
         puts # empty line between
-      end # display list
+      end # display_package_list
 
-      ### Show a list of pkgs from the d3admin 'show' action
+      ### Show a list of pkgs from the d3admin 'search' action
       ###
-      ### @param what_to_show[Symbol] which kind of pkgs to show
+      ### @param basename[String] the basename of pkgs to show
+      ###
+      ### @param statuses[Array<String>] only show these statuses
       ###
       ### @return [void]
       ###
-      def show_list(what_to_show = :all)
-        what_to_show = :all if what_to_show.to_s.empty?
+      def list_packages (basename = nil , statuses = [])
+        pkg_data = D3::Package.package_data
 
-        if what_to_show == :all
-          display_list "All packages in d3", D3::Package.package_data.keys
+        if basename
+          title =  "All '#{basename}' packages in d3"
+          ids = pkg_data.values.select{|p| p[:basename] == basename }.map{|p| p[:id]}
         else
-          title = "All #{what_to_show} packages in d3"
-          ids = D3::Package.package_data.values.select{|p| p[:status] == what_to_show }.map{|p| p[:id]}
-          display_list title, ids, "No #{what_to_show} packages in d3"
+          title =  "All packages in d3"
+          ids = pkg_data.keys
+        end # if basename
+
+        unless statuses.empty?
+          title +=  " with status #{statuses.join(' or ')}"
+          statuses = statuses.map{|s| s.to_sym}
+          status_display = " #{statuses.join(", ")}"
+          ids = ids.select{|pid| statuses.include?  pkg_data[pid][:status] }
         end # if what_to_show == :all
-      end # def show_list(what_to_show = :all)s
+
+        display_package_list title, ids, "No matching packages"
+      end # def list_packages
 
       ### list packages that auto-install onto machines
       ### in one or more given groups
@@ -369,42 +459,30 @@ module D3
       ###
       ### @return [void]
       ###
-      def list_auto_installs(groups)
-        groups = JSS.to_s_and_a(groups)[:arrayform]
-        groups.each do |group|
-          unless JSS::ComputerGroup.all_names.include? group
-            puts
-            puts "No computer group named '#{group}'"
-            puts
-            next
-          end
-          ids =  D3::Package.auto_install_ids_for_group group
-          title = "Editions that auto-install for group '#{group}'"
-          display_list title, ids, "No packages in d3 auto-install for group '#{group}'"
-        end # do group
-      end # list_auto_installs
+      def list_scoped_installs(group, statuses, scope = :auto)
+        scope_text = scope == :auto ? "auto-install" : "are excluded for"
+        title = "Packages that #{scope_text} for group '#{group}'"
 
-      ### list packages that are excluded for machines in one
-      ### or more given groups
-      ###
-      ### @param groups[String,Array<String>] the group or groups to show.
-      ###
-      ### @return [void]
-      ###
-      def list_excl_installs(groups)
-        groups = JSS.to_s_and_a(groups)[:arrayform]
-        groups.each do |group|
-           unless JSS::ComputerGroup.all_names.include? group
-            puts
-            puts "No computer group named '#{group}'"
-            puts
-            next
-          end
-          ids =  D3::Package.exclude_ids_for_group group
-          title = "Editions that are excluded for group '#{group}'"
-          display_list title, ids, "No packages in d3 are excluded for group '#{group}'"
-        end # do group
-      end # list_excl_installs
+        if JSS::ComputerGroup.all_names.include? group
+          ids = scope == :auto ? D3::Package.auto_install_ids_for_group(group) : D3::Package.exclude_ids_for_group(group)
+
+          unless statuses.empty?
+            title +=  " with status #{statuses.join(' or ')}"
+            statuses = statuses.map{|s| s.to_sym}
+            status_display = " #{statuses.join(", ")}"
+            ids = ids.select{|pid| statuses.include?  D3::Package.package_data[pid][:status] }
+          end # if what_to_show == :all
+
+          no_match_text = "No packages #{scope_text} for group '#{group}'"
+        # no such group
+        else
+
+          ids = []
+          no_match_text = "No computer group named '#{group}'"
+        end #  if JSS::ComputerGroup.all_names.include? group
+        display_package_list title, ids, no_match_text
+
+      end # list_scoped_installs
 
       ###### Data gathering
 
@@ -422,30 +500,23 @@ module D3
       ### Get the raw data for a client-install report, from the EA if available
       ### or from the JAMF receipts if not.
       ###
-      ### Returns a two item array, the first is the report data (see
+      ### Returns an array of the report data (see
       ### client_install_ea_report_data and client_install_jamf_rcpt_report_data)
-      ### The second is :ea or :jamf_rcpts,  indicating the data source
       ###
-      ### @return  [Array<Array<Hash>, Symbol>] The data for doing client install reports, and the
-      ###   data source
+      ### @return  [Array<Hash>] The data for doing client install reports
       ###
-      def client_install_report_data
-        puts "Querying Casper computers for report data..."
+      def computer_receipts_data
+        puts "Querying Casper for receipt data..."
 
-        if the_data = client_install_ea_report_data
-          src = :ea
-        else
-          the_data = [client_install_jamf_rcpt_report_data, :jamf_rcpts]
-          the_data ||= []
-          src = :jamf_rcpts
-        end
-        return [the_data.sort_by{|c|c[:computer]}, src]
+        the_data = computer_receipts_ea_data
+        return the_data if the_data
+        return computer_receipts_jamf_data
       end
 
       ### Get the latest data from the D3::CONFIG.report_receipts_ext_attr_name
       ### if that EA exists, nil otherwise
       ###
-      ### The result is and Array of Hashes, one for each computer in Casper.
+      ### The result is an Array of Hashes, one for each computer in Casper.
       ### Each hash contains these keys:
       ###   :computer - the name of the computer
       ###   :user - the name of the comptuer's user
@@ -463,9 +534,10 @@ module D3
       ###   :custom_expiration
       ###   :last_usage
       ###
-      ### @return [Array<Hash>] The data from the extension attribute
+      ### @return [Array<Hash>, nil] The data from the extension attribute, nil
+      ###   if we aren't configured for the EA.
       ###
-      def client_install_ea_report_data
+      def computer_receipts_ea_data
         return nil unless D3::CONFIG.report_receipts_ext_attr_name
         connect_for_reports
 
@@ -475,8 +547,6 @@ module D3
         # but thats very slow, because it creates a temporary AdvancedSearch,
         # and retrieves it's results, and API access is always pretty slow
         # Going directly to SQL is WAY faster and since this is D3, we can.
-
-        #
 
         q = <<-ENDQ
 SELECT c.computer_id, c.computer_name, c.username, c.last_report_date_epoch AS as_of, eav.value_on_client AS value
@@ -489,38 +559,35 @@ WHERE eav.extension_attribute_id = #{ea.id}
         result = JSS::DB_CNX.db.query q
 
         report_data = []
-        result.each_hash do |ea_result|
+        result.each_hash do |computer_ea_result|
+          computer_data = {}
+          computer_data[:computer] =  computer_ea_result["computer_name"].to_s
+          computer_data[:user] =  computer_ea_result["username"]
+          computer_data[:as_of] =  (JSS.epoch_to_time computer_ea_result["as_of"])
           rcpts ={}
-          if ea_result['value'].start_with? '{"'
-            # the ea contains the full receipt YAML.
-            # for now we only need this subset of it.
-            rcpt_data = JSON.load ea_result['value']
+          if computer_ea_result['value'].start_with? '{'
+            rcpt_data = JSON.parse computer_ea_result['value'], :symbolize_names => true
             rcpt_data.each do |basename, raw|
               this_r = {}
-              this_r[:version] = raw["version"]
-              this_r[:revision] = raw["revision"].to_i
-              this_r[:status] = raw["status"].to_sym
-              this_r[:installed_at] = raw["installed_at"] ? Time.parse(raw["installed_at"]) : nil
-              this_r[:admin] = raw["admin"]
-              this_r[:frozen] = raw["frozen"]
-              this_r[:manual] = raw["manual"]
-              this_r[:custom_expiration] = raw["custom_expiration"]
-              this_r[:last_usage] = raw["last_usage"] ? Time.parse(raw["last_usage"]) : nil
-
-              rcpts[basename] = this_r
-            end # each do r
-
-          end # if ea_result['value'].start_with?  '{"'
-          report_data << {
-            :computer => ea_result["computer_name"],
-            :user => ea_result["username"],
-            :rcpts => rcpts,
-            :as_of =>  (JSS.epoch_to_time ea_result["as_of"])
-          }
+              this_r[:version] = raw[:version]
+              this_r[:revision] = raw[:revision].to_i
+              this_r[:status] = raw[:status]
+              this_r[:installed_at] = raw[:installed_at] ? Time.parse(raw[:installed_at]) : nil
+              this_r[:admin] = raw[:admin]
+              this_r[:frozen] = raw[:frozen]
+              this_r[:manual] = raw[:manual]
+              this_r[:custom_expiration] = raw[:custom_expiration]
+              this_r[:last_usage] = raw[:last_usage] ? Time.parse(raw[:last_usage]) : nil
+              # the basename got symbolized, so re-string it
+              rcpts[basename.to_s] = this_r
+            end # rcpt_data.each do |basename, raw|
+          end # if ea_result['value'].start_with?  '{'
+          computer_data[:rcpts] = rcpts
+          report_data << computer_data
 
         end # result.each_hash do |ea_result|
 
-        return report_data.sort_by!{|v| v[:computer]}
+        return report_data
       end # def ea_report_data
 
       ### get the latest receipt data from Caspers receipts table
@@ -539,8 +606,9 @@ WHERE eav.extension_attribute_id = #{ea.id}
       ###   :revision
       ###   :status
       ###
-      ### @return [Array<Hash>] The data from the extension attribute
-      def client_install_jamf_rcpt_report_data
+      ### @return [Array<Hash>] The data from the jamf receipts
+      ###
+      def computer_receipts_jamf_data
         q = <<-ENDQ
 SELECT c.computer_name, c.username, GROUP_CONCAT(r.package_name) AS jamf_receipts, c.last_report_date_epoch AS as_of
 FROM computers_denormalized c JOIN package_receipts r ON c.computer_id = r.computer_id
@@ -573,14 +641,12 @@ ENDQ
           report_data << computer_data
         end # res.each_hash do |record|
         res.free
-        return report_data.sort_by! {|v| v[:computer]}
+        return report_data
       end # def jamf_rcpt_report_data
 
-
       ### get the latest puppy queue data from the puppy q EA, if available.
-      def client_puppyq_report_data
+      def computer_puppyq_data
         return nil unless D3::CONFIG.report_puppyq_ext_attr_name
-        connect_for_reports
         ea = JSS::ComputerExtensionAttribute.new :name => D3::CONFIG.report_puppyq_ext_attr_name
         q = <<-ENDQ
 SELECT c.computer_id, c.computer_name, c.username, c.last_report_date_epoch AS as_of, eav.value_on_client AS value
@@ -598,15 +664,15 @@ WHERE eav.extension_attribute_id = #{ea.id}
           if ea_result['value'].start_with? '{"'
             # the ea contains the full receipt YAML.
             # for now we only need this subset of it.
-            pup_data = JSON.load ea_result['value']
+            pup_data = JSON.parse ea_result['value'], :symbolize_names => true
             pup_data.each do |basename, raw|
               this_p = {}
-              this_p[:version] = raw["version"]
-              this_p[:revision] = raw["revision"].to_i
-              this_p[:status] = raw["status"].to_sym
-              this_p[:queued_at] = raw["queued_at"] ? Time.parse(raw["queued_at"]) : nil
-              this_p[:admin] = raw["admin"]
-              this_p[:custom_expiration] = raw["custom_expiration"]
+              this_p[:version] = raw[:version]
+              this_p[:revision] = raw[:revision].to_i
+              this_p[:status] = raw[:status].to_sym
+              this_p[:queued_at] = raw[:queued_at] ? Time.parse(raw[:queued_at]) : nil
+              this_p[:admin] = raw[:admin]
+              this_p[:custom_expiration] = raw[:custom_expiration]
               pups[basename] = this_p
             end # each do r
 
@@ -620,7 +686,7 @@ WHERE eav.extension_attribute_id = #{ea.id}
 
         end # result.each_hash do |ea_result|
 
-        return report_data.sort_by!{|v| v[:computer]}
+        return report_data
       end # def client_puppyq_report_data
 
     end # module Report

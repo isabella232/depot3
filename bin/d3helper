@@ -229,6 +229,17 @@ Watch a parade of cute puppies while these items are installed:
   ### installs on this machine wrapped in a <result> tag, to be used in the
   ### CONFIG.report_puppyq_ext_attr_name extension attribute
   ###
+  ### The data is a hash of hashes, first keys are basenames
+  ### second keys are
+  ###   :version
+  ###   :revision
+  ###   :status
+  ###   :queued_at (Time)
+  ###   :admin
+  ###   :custom_expiration
+  ###
+  ### @return [void]
+  ###
   def puppyq_for_ea
      begin
       ea_data = {}
