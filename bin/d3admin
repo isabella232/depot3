@@ -683,7 +683,8 @@ ENDVERS
     if @options.walkthru and @targets.first.nil?
       D3::Admin::Interactive.get_value :get_existing_package, nil, :validate_existing_package
     else
-      D3::Package.find_package(@targets.first, :hash)[:id]
+      pkg_data = D3::Package.find_package(@targets.first, :hash)
+      return pkg_data ? pkg_data[:id] : nil
     end
   end
 
