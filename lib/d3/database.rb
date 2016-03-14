@@ -34,6 +34,14 @@ module D3
     TRUE_VAL = 1
     FALSE_VAL = 0
 
+    # This table has info about the JSS schema
+    SCHEMA_TABLE = "db_schema_information"
+
+    # the minimum JSS schema version allower
+    MIN_SCHEMA_VERSION = "9.4"
+
+    # the minimum JSS schema version allower
+    MAX_SCHEMA_VERSION = "9.82"
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql
@@ -386,6 +394,16 @@ module D3
       puts  self.create_table(:display)
     end
 
+
+    ### Raise an exception if JSS schema is to old or too new
+    def self.check_schema_version
+      raw = JSS::DB_CNX.db.query("SELECT version FROM #{SCHEMA_TABLE}").fetch[0]
+      current = JSS.parse_jss_version(raw)[:version]
+      min = JSS.parse_jss_version(MIN_SCHEMA_VERSION)[:version]
+      max = JSS.parse_jss_version(MAX_SCHEMA_VERSION)[:version]
+      raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if current < min or current > max
+      return true
+    end
 
     private
 

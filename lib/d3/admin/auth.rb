@@ -61,6 +61,7 @@ module D3
 
         JSS::DB_CNX.connect :user => db[:user], :pw => db[:password], :connect_timeout => 10
         JSS::API.connect :user => api[:user], :pw => api[:password], :open_timeout => 10
+        D3::Database.check_schema_version
         return JSS::API.cnx.options[:server]
       end
 
@@ -114,7 +115,7 @@ module D3
       ### @return [void]
       ###
       def get_server (type)
-        
+
         case type
         when :jss
           thing = "API"
@@ -213,9 +214,9 @@ module D3
       ### @return [Hash{Symbol => String}] A Hash with :user and :password values.
       ###
       def ask_for_rw_credentials(kind)
-      
+
         #$stdin.reopen("/dev/tty")
-        
+
         # make sure we have a server, which will be stored in the user-level JSS::Configuration
         get_server (kind) unless kind == :dist
 
