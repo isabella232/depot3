@@ -237,7 +237,6 @@ module D3
         wkspc
       end
 
-
       ### Check that a report type is valid
       ###
       ### @return [String] the valid report type.

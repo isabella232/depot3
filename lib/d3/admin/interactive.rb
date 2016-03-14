@@ -35,10 +35,21 @@ module D3
       require 'readline'
       extend self
 
+      # Set up readline
       # no spaces at the end of readline completion
       Readline.completion_append_character = ""
+      #  names may contain spaces
+      Readline.basic_word_break_characters = ""
+      # this appends a / to directories as we auto-complete paths.
+      Readline.completion_proc = Proc.new do |str|
+        files = Dir.glob(str + "*")
+        files.map {|f|  File.directory?(f) ? "#{f}/" : f }
+      end
+
 
       UNSET = "n"
+
+      DFT_EDITOR = "/usr/bin/nano -L"
 
       ### Display a menu of numbered choices, and return the user's choice,
       ### or 'x' if the user is done choosing.
@@ -350,6 +361,12 @@ an existing version of a given basename.
           current_desc_review = "\n----- Current Description -----\n#{current_desc}\n-------------------------------\n\n"
         end
 
+        if prefd_editor = D3::Admin::Prefs.prefs[:editor]
+          prefd_editor_choice =  "\n   - 'e' to edit using '#{prefd_editor}' "
+        else
+          prefd_editor_choice = ''
+        end
+
         # the blurb to show the user
         input_desc = <<-END_DESC
 DESCRIPTION
@@ -358,19 +375,19 @@ Create a multi-line description of this package:
    - where did it come from, where to get updates?
    - who maintains it in your environment?
    - any other info useful to d3 and Casper admins.
-  (don't just say "installs foo" when "foo" is the basename)
-  #{current_desc_review}Enter:
-   - 'n' to edit it using 'nano'
-   - 'v' to edit it using 'vi' or 'vim'
-   - 'e' to edit it using 'emacs'
+(don't just say "installs foo" when "foo" is the basename)
+  #{current_desc_review}Enter:#{prefd_editor_choice}
+   - 'n' to edit using 'nano'
+   - 'v' to edit using 'vi' or 'vim'
+   - 'm' to edit using 'emacs'
    - 'b' to have a blank description
 Anything else will edit with the EDITOR for your environment
-or 'nano' if none is set.
+or '#{DFT_EDITOR}' if none is set.
         END_DESC
 
         # show it, get response
         puts input_desc
-        choice = Readline.readline("Your choice (hit return to keep it as-is): ", false)
+        choice = Readline.readline("Your choice (hit return to keep current desc.): ", false)
 
         # keep or empty?
         return current_desc if choice.empty?
@@ -382,16 +399,18 @@ or 'nano' if none is set.
         desc_tmp_file.jss_save current_desc
 
         # which editor?
-        if choice.casecmp('v') == 0
+        if choice.casecmp('e') == 0
+          cmd = prefd_editor
+        elsif choice.casecmp('v') == 0
           cmd = "/usr/bin/vim"
-        elsif choice.casecmp('e') == 0
+        elsif choice.casecmp('m') == 0
           cmd = "/usr/bin/emacs"
         elsif choice.casecmp('n') == 0
           cmd = "/usr/bin/nano -L"
         else
           cmd = ENV['EDITOR']
-          cmd ||= "/usr/bin/nano -L"
         end
+        cmd ||= DFT_EDITOR
 
         system "#{cmd} '#{desc_tmp_file}'"
 
@@ -891,7 +910,7 @@ END_DESC
       ### @return [String] A computer name in the JSS
       ###
       def get_computer (default = nil)
-                desc = <<-END_DESC
+          desc = <<-END_DESC
 COMPUTER NAME
 Enter the name of a computer Casper.
 Enter 'v' to view a list available computer names.
@@ -918,13 +937,34 @@ Which setting would you like to configure?
   db  - the MySQL server and credentials (stored in your keychain)
   dist - the master distribution point RW password (stored in your keychain)
   workspace - the folder in which to build .pkgs and .dmgs
+  editor - the shell command for editing package descriptions
   pkg-id-prefix - the prefix for the .pkg identifier when building .pkgs
   all - all of the above
+  display - show current configuration
 
         END_DESC
         prompt_for_data(opt: :pkg_identifier_prefix, desc: desc, default: default, required: true)
       end
 
+      ### get the shell command for editing package descriptions
+      ###
+      ### @param default[String] the default value when hitting return
+      ###
+      ### @return [String] the command to use
+      ###
+      def get_editor (default = "/usr/bin/nano")
+        desc = <<-END_DESC
+EDITOR
+Enter the shell command to use during --walkthru
+for editing package descriptions
+e.g.  /usr/bin/vim, /usr/bin/emacs
+
+Note: if the command launches a GUI editor, make sure the
+shell command stays running until the document is closed.
+Most such editors have an option for that.
+END_DESC
+        prompt_for_data( desc: desc, default: default,prompt: "Command", required: true)
+      end
 
     end # module
   end # module Admin

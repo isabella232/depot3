@@ -36,16 +36,19 @@ module D3
       PREFS_FILE = PREFS_DIR + "com.pixar.d3.admin.yaml"
 
       PREF_KEYS = {
-        workspace: {
-          klass: Pathname,
+        :workspace => {
           description: "Path to the directory where new pkg and dmg packages are built.\n If unset, defaults to your home folder"
         },
-        apple_pkg_id_prefix: {
-          klass: String,
+
+        :editor =>{
+          description: "Preferred shell command for editing package descriptions in --walkthru"
+        },
+
+        :apple_pkg_id_prefix => {
           description: "The Apple package id prefix, e.g. 'com.mycompany'.\nWhen .pkgs are built, the identifier will be this, plus the basename.\n If unset, the default is '#{D3::Admin::DFT_PKG_ID_PREFIX}'"
         },
-        last_config: {
-          klass: Time,
+
+        :last_config => {
           description: "Timestamp of the last configuration for setting servers, credentials and/or prefs"
         }
       }
@@ -127,6 +130,14 @@ module D3
             puts "Thank you, the path has been saved in your d3admin prefs"
             puts
 
+          when "editor"
+            puts "********  TEXT EDITOR  ********"
+            cmd = D3::Admin::Interactive.get_value :get_editor, D3::Admin::Prefs.prefs[:editor]
+            D3::Admin::Prefs.set_pref :editor, cmd
+            D3::Admin::Prefs.save_prefs
+            puts "Thank you, the command has been saved in your d3admin prefs"
+            puts
+
           when "pkg-id-prefix"
             puts "********  .PKG IDENTIFIER PREFIX  ********"
             pfx = D3::Admin::Interactive.get_value(:get_pkg_identifier_prefix, D3::Admin::Prefs.prefs[:apple_pkg_id_prefix], :validate_package_identifier_prefix)
@@ -157,6 +168,7 @@ module D3
 
         wkspc = D3::Admin::Prefs.prefs[:workspace]
         pkg_id_pfx = D3::Admin::Prefs.prefs[:apple_pkg_id_prefix]
+        editor = D3::Admin::Prefs.prefs[:editor]
 
         puts <<-DISPLAY
 ********  Current d3admin config  ********
@@ -180,6 +192,7 @@ Master Distribution Point
 
 Building .pkg's
   Workspace: #{wkspc ? wkspc : D3::Admin::DFT_WORKSPACE}
+  Editor: #{editor ? editor : D3::Admin::Interactive::DFT_EDITOR}
   Identifier prefix: #{pkg_id_pfx ? pkg_id_pfx : D3::Admin::DFT_PKG_ID_PREFIX}
 
 DISPLAY

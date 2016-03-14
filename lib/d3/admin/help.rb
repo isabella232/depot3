@@ -50,7 +50,7 @@ module D3
   info <basename/edition>            Show details of an package
   search <basename/group>            List matching pkgs on the server
   report <basename/computer>         Report about receipts on computers
-  config <setting>                   Set up d3admin on this machine
+  config <setting/display>           d3admin configutation on this machine
   help                               Show this help.
 
 === Options ===
@@ -192,9 +192,8 @@ individual package regardless of status.
              Target = basename, or computer name unless -w
 
   config   Set up server info and default values for d3admin.
-             Target = all, jss, db, dist, workspace, pkg-id-prefix
-             or display
-             Defaults to all
+             Target = all, jss, db, dist, workspace,
+             pkg-id-prefix or display. Defaults to all
 
              Using 'display' prints out the current admin config settings.
 
@@ -203,6 +202,8 @@ individual package regardless of status.
   help     Show this help. Use -H for extended help.
 
 
+NOTE: Any action that requires stored passwords will prompt for your
+keychain password if your login keychain is currently locked.
 
 === Options ===
 
