@@ -89,8 +89,8 @@ module D3
 
       end
 
-      ### check that a given basename or edition exists in d3, and if
-      ### so, return the D3::Package.
+      ### Check that a given basename or edition exists in d3, and if
+      ### so, return the package id
       ### If a basename is given, the currently live one is returned
       ### If there is no matching edition or live basename, an exception is raised
       ###
@@ -105,7 +105,7 @@ module D3
         pkgid ||= D3::Package.basenames_to_live_ids[pkg_to_check]
         raise JSS::NoSuchItemError, "No edition or live-basename in d3 match '#{pkg_to_check}'" if pkgid.nil?
 
-        D3::Package.new id: pkgid
+        return pkgid
       end
 
       ### check that the given package name doesn't already exist

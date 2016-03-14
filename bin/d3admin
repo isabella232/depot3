@@ -125,9 +125,6 @@ class App
       when /^r/ then
         show_report
 
-      when /^c/ then
-        config
-
       else
         raise ArgumentError, "#{D3::Admin::Help::USAGE}\nUnknown action, must be one of #{D3::Admin::ACTIONS.join(', ')}"
 
@@ -456,11 +453,13 @@ ENDVERS
   ###
   def make_package_live
 
-    pkg = get_pkg_from_cli_or_prompt
-    if pkg.nil?
+    pkg_id = get_pkg_from_cli_or_prompt
+
+    if pkg_id.nil?
       puts "No edition given to make live or no matching package found"
       return
     end
+    pkg = D3::Package.new id: pkg_id
     if pkg.status == :live
       puts "Doh, '#{pkg.edition}' is already live"
       return
@@ -498,12 +497,15 @@ ENDVERS
   ###
   def edit_package (pkg=nil)
 
-    pkg ||= get_pkg_from_cli_or_prompt
-
+    unless pkg
+      pkg_id = get_pkg_from_cli_or_prompt
+      pkg = pkg_id ? D3::Package.new(id: pkg_id) : nil
+    end
     if pkg.nil?
       puts "No targets given to edit or no matching package found"
       return
     end
+
 
     if @options.walkthru
       changes_to_make = D3::Admin::Edit.loop_thru_editing_walkthru pkg
@@ -565,11 +567,19 @@ ENDVERS
   ###
   def delete_package
 
-    pkg = get_pkg_from_cli_or_prompt
+    pkg_id = get_pkg_from_cli_or_prompt
 
-    if pkg.nil?
+    if pkg_id.nil?
       puts "No targets given to delete or no matching package found"
       return
+    end
+
+    # check to see if the pkg is missing
+    if D3::Package.package_data[pkg_id][:status] == :missing || (not JSS::Package.all_ids.include? pkg_id)
+      delete_missing_package pkg_id
+      return
+    else
+      pkg = D3::Package.new id: pkg_id
     end
 
     got_scripts = (not pkg.script_ids.values.empty?)
@@ -616,16 +626,64 @@ ENDVERS
 
   end # delete package
 
-  ### Get an existing pkg from the user via prompt (if walkthru) or the
-  ###  first thing listed in @targets
+  ### Delete a package that's missing from the JSS
   ###
-  ### @return [D3::Package, nil] an existing d3 pkg if one was chosen
+  ###
+  def delete_missing_package (pkgid)
+    pkg_data = D3::Package.package_data[pkgid]
+    script_ids = [pkg_data[:pre_install_script_id], pkg_data[:post_install_script_id], pkg_data[:pre_remove_script_id], pkg_data[:post_remove_script_id] ].compact
+
+    if script_ids.empty?
+      deets = " - No pre- or post- scripts to delete"
+    else
+      if @options.delete_scripts
+        deets = " - Deleting pre- or post- scripts not in use elsewhere"
+      else
+        deets = " - Keeping pre- or post- scripts in the JSS"
+      end # if @options.delete_scripts
+    end # if script_ids.empty?
+
+    confirm "DELETE #{pkg_data[:edition]}\n** Already missing from the JSS **", deets
+
+    JSS::DB_CNX.db.query "DELETE FROM #{D3::Database::PACKAGE_TABLE[:table_name]} WHERE package_id = #{pkgid}"
+    puts "Package #{pkg_data[:edition]} deleted."
+
+    if @options.delete_scripts && (not script_ids.empty?)
+      puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
+      policy_scripts = D3.policy_scripts
+      script_ids.each do |victim_script_id|
+        next unless JSS::Script.all_ids.include? victim_script_id
+
+        victim_script_name = JSS::Script.map_all_ids_to(:name)[victim_script_id]
+        pol_users = []
+        policy_scripts.each do |pol, pol_scripts|
+          if pol_scripts.include? victim_script_id
+            puts "Script '#{victim_script_name}' in use by policy '#{pol}'"
+            pol_users << pol
+          end
+        end # policy scripts.each
+        d3_users = (D3::Package.packages_for_script(victim_script_id) - [pkgid])
+        d3_users.each{|pkgid| puts "Script '#{victim_script_name}' in use by d3 edition '#{D3::Package.ids_to_editions[pkgid]}'" }
+        if pol_users.empty? and d3_users.empty?
+          JSS::Script.new(id: victim_script_id).delete
+          puts "Deleted script '#{victim_script_name}'"
+        end
+      end # do script id
+    end # if @options.delete_scripts && (not script_ids.empty?)
+
+  end # delete_missing_package (pkgid)
+
+  ### Get an existing pkg id from the user via prompt (if walkthru) or the
+  ### first thing listed in @targets. We don't instantiate the pkg here
+  ### because it might be :missing in the JSS.
+  ###
+  ### @return [Ingeter, nil] an existing d3 pkg id if one was chosen
   ###
   def get_pkg_from_cli_or_prompt
     if @options.walkthru and @targets.first.nil?
       D3::Admin::Interactive.get_value :get_existing_package, nil, :validate_existing_package
     else
-      D3::Package.find_package @targets.first
+      D3::Package.find_package(@targets.first, :hash)[:id]
     end
   end
 
@@ -665,12 +723,14 @@ ENDVERS
   ###
   def show_package_info
 
-    pkg = get_pkg_from_cli_or_prompt
+    pkg_id = get_pkg_from_cli_or_prompt
 
-    if pkg.nil?
+    if pkg_id.nil?
       puts "No targets given or no matching package found"
       return
     end
+
+    pkg = D3::Package.new id: pkg_id
 
     pkg_deets = <<-ENDDEETS
 *****************************************
@@ -745,13 +805,15 @@ ENDDEETS
     end # @targets.each do |search_target|
   end # def search
 
-
-
+  ### show the packages that are autoinstalled
+  ### and excluded for a group
+  ###
   def show_scoping_list (group)
     D3::Admin::Report.list_auto_installs group
     D3::Admin::Report.list_excl_installs group
   end
 
+  ### show a list of packges on the server
   def show_package_list (basename, statuses)
 
       D3::Admin::Report.show_list basename, @options.status
