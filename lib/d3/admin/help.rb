@@ -193,7 +193,11 @@ individual package regardless of status.
 
   config   Set up server info and default values for d3admin.
              Target = all, jss, db, dist, workspace, pkg-id-prefix
+             or display
              Defaults to all
+
+             Using 'display' prints out the current admin config settings.
+
              Runs 'all' automatically on first run.
 
   help     Show this help. Use -H for extended help.

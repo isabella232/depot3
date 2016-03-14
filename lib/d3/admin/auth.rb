@@ -78,9 +78,14 @@ module D3
       ###
       ### @param kind[Symbol] which kind of credentials? :jss, :db, or :dist
       ###
-      ### @return [Hash{Symbol => String}] A Hash with :user and :password values.
+      ### @param checking_for_existence[Boolean] Are we just checking to see if
+      ###   this value has been set? If so, and it hasn't, don't prompt for
+      ###   saving, just return an empty hash.
       ###
-      def rw_credentials(kind)
+      ### @return [Hash{Symbol => String}] A Hash with :user and :password values.
+      ###   or empty if unset and checking for existence.
+      ###
+      def rw_credentials(kind, checking_for_existence = false)
         Keychain.user_interaction_allowed = true
         unlock_keychain
         search_conditions = case kind
@@ -95,16 +100,15 @@ module D3
         end #pw_item = case kind
 
         pw_item = Keychain.default.generic_passwords.where(search_conditions).first
+        return {} if pw_item.nil? and checking_for_existence
 
         if pw_item
           return {:user => pw_item.account, :password =>  pw_item.password}
         else
-
           # doesn't exist in the keychain, so get from the user and save in the keychain
           ask_for_rw_credentials(kind)
         end # if pw_item
       end
-
 
       ### Prompt for a JSS or MySQL server hostname & port.
       ### Test that its a valid server,

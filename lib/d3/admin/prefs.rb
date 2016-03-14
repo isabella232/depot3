@@ -27,7 +27,7 @@ module D3
 
   module Admin
     module Prefs
-      extend self
+
       ################# Admin User Prefs #################
 
       ################# Module Constants #################
@@ -56,7 +56,7 @@ module D3
       ###
       ### @return [Hash] the d3admin prefs for the current user
       ###
-      def prefs
+      def self.prefs
         @@prefs
       end
 
@@ -67,7 +67,7 @@ module D3
       ### @param value[Object] the value to save with the pref
       ###
       ### @return [Boolean] true of the pref was set and saved
-      def set_pref (pref, value)
+      def self.set_pref (pref, value)
         raise JSS::InvalidDataError, "first argument must be a pref key from D3::Admin::Prefs::PREF_KEYS" unless PREF_KEYS.keys.include? pref
         @@prefs[pref] = value
         save_prefs
@@ -76,10 +76,114 @@ module D3
       ### Save the current prefs to disk for this user
       ###
       ### @return [void]
-      def save_prefs
+      def self.save_prefs
         @@prefs[:last_config] =  Time.now
         PREFS_FILE.jss_save YAML.dump(@@prefs)
       end
+
+
+      ### Run the Admin config, saving hostnames, usernames and pws
+      ### as needed.
+      ###
+      ### @param targets[Array] the targets from the d3admin command-line
+      ###
+      ### @param options[OpenStruct] the parsed options from the
+      ###   d3admin command-line
+      ###
+      ### @return [void]
+      ###
+      ### @todo  improve this a lot
+      ###
+      def self.config (targets, options)
+
+        if options.walkthru
+          tgt = D3::Admin::Interactive.get_value :get_config_target, "all"
+          targets = [tgt]
+        end
+
+        if targets.empty? or targets.include?("all")
+          targets = D3::Admin::CONFIG_TARGETS - ["all"]
+        end
+
+        targets.each do |target|
+          case target
+          when"jss"
+            puts "********  JSS-API LOCATION AND READ-WRITE CREDENTIALS  ********"
+            D3::Admin::Auth.ask_for_rw_credentials :jss
+
+          when "db"
+            puts "********  JSS MYSQL LOCATION AND READ-WRITE CREDENTIALS  ********"
+            D3::Admin::Auth.ask_for_rw_credentials :db
+
+          when "dist"
+            puts "********  MASTER DIST-POINT READ-WRITE PASSWORD  ********"
+           D3::Admin::Auth.ask_for_rw_credentials :dist
+
+          when "workspace"
+            puts "********  LOCAL PKG/DMG BUILD WORKSPACE  ********"
+            pth = D3::Admin::Interactive.get_value :workspace, D3::Admin::Prefs.prefs[:workspace]
+            D3::Admin::Prefs.set_pref :workspace, pth
+            D3::Admin::Prefs.save_prefs
+            puts "Thank you, the path has been saved in your d3admin prefs"
+            puts
+
+          when "pkg-id-prefix"
+            puts "********  .PKG IDENTIFIER PREFIX  ********"
+            pfx = D3::Admin::Interactive.get_value(:get_pkg_identifier_prefix, D3::Admin::Prefs.prefs[:apple_pkg_id_prefix], :validate_package_identifier_prefix)
+            D3::Admin::Prefs.set_pref :apple_pkg_id_prefix, pfx
+            D3::Admin::Prefs.save_prefs
+            puts "Thank you, the prefix has been saved in your d3admin prefs"
+            puts
+          else
+            puts "(skipping unknown config setting: #{target}"
+          end # case
+        end # targets.each
+      end # config
+
+      ### Display the current Admin config settings
+      ###
+      ### @return [void]
+      ###
+      def self.display_config
+        jss_creds = D3::Admin::Auth.rw_credentials :jss, :just_checking
+        jss_server = JSS::CONFIG.api_server_name # should be the one saved in the user-level .ruby-jss.conf, not top level in /etc
+        jss_port = JSS::CONFIG.api_server_port
+
+        db_creds = D3::Admin::Auth.rw_credentials :db, :just_checking
+        db_server = JSS::CONFIG.db_server_name
+        db_port = JSS::CONFIG.db_server_port
+
+        dist_creds = D3::Admin::Auth.rw_credentials :dist, :just_checking
+
+        wkspc = D3::Admin::Prefs.prefs[:workspace]
+        pkg_id_pfx = D3::Admin::Prefs.prefs[:apple_pkg_id_prefix]
+
+        puts <<-DISPLAY
+********  Current d3admin config  ********
+JSS API
+  Hostname: #{jss_server}
+  Port: #{jss_port}
+  Read/Write user: #{jss_creds[:user] ? jss_creds[:user] : 'unset' }
+  Read/Write password: #{jss_creds[:password] ? 'stored in keychain' : 'unset' }
+
+JSS MySQL
+  Hostname: #{db_server}
+  Port: #{db_port}
+  Read/Write user: #{db_creds[:user] ? db_creds[:user] : 'unset' }
+  Read/Write password: #{db_creds[:password] ? 'stored in keychain' : 'unset' }
+
+Master Distribution Point
+  Hostname: (stored in JSS)
+  Port: (stored in JSS)
+  Read/Write user: (stored in JSS)
+  Read/Write password: #{dist_creds[:password] ? 'stored in keychain' : 'unset' }
+
+Building .pkg's
+  Workspace: #{wkspc ? wkspc : D3::Admin::DFT_WORKSPACE}
+  Identifier prefix: #{pkg_id_pfx ? pkg_id_pfx : D3::Admin::DFT_PKG_ID_PREFIX}
+
+DISPLAY
+      end # display config
 
     end # module prefs
   end # module Admin

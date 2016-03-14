@@ -908,51 +908,62 @@ ENDDEETS
 
   ### Run the config, saving hostnames, usernames and pws
   ### as needed
-  ### TODO  improve this a lot
+  ###
+  ### @param display[Boolean] show the current admin config rather than
+  ###   set it.
+  ###
+  ### @return [void]
+  ###
   def config
 
-    if @options.walkthru
-      tgt = D3::Admin::Interactive.get_value :get_config_target, "all"
-      @targets = [tgt]
+    if @targets.include? 'display'
+      D3::Admin::Prefs.display_config
+    else
+      D3::Admin::Prefs.config @targets, @options
     end
 
-    if @targets.empty? or @targets.include?("all")
-      @targets = D3::Admin::CONFIG_TARGETS - ["all"]
-    end
-
-    @targets.each do |target|
-      case target
-      when"jss"
-        puts "********  JSS-API LOCATION AND READ-WRITE CREDENTIALS  ********"
-        D3::Admin::Auth.ask_for_rw_credentials :jss
-
-      when "db"
-        puts "********  JSS MYSQL LOCATION AND READ-WRITE CREDENTIALS  ********"
-        D3::Admin::Auth.ask_for_rw_credentials :db
-
-      when "dist"
-        puts "********  MASTER DIST-POINT READ-WRITE PASSWORD  ********"
-       D3::Admin::Auth.ask_for_rw_credentials :dist
-
-      when "workspace"
-        puts "********  LOCAL PKG/DMG BUILD WORKSPACE  ********"
-        pth = D3::Admin::Interactive.get_value :workspace, D3::Admin::Prefs.prefs[:workspace]
-        D3::Admin::Prefs.set_pref :workspace, pth
-        D3::Admin::Prefs.save_prefs
-        puts "Thank you, the path has been saved in your d3admin prefs"
-        puts
-
-      when "pkg-id-prefix"
-        puts "********  .PKG IDENTIFIER PREFIX  ********"
-        pfx = D3::Admin::Interactive.get_value(:get_pkg_identifier_prefix, D3::Admin::Prefs.prefs[:apple_pkg_id_prefix], :validate_package_identifier_prefix)
-        D3::Admin::Prefs.set_pref :apple_pkg_id_prefix, pfx
-        D3::Admin::Prefs.save_prefs
-        puts "Thank you, the prefix has been saved in your d3admin prefs"
-        puts
-      else
-        puts "(skipping unknown config setting: #{target}"
-      end # case
-    end # targets.each
+#     if @options.walkthru
+#       tgt = D3::Admin::Interactive.get_value :get_config_target, "all"
+#       @targets = [tgt]
+#     end
+#
+#     if @targets.empty? or @targets.include?("all")
+#       @targets = D3::Admin::CONFIG_TARGETS - ["all"]
+#     end
+#
+#     @targets.each do |target|
+#       case target
+#       when"jss"
+#         puts "********  JSS-API LOCATION AND READ-WRITE CREDENTIALS  ********"
+#         D3::Admin::Auth.ask_for_rw_credentials :jss
+#
+#       when "db"
+#         puts "********  JSS MYSQL LOCATION AND READ-WRITE CREDENTIALS  ********"
+#         D3::Admin::Auth.ask_for_rw_credentials :db
+#
+#       when "dist"
+#         puts "********  MASTER DIST-POINT READ-WRITE PASSWORD  ********"
+#        D3::Admin::Auth.ask_for_rw_credentials :dist
+#
+#       when "workspace"
+#         puts "********  LOCAL PKG/DMG BUILD WORKSPACE  ********"
+#         pth = D3::Admin::Interactive.get_value :workspace, D3::Admin::Prefs.prefs[:workspace]
+#         D3::Admin::Prefs.set_pref :workspace, pth
+#         D3::Admin::Prefs.save_prefs
+#         puts "Thank you, the path has been saved in your d3admin prefs"
+#         puts
+#
+#       when "pkg-id-prefix"
+#         puts "********  .PKG IDENTIFIER PREFIX  ********"
+#         pfx = D3::Admin::Interactive.get_value(:get_pkg_identifier_prefix, D3::Admin::Prefs.prefs[:apple_pkg_id_prefix], :validate_package_identifier_prefix)
+#         D3::Admin::Prefs.set_pref :apple_pkg_id_prefix, pfx
+#         D3::Admin::Prefs.save_prefs
+#         puts "Thank you, the prefix has been saved in your d3admin prefs"
+#         puts
+#       else
+#         puts "(skipping unknown config setting: #{target}"
+#       end # case
+#     end # targets.each
   end # config
 
 
