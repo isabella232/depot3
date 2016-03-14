@@ -93,6 +93,12 @@ class App
       raise D3::PermissionError, "d3admin cannot do '#{@action}' as #{@admin}."
     end
 
+    # config before connecting
+    if @action =~ /^c/
+      config
+      return
+    end
+
     ### connect to the server, prompting for info as needed
     D3::Admin::Auth.connect
 
