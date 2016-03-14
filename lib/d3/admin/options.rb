@@ -45,7 +45,7 @@ module D3
       DFT_REQUIRED = "---Required---"
       DFT_NONE = "none"
       DFT_PKG_TYPE = :pkg
-      DFT_PKG_ID_PREFIX = "com.pixar.d3"
+      DFT_PKG_ID_PREFIX = "d3"
       DFT_WORKSPACE = ENV['HOME']
       DFT_EXPIRATION = 0
       DFT_LIST_TYPE = :all
