@@ -53,26 +53,26 @@ All actions have a 1-2 character shortcut.
 For details see http://some/url/here
 
 Actions:
-  install   i  <basename/edition>       - Install pkgs or queue for logout
-  uninstall u  <basename>               - Uninstall pkgs
+  install   i  <basename/edition>       - Install packages or queue for logout
+  uninstall u  <basename>               - Uninstall packages
   freeze    f  <basename>               - Stop auto-updates of this basename
   thaw      t  <basename>               - Resume auto-updates of this basename
   dequeue   dq <basename>               - Remove a pending logout install
-  sync      s                           - Update rcpts, update installed pkgs,
-                                          do group-based auto-installs, &
-                                          uninstall expired pkgs
+  sync      s                           - Update receipt data, do auto-installs
+                                          update installed software & uninstall
+                                          expired receipts
   help                                  - Show this help info
 
 List Actions:
   list-available  la                    - Live pkgs available to this computer
-  list-installed  li                    - Pkgs installed on this comptuer
-  list-manual     lm                    - Manually installed pkgs
-  list-pilots     lp                    - Pilots on this machine
-  list-frozen     lf                    - Frozen pkgs on this machine
+  list-installed  li                    - Receipts on this computer
+  list-manual     lm                    - Manually installed receipts
+  list-pilots     lp                    - Pilot receipts on this computer
+  list-frozen     lf                    - Frozen receipts on this computer
   list-queue      lq                    - Pending puppy (logout) installs
-  list-details    ld <basename/edition> - Pkg details
-  list-files      ls <basename/edition> - Files installed by the pkg
-  query-file      qf <path>             - Which pkgs install <path>
+  list-details    ld <basename/edition> - Package & receipt details
+  list-files      ls <basename/edition> - Files installed by the package
+  query-file      qf <path>             - Which packages install <path>?
 
 Options:
   -q, --quiet                  - Be as silent as possible,
@@ -96,8 +96,8 @@ Options:
 
 Notes
  - All <targets> can be a list of several, space-separated
- - When a basename is given as an argument, the currently live, queued,
-   or installed edition is used
+ - When a basename is given as a target for install, list-details, or
+   list-files, the currently live edition is used.
 
 ENDHELP
         helptxt
