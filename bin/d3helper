@@ -58,7 +58,7 @@ class App
     "--display-puppy-notification" =>  :display_puppy_notification,
     "--rcpts-for-ea" => :rcpts_for_ea,
     "--puppyq-for-ea" => :puppyq_for_ea,
-    "--config" => :configure,
+    "--import-casper-receipts" => :import_receipts,
     "--help" => :help,
     "--version" => :show_version
   }
@@ -78,6 +78,7 @@ class App
     opts = GetoptLong.new(
       [ '--help', '-h', '-H', GetoptLong::NO_ARGUMENT ],
       [ '--debug', '-d', GetoptLong::NO_ARGUMENT ],
+      [ '--import-casper-receipts', GetoptLong::NO_ARGUMENT ],
       [ '--display-puppy-notification', GetoptLong::NO_ARGUMENT ],
       [ '--rcpts-for-ea', GetoptLong::NO_ARGUMENT ],
       [ '--puppyq-for-ea', GetoptLong::NO_ARGUMENT ],
@@ -93,6 +94,8 @@ class App
         @action = ACTIONS[opt]
       when '--debug'
         @debug = true
+      when '--import-casper-receipts'
+        @action = ACTIONS[opt]
       when '--display-puppy-notification'
         @action = ACTIONS[opt]
       when '--rcpts-for-ea'
@@ -142,7 +145,9 @@ class App
 #{USAGE}
 
   --display-puppy-notification      Tell users that puppies need walking.
-  --configure                       Set d3 client settings
+  --import-casper-receipts          Import local Casper package receipts into
+                                    d3 receipts. Can be run repeatedly to
+                                    import for packages new to d3.
   --rcpts-for-ea                    Generate Extension Attribute data about
                                       the d3 receipts on this machine.
   --help, -h, -H                    Show this help.
@@ -263,9 +268,76 @@ Watch a parade of cute puppies while these items are installed:
 
 
   ###
-  def configure
+  def import_receipts
 
-  end
+    D3.log "Importing Casper Receipts for packages in d3", :warn
+
+    # this gets us a hash of jss package filenames -> pkg ids
+    d3_pkg_filenames =  D3::Package.all_filenames.invert
+
+    # this is an array of current d3 receipt ids
+    d3_rcpt_ids =  D3::Client::Receipt.all.values.map{|r| r.id}
+
+    now = Time.now
+
+    JSS::Client.receipts.each do |jss_rcpt|
+
+
+      # jss_rcpt is a Pathname object, the rcpt name is the paths basename
+      jss_rcpt_name = jss_rcpt.basename.to_s
+
+      # do we have a match?
+      pkg_id = d3_pkg_filenames[jss_rcpt_name]
+      # if not, the filename might end with .zip, but the rcpt name doesnt
+      pkg_id ||= d3_pkg_filenames[jss_rcpt_name + ".zip"]
+      # if still not, this jss recipt doesn't point to a d3 package.
+      next unless pkg_id
+
+      # If we're here, the  jss receipt might need to be imported, unless its
+      # already been imported
+      next if d3_rcpt_ids.include? pkg_id
+
+      # If we're here, we need to import the receipt, so get the matching D3
+      # package and make a receipt from it.
+      D3.log "Importing Casper Receipt #{jss_rcpt_name}", :warn
+      begin
+        d3_pkg = D3::Package.new id: pkg_id
+
+        # do we already have a rcpt for the package's basename? if so,
+        # delete it - we can only have on rcpt per basename
+
+        if D3::Client::Receipt.all(:refresh).keys.include? d3_pkg.basename
+          D3.log "Deleting previous d3 receipt for basename #{d3_pkg.basename}", :warn
+          D3::Client::Receipt.all[d3_pkg.basename].delete
+        end
+
+        d3_rcpt = D3::Client::Receipt.new(
+          :basename =>  d3_pkg.basename,
+          :version =>  d3_pkg.version,
+          :revision =>  d3_pkg.revision,
+          :admin =>  D3::AUTO_INSTALL_ADMIN,
+          :id =>  d3_pkg.id,
+          :status =>  d3_pkg.status ,
+          :jamf_rcpt_file =>  jss_rcpt,
+          :apple_pkg_ids =>  nil,
+          :installed_at =>  jss_rcpt.mtime,
+          :removable =>  d3_pkg.removable,
+          :expiration => d3_pkg.expiration,
+          :expiration_path => d3_pkg.expiration_path,
+          :prohibiting_process => d3_pkg.prohibiting_process,
+          :pre_remove_script_id => d3_pkg.pre_remove_script_id,
+          :post_remove_script_id => d3_pkg.post_remove_script_id
+        )
+        D3::Client::Receipt.add_receipt d3_rcpt, :replace
+        D3.log "Done. Imported Casper Receipt #{jss_rcpt_name}", :warn
+      rescue
+        D3.log "ERROR importing Casper Receipt #{jss_rcpt_name}: #{$!}", :error
+      end
+
+      D3.log "Done importing Casper Receipts for packages in d3", :warn
+
+    end #JSS::Client.receipts.each do |jss_rcpt|
+  end #import_receipts
 
 end # class App
 
