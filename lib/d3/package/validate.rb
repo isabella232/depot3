@@ -30,15 +30,15 @@ module D3
     ### For individual attribute validation, see the
     ### D3::Package::Validate module.
 
-    ### Check that there's not a newwer version of this thing alreay installed
+    ### Check that there's not a newer version of this thing alreay installed
     ### Raise an exception if so.
     ###
     ### return [void]
     ###
     def check_for_newer_version
-      if D3::Client::Receipt.basenames.include? @basename and D3::Client::Receipt.all[@basename].id >= @id
+      if D3::Client::Receipt.basenames.include? @basename
           rcpt = D3::Client::Receipt.all[@basename]
-          raise D3::InstallError, "Sorry, #{rcpt.edition} (#{rcpt.status}) is installed and is the same or newer. \nUse --force if needed."
+          raise D3::InstallError, "The installed #{rcpt.edition} (#{rcpt.status}) is the same or newer. Use --force if to install anyway." if rcpt.id >= @id
       end
     end # check for newer version
 
@@ -46,8 +46,8 @@ module D3
     ###
     ### return [void]
     ###
-    def check_for_deprecation
-      raise D3::InstallError, "'#{edition}' is deprecated.\nUse 'd3 install #{@basename}' to install the live edition or --force to install this one." if deprecated?
+    def check_for_deprecated
+      raise D3::InstallError, "#{edition} is deprecated. Use --force to install anyway.." if deprecated?
     end
 
     ### Check that we're not skipped, and raise an exception if we are.
@@ -56,7 +56,7 @@ module D3
     ### return [void]
     ###
     def check_for_skipped
-      raise D3::InstallError, "#{edition} was never made live and a newer edition was.\nUse 'd3 install #{@basename}' to install it or 'd3 install <edition>' to pilot an unreleased edition or --force to install this one." if skipped?
+      raise D3::InstallError, "#{edition} was never made live and a newer edition was.\nUse  --force to install anyway." if skipped?
     end
 
     ### Check if this machine is in an excluded group.
@@ -66,7 +66,7 @@ module D3
     ###
     def check_for_exclusions
       excl_grps = D3::Client.computer_groups & @excluded_groups
-      raise D3::InstallError,  "This machine is in these excluded groups for #{self.edition}: #{excl_grps.join ', '}.\nUse --force to install anyway." unless excl_grps.empty?
+      raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}.\nUse --force to install anyway." unless excl_grps.empty?
     end # check for exclusions
 
     ### Check if this machine is OK wrt to the os limitations
@@ -89,34 +89,6 @@ module D3
        raise D3::InstallError,  "This machine doesn't have the correct OS to install #{self.edition}." unless  JSS.processor_ok?  @required_processor, my_cpu
     end
 
-
-    ### Raise an exception if this is pkg is live
-    ### (used when installing pilots)
-    ###
-    ### return [void]
-    ###
-    def check_for_invalid_live_install
-      raise D3::InstallError, "'#{edition}' is currently live, use 'd3 install #{@basename}'" if live?
-    end
-
-    ### Raise an exception if this is pkg is pilot
-    ###
-    ### return [void]
-    ###
-    def check_for_invalid_pilot_install
-      raise D3::InstallError,  "'#{edition}' is currently in pilot, use 'd3 pilot #{edition}'" if pilot?
-    end
-
-    ### Raise an exception if this is basename is being piloted now
-    ### on this machine
-    ###
-    ### return [void]
-    ###
-    def check_for_already_piloting
-      if D3::Client::Receipt.pilots.keys.include? @basename
-        raise D3::InstallError, "#{@basename} is being piloted on this machine, can't do a normal install."
-      end
-    end
 
     ### This module contains methods for validating attribute
     ### values in d3 Packages

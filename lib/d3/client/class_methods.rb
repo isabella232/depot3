@@ -54,12 +54,35 @@ module D3
           desired_pkg = D3::Package.find_package(pkg_to_search)
 
           raise JSS::NoSuchItemError, "No d3 package matching #{pkg_to_search}" unless desired_pkg
+          raise D3::InstallError, "The package for #{desired_pkg.edition} is missing from the JSS" if desired_pkg.missing?
 
-          # are we manually installing over a frozen rcpt?
           curr_rcpt = D3::Client::Receipt.all[desired_pkg.basename]
-          if curr_rcpt && curr_rcpt.frozen?
-            D3.log "Un-freezing #{curr_rcpt.edition} by installing #{desired_pkg.edition} manually", :warn
-          end
+
+          # many things can be forced
+          unless options.force
+            # deprecated pkgs
+            desired_package.check_for_deprecated
+            # excluded pkgs
+            desired_pkg.check_for_exclusions
+            # skipped?
+            desired_pkg.check_for_skipped
+            # same or newer?
+            desired_pkg.check_for_newer_version
+
+          end # unless options.force
+
+          if curr_rcpt
+            D3.log("Un-freezing #{curr_rcpt.edition} by installing #{desired_pkg.edition} manually", :warn) if curr_rcpt.frozen?
+            D3.log("Updating skipped #{curr_rcpt.edition} by installing #{desired_pkg.edition} manually", :warn) if  curr_rcpt.skipped?
+
+            if  curr_rcpt.pilot? && (curr_rcpt.edition != desired_pkg.edition)
+              if options.force
+                 D3.log "Updating pilot #{curr_rcpt.edition} by force-installing #{desired_pkg.edition}(#{desired_pkg.status})", :warn
+              else
+                raise D3::InstallError, "#{curr_rcpt.edition} is currently in pilot. Use --force to update."
+              end # if options.force
+            end # if  curr_rcpt.pilot? && (curr_rcpt.edition != desired_pkg.edition)
+          end # if curr rcpt
 
           installing = desired_pkg.live?  \
             ? "currently live #{desired_pkg.basename}"  \
@@ -327,7 +350,7 @@ module D3
     def self.do_auto_installs (options)
       verbose = options.verbose
       force =  options.force or D3.forced?
-      D3.log "Checking for new pkgs to auto-install", :warn
+      D3.log "Checking for new packages to auto-install", :warn
       D3::Client.set_env :auto_install
       begin # for ensure below
         installed_basenames = D3::Client::Receipt.basenames :refresh
@@ -343,7 +366,7 @@ module D3
 
           live_ids_for_group.each do |live_id|
 
-            # skip thos not available
+            # skip those not available
             next unless self.available_pkg_ids.include? live_id
 
             auto_install_basename = D3::Package.live_data[live_id][:basename]
