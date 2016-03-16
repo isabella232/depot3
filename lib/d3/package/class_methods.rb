@@ -114,6 +114,20 @@ module D3
       end #if status == :all
     end #  self.package_data(refresh = false, status = :all)
 
+    ### A Hash of package identifiers (id's, names, editions)
+    ### as keys, to the status of the package (symbols)
+    ###
+    ### @param identifier[Symbol] one of :id, :name, or :edition
+    ###
+    ### @return [Hash{String,Integer => Symbol] the statuses of the packages
+    ###
+    def self.statuses_by (identifier, refresh = false)
+      raise JSS::InvalidDataError, "identifier must be one of :id, :edition, or :name" unless [:id, :name, :edition].include? identifier
+      stati = {}
+      self.package_data(refresh).values.each{|pkg| stati[pkg[identifier]] = pkg[:status] }
+      stati
+    end # statuses by
+
     ### A Hash mapping package ids to editions in d3
     ###
     ### A package's 'edition' is the combination of its basename, version, and revision,
