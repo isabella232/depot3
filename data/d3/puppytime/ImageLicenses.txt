@@ -8,6 +8,8 @@ None of the authors of these works endorse, or are in any way
 connected with the d3/depot3/jss-api opensource project,
 or Pixar Animation Studios.
 
+The images have been resized to a max of 500 px. That is the only modification
+
 === Image links, credits, and licenses
 
 https://commons.wikimedia.org/wiki/File:2008-07-11_White_German_Shepherd_pup_chilling_at_the_Coker_Arboretum.jpg
