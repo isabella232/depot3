@@ -50,8 +50,10 @@ module D3
       # refresh our pkg data first
       D3::Package.package_data :refresh
 
-      tmp_edition = args[:edition]
-      tmp_edition ||= "#{args[:basename]}-#{args[:version]}-#{args[:revision]}"
+      # if we didn't get an edition, did we get the parts?
+      if args[:basename] && args[:version] && args[:revision]
+        args[:edition] ||= "#{args[:basename]}-#{args[:version]}-#{args[:revision]}"
+      end
       args[:category] ||= D3::CONFIG.jss_default_pkg_category
 
       # Are we're making a new d3 (and JSS) pkg?
@@ -63,8 +65,8 @@ module D3
         end
 
         # does the edition we're creating already exist?
-        if D3::Package.all_editions.include? tmp_edition
-          raise JSS::AlreadyExistsError, "Package edition #{tmp_edition} already exists in d3"
+        if D3::Package.all_editions.include? args[:edition]
+          raise JSS::AlreadyExistsError, "Package edition #{args[:edition]} already exists in d3"
         end
 
 
@@ -77,40 +79,53 @@ module D3
         # doesn't matter since JSS now requires ruby 1.9.2
         raise JSS::InvalidDataError, "Use D3::Package.import to import existing JSS packages to d3." unless caller_locations(2,1)[0].label == "import"
 
+
         # data checking was done in the import class method
         @import = true
 
       # We are looking up an existing package by id, name, basename, or edition
       else
         if args[:id]
-          raise JSS::NoSuchItemError, "No package in the JSS with id: #{args[:id]}" unless JSS::Package.all_ids.include?(args[:id])
-
+          status =  D3::Package.statuses_by(:id)[args[:id]]
+          if status
+            @status = :missing if status == :missing
+          else
+            raise JSS::NoSuchItemError, "No package in d3 with id: #{args[:id]}"
+          end
 
         elsif args[:name]
-          args[:id] = JSS::Package.map_all_ids_to(:name).invert[args[:name]]
-          raise JSS::NoSuchItemError, "No package in the JSS with name: #{args[:name]}" unless args[:id]
+          status =  D3::Package.statuses_by(:name)[args[:name]]
+          if status
+            @status = :missing if status == :missing
+            args[:id] = JSS::Package.map_all_ids_to(:name).invert[args[:name]]
+          else
+            raise JSS::NoSuchItemError, "No package in d3 with name: #{args[:name]}"
+          end
 
-        elsif args[:edition] || (args[:basename] && args[:version] && args[:revision])
-          args[:id] = D3::Package.ids_to_editions.invert[tmp_edition]
-          raise JSS::InvalidDataError, "No d3 pkg with edition #{tmp_edition}." unless args[:id]
+
+        elsif args[:edition]
+          status =  D3::Package.statuses_by(:edition)[args[:edition]]
+          if status
+            @status = :missing if status == :missing
+            args[:id] = D3::Package.ids_to_editions.invert[ args[:edition]]
+          else
+            raise JSS::NoSuchItemError, "No package in d3 with edition: #{args[:edition]}"
+          end
+
 
         elsif args[:basename]
           args[:id] = D3::Package.basenames_to_live_ids[args[:basename]]
           raise JSS::NoSuchItemError, "No live package for basename '#{args[:basename]}'" unless args[:id]
         end # if args :id
 
-        # it has an id, but is it in d3?
-        unless D3::Package.package_data[args[:id]]
-          raise(JSS::NoSuchItemError, "That JSS package is not in d3. Use D3::Package.import")
-        end # unless
 
       end # if args[:id] == :new
-
+      @id =  args[:id]
       # now we have an :id (which might be :new) so let JSS::Package do its work
-      super args
+      super args unless @status == :missing
 
       # does this pkg need to be added? either to both JSS & d3, or just d3?
-      if (not @in_jss) || args[:import]
+      if  args[:import]
 
         d3pkg_data = args
         @basename = args[:basename]

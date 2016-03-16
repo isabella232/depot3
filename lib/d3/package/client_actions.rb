@@ -88,7 +88,7 @@ module D3
     def install(args = {})
 
       # force can't get around these:
-
+      raise D3::InstallError, "This package is missing from the JSS, cannot install." if @status == :missing
       check_oses
       check_cpu
 
@@ -109,20 +109,6 @@ module D3
         end
 
         forced = args[:force] or D3::forced?
-
-        # all sorts of unnatural things can happen with force...
-        unless forced
-          check_for_exclusions
-          check_for_deprecation
-          check_for_newer_version
-          check_for_skipped
-          if pilot?
-            check_for_invalid_live_install
-          else
-            check_for_already_piloting
-            check_for_invalid_pilot_install
-          end #if pilot
-        end # if force
 
         @admin = args[:admin]
 
