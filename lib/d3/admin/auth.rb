@@ -452,6 +452,19 @@ module D3
 
 
     end # module Auth
+
+    ### @see D3::Admin::Auth.connect
+    ###
+    def self.connect (alt_db = false)
+      Auth.connect alt_db
+    end
+
+    ### @see D3::Admin::Auth.disconnect
+    ###
+    def self.disconnect
+      Auth.disconnect
+    end
+
   end # module Admin
 end # module D3
 

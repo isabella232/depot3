@@ -394,14 +394,24 @@ module D3
           :validate => :validate_scoped_groups
         },
 
-        computer: {
+        computers: {
           :default => nil,
-          :cli => [ '--computer',  GetoptLong::NO_ARGUMENT ],
-          :label => "Report target is a computer, not a basename",
+          :cli => [ '--computers', GetoptLong::NO_ARGUMENT ],
+          :label => "Report targets are computers, not basenames",
           :display_conversion => DISPLAY_LIST_TYPE,
           :get => :get_scoped_groups,
           :validate => :validate_scoped_groups
         },
+
+        groups: {
+          :default => nil,
+          :cli => [ '--groups', GetoptLong::NO_ARGUMENT ],
+          :label => "Search targets are scoped groups, not basenames",
+          :display_conversion => DISPLAY_LIST_TYPE,
+          :get => :get_scoped_groups,
+          :validate => :validate_scoped_groups
+        },
+
 
         # Delete
         delete_scripts: {

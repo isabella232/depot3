@@ -59,11 +59,14 @@ module D3
           curr_rcpt = D3::Client::Receipt.all[desired_pkg.basename]
 
           # many things can be forced
+          # things that are defined in the pkg itself
+          # (exclusions, prohibiting procs, oses, cpus)
+          # are checked in the Package#install method
+          # These things are the responsibility of the
+          # client.
           unless options.force
             # deprecated pkgs
-            desired_package.check_for_deprecated
-            # excluded pkgs
-            desired_pkg.check_for_exclusions
+            desired_pkg.check_for_deprecated
             # skipped?
             desired_pkg.check_for_skipped
             # same or newer?
@@ -79,14 +82,12 @@ module D3
               if options.force
                  D3.log "Updating pilot #{curr_rcpt.edition} by force-installing #{desired_pkg.edition}(#{desired_pkg.status})", :warn
               else
-                raise D3::InstallError, "#{curr_rcpt.edition} is currently in pilot. Use --force to update."
+                raise D3::InstallError, "#{curr_rcpt.edition} is currently in pilot. Use --force to install over it."
               end # if options.force
             end # if  curr_rcpt.pilot? && (curr_rcpt.edition != desired_pkg.edition)
           end # if curr rcpt
 
-          installing = desired_pkg.live?  \
-            ? "currently live #{desired_pkg.basename}"  \
-            : "#{desired_pkg.edition} (#{desired_pkg.status})"
+          installing = desired_pkg.live? ? "currently live #{desired_pkg.basename}" : "#{desired_pkg.edition} (#{desired_pkg.status})"
 
           desired_pkg.install(
             :force => options.force,

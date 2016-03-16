@@ -38,7 +38,7 @@ module D3
     def check_for_newer_version
       if D3::Client::Receipt.basenames.include? @basename
           rcpt = D3::Client::Receipt.all[@basename]
-          raise D3::InstallError, "The installed #{rcpt.edition} (#{rcpt.status}) is the same or newer. Use --force if to install anyway." if rcpt.id >= @id
+          raise D3::InstallError, "The installed #{rcpt.edition} (#{rcpt.status}) is the same or newer. Use --force if needed." if rcpt.id >= @id
       end
     end # check for newer version
 
@@ -47,7 +47,7 @@ module D3
     ### return [void]
     ###
     def check_for_deprecated
-      raise D3::InstallError, "#{edition} is deprecated. Use --force to install anyway.." if deprecated?
+      raise D3::InstallError, "#{edition} is deprecated. Use --force if needed." if deprecated?
     end
 
     ### Check that we're not skipped, and raise an exception if we are.
@@ -56,7 +56,7 @@ module D3
     ### return [void]
     ###
     def check_for_skipped
-      raise D3::InstallError, "#{edition} was never made live and a newer edition was.\nUse  --force to install anyway." if skipped?
+      raise D3::InstallError, "#{edition} was skipped. Installing will put it into pilot mode. Use --force if needed." if skipped?
     end
 
     ### Check if this machine is in an excluded group.
@@ -66,7 +66,7 @@ module D3
     ###
     def check_for_exclusions
       excl_grps = D3::Client.computer_groups & @excluded_groups
-      raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}.\nUse --force to install anyway." unless excl_grps.empty?
+      raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}.\nUse --force if needed." unless excl_grps.empty?
     end # check for exclusions
 
     ### Check if this machine is OK wrt to the os limitations

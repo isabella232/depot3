@@ -225,7 +225,7 @@ module D3
 
         :status => {
           :field_name => "status",
-          :sql_type => "tinyint(1) DEFAULT 'pilot'",
+          :sql_type => "varchar(30) DEFAULT 'pilot'",
           :index => nil,
           :to_sql => STATUS_TO_STRING,
           :to_ruby => STRING_TO_STATUS

@@ -56,7 +56,7 @@ module D3
       end
       args[:category] ||= D3::CONFIG.jss_default_pkg_category
 
-      # Are we're making a new d3 (and JSS) pkg?
+      ############ Adding a New d3/jss package
       if args[:id] == :new
 
         # make sure we have the needed args
@@ -69,9 +69,9 @@ module D3
           raise JSS::AlreadyExistsError, "Package edition #{args[:edition]} already exists in d3"
         end
 
+        @adding = true
 
-
-      # Are we importing an existing JSS pkg?
+      ############ Importing an existing JSS pkg?
       elsif args[:import]
 
         # args[:import] should only ever come from D3::Package.import
@@ -81,9 +81,9 @@ module D3
 
 
         # data checking was done in the import class method
-        @import = true
+        @importing = true
 
-      # We are looking up an existing package by id, name, basename, or edition
+      ############ Looking up an existing package by id, name, basename, or edition
       else
         if args[:id]
           status =  D3::Package.statuses_by(:id)[args[:id]]
@@ -118,32 +118,36 @@ module D3
           raise JSS::NoSuchItemError, "No live package for basename '#{args[:basename]}'" unless args[:id]
         end # if args :id
 
+        @lookup_existing = true
 
       end # if args[:id] == :new
-      @id =  args[:id]
-      # now we have an :id (which might be :new) so let JSS::Package do its work
-      super args unless @status == :missing
 
-      # does this pkg need to be added? either to both JSS & d3, or just d3?
-      if  args[:import]
+      # if the pkg is missing from the jss, there's nothing to do below here
+      return if @status == :missing
+
+      # now we have an :id (which might be :new) so let JSS::Package do its work
+      # this will tie us to a new or existing jss pkg
+      super args
+
+      # does this pkg need to be added to d3?
+      if @adding or @importing
 
         d3pkg_data = args
-        @basename = args[:basename]
-        @version = args[:version]
-        @revision = args[:revision]
         @status = :unsaved
         @in_d3 = false
 
       else # package already exists in both JSS and d3...
+
         # This prevents some checks from happening, since the data came from the DB
         @initializing = true
-        d3pkg_data = D3::Package.package_data[@id]
-        @basename = d3pkg_data[:basename]
-        @version = d3pkg_data[:version]
-        @revision = d3pkg_data[:revision]
+        d3pkg_data = D3::Package.package_data(:refresh)[@id]
         @in_d3 = true
 
-      end # if (not @in_jss) or args[:import]
+      end # if  @adding or @importing
+
+      @basename = d3pkg_data[:basename]
+      @version = d3pkg_data[:version]
+      @revision = d3pkg_data[:revision]
 
       # process the d3 data
       if d3pkg_data

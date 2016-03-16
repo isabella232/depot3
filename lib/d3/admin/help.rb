@@ -99,12 +99,15 @@ Action delete:
 
 Action search or report:
   -S, --status <status>              Limit package list to this status
+  --groups                           Target is a group name. Shows packages
+                                       auto-installed or excluded for group
 
 Action report:
   -S, --status <status>              Limit receipt list to this status
   -z, --frozen                       Limit receipt list to frozen receipts
   -q, --queue                        List puppy queue items rather than rcpts
-  --computer                         Target is a computer name, ignore basenames
+  --computers                        Target is a computer name. Reports
+                                        rcpts/puppies on that computer.
 
 
 ENDHELP
@@ -179,14 +182,6 @@ individual package regardless of status.
   search   Search for and list packages in d3.
               Target = search text (RegExp matching)
               No target = list all packages unless -w
-
-              If text matches any basenames, packages
-              for the basenames are listed
-
-              If text machines any computer group names
-              packages scoped by the groups are listed
-              (auto-install or excluded)
-
 
   report   Report about d3 receipts or puppies on computers.
              Target = basename, or computer name unless -w
@@ -368,6 +363,11 @@ Action search:
                                        the given status. Can be used multiple
                                        times to see multiple statuses.
 
+  --groups                           Instead of basenames, search computer
+                                       group names and report packages scoped
+                                       by those groups for auto-install or
+                                       exclusion.
+
 Action report:
 
   -S, --status <status>              Limit the receipts listed to those with
@@ -376,11 +376,12 @@ Action report:
 
   -z, --frozen                       Limit the receipts listed to frozen ones.
 
-  -q, --queue                        Report computer puppy queues rather than
+  -q, --queue                        Report pending puppy installs rather than
                                        receipts.
 
-  --computer                         The target of the report is a computer name
-                                        so don't look for matching basenames
+  --computers                        The target of the report is a computer name
+                                       and the report is about receipts or
+                                       pending puppy installs on that computer.
 
 
 ENDHELP

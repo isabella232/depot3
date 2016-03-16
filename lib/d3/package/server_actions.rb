@@ -71,6 +71,11 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # Execute it to create the record
       stmt_result = stmt.execute
 
+
+      # while we're writing to the db, mark any missing packages as missing
+      mark_missing_packages
+
+
       @in_d3 = true
       return @id
     end # create
@@ -115,6 +120,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
       # Execute it to update the record
       stmt_result = stmt.execute
+
+     # while we're writing to the db, mark any missing packages as missing
+      mark_missing_packages
 
       return @id
 
@@ -205,18 +213,8 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # update our knowledge of the world
       self.class.package_data :refresh
 
-      # while we're writing stati to the db,
-      # mark any missing packages as missing, for better consistency.
-      missing_ids = self.class.missing_data.keys
-      unless missing_ids.empty?
-        q =  <<-ENDUPDATE
-        UPDATE #{P_TABLE[:table_name]}
-          SET #{status_field} = '#{P_FIELDS[:status][:to_sql].call(:missing)}'
-        WHERE #{id_field} IN (#{missing_ids.join(',')})
-        ENDUPDATE
-        stmt = JSS::DB_CNX.db.prepare q
-        stmt_result = stmt.execute
-      end # unless empty
+      # while we're writing to the db, mark any missing packages as missing
+      mark_missing_packages
 
       # auto_clean if we should
       auto_clean if D3::CONFIG.admin_auto_clean
@@ -381,6 +379,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # delete it from the JSS unless asked not to
       super() unless keep_in_jss
 
+     # while we're writing to the db, mark any missing packages as missing
+      mark_missing_packages
+
       # update our knowledge of the world
       D3::Package.package_data :refresh
 
@@ -434,7 +435,26 @@ INSERT INTO #{P_TABLE[:table_name]} (
       @need_to_update_d3 = true unless @initializing
       work_dir.rmtree if cleanup_work_dir
       mdp.unmount if unmount
-    end
+    end # update_apple_receipt_data
+
+
+    ### Mark missing packages as so on the server
+    ###
+    ### This should run any time we write to the d3_packages table
+    ###
+    ### @return [void]
+    def mark_missing_packages
+      missing_ids = self.class.missing_data.keys
+      unless missing_ids.empty?
+        q =  <<-ENDUPDATE
+        UPDATE #{P_TABLE[:table_name]}
+          SET #{ P_FIELDS[:status][:field_name]} = '#{P_FIELDS[:status][:to_sql].call(:missing)}'
+        WHERE #{P_FIELDS[:id][:field_name]} IN (#{missing_ids.join(',')})
+        ENDUPDATE
+        stmt = JSS::DB_CNX.db.prepare q
+        stmt_result = stmt.execute
+      end # unless empty
+    end # mark missing pkgs
 
     ### Upload a locally-readable file to the master distribution point.
     ### If the file is a directory (like a bundle .pk/.mpkg) it will be zipped before
@@ -599,6 +619,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # now insert the new values
       stmt = JSS::DB_CNX.db.prepare(insert_stmt + " " + insert_vals.join(','))
       stmt_result = stmt.execute
+
+      # while we're writing to the db, mark any missing packages as missing
+      mark_missing_packages
 
       return true
     end #mk_index

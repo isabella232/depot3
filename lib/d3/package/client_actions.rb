@@ -110,6 +110,9 @@ module D3
 
         forced = args[:force] or D3::forced?
 
+        # excluded pkgs
+        check_for_exclusions  unless forced
+
         @admin = args[:admin]
 
         # pilot?
@@ -130,7 +133,7 @@ module D3
         end
 
         if removable?
-          if args[:expiration]
+          if args[:expiration] && @expiration != args[:expiration]
             @expiration_to_apply = args[:expiration]
             @custom_expiration = args[:expiration]
           else
@@ -140,7 +143,6 @@ module D3
         else
           # not removable, can't expire
           @expiration_to_apply = 0
-
         end # if remmovable
 
         ###
@@ -154,10 +156,9 @@ module D3
         ###
         else
 
-          # do this check here, cuz if we did it abouve we'd prevernt queueing for puppies
-          if install_prohibited_by_process? and (not forced)
-            raise D3::InstallError, "#{edition} cannot be installed now because '#{@prohibiting_process}' is running."
-          end
+          unless forced
+            raise D3::InstallError, "#{edition} cannot be installed now because '#{@prohibiting_process}' is running."  if install_prohibited_by_process?
+          end # unless forced
 
           remove_previous_installs_if_needed (args[:verbose])
 

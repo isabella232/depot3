@@ -97,11 +97,11 @@ module D3
           rcpt_line << computer[:user]
           rcpt_line << "#{basename}-#{rcpt[:version]}-#{rcpt[:revision]}"
           rcpt_line << rcpt[:status]
-          rcpt_line << (computer[:as_of] ? computer[:as_of].strftime("%Y-%m-%d %H:%M:%S") : nil)
+          rcpt_line << (computer[:as_of] ? computer[:as_of].strftime("%Y-%m-%d") : nil)
 
           if got_ea
              rcpt_line << rcpt[:frozen] ? "frozen"  : "-"
-             rcpt_line << (rcpt[:installed_at] ? rcpt[:installed_at].strftime("%Y-%m-%d %H:%M:%S") : nil)
+             rcpt_line << (rcpt[:installed_at] ? rcpt[:installed_at].strftime("%Y-%m-%d") : nil)
              rcpt_line << rcpt[:admin]
           end #  if rcpt[:installed_at]
 
@@ -171,7 +171,7 @@ module D3
         # start building the report
 
         # title
-        last_recon = computer.last_recon.strftime("%Y-%m-%d %H:%M:%S")
+        last_recon = computer.last_recon.strftime("%Y-%m-%d")
         title = "Receipts on '#{computer_name}' (user: #{computer.username}) as of #{last_recon}"
 
         # header...
@@ -210,10 +210,10 @@ module D3
           rcpt_line = []
           rcpt_line << "#{basename}-#{rcpt[:version]}-#{rcpt[:revision]}"
           rcpt_line << rcpt[:status]
-          rcpt_line << computer.last_recon.strftime("%Y-%m-%d %H:%M:%S")
+          rcpt_line << computer.last_recon.strftime("%Y-%m-%d")
           if ea_name
             rcpt_line << (rcpt[:frozen] ? "frozen"  : "-")
-            rcpt_line << Time.parse(rcpt[:installed_at]).strftime("%Y-%m-%d %H:%M:%S")
+            rcpt_line << Time.parse(rcpt[:installed_at]).strftime("%Y-%m-%d")
             rcpt_line << rcpt[:admin]
           end #  rcpt[:installed_at]
           lines << rcpt_line
@@ -400,17 +400,23 @@ module D3
       ### @param no_match_text[String] the text to display when there are no ids
       ### @return [void]
       ###
-      def display_package_list (title, ids, no_match_text = "No matchings packages" )
+      def display_package_list (title, ids, no_match_text = "No matchings packages", show_scope = false )
         date_fmt = "%Y-%m-%d"
-        header =  %w{ Edition Status Added By Released By }
+        header = show_scope ?  %w{ Edition Status Auto_Groups Excluded_Groups } :  %w{ Edition Status Added By Released By }
         lines = []
         ids.each do |pkgid|
           p = D3::Package.package_data[pkgid]
           next unless p
-          date_added = p[:added_date] ? p[:added_date].strftime(date_fmt) : "-"
-          date_released = p[:release_date] ? p[:release_date].strftime(date_fmt) : "-"
-          rel_by = p[:released_by] ? p[:released_by] : "-"
-          lines << [p[:edition], p[:status], date_added, p[:added_by], date_released, rel_by]
+          if show_scope
+            auto_gs = p[:auto_groups].empty? ? "-none-" : p[:auto_groups].join(",")
+            excl_gs = p[:excluded_groups].empty? ? "-none-" : p[:excluded_groups].join(",")
+            lines << [p[:edition], p[:status], auto_gs, excl_gs]
+          else
+            date_added = p[:added_date] ? p[:added_date].strftime(date_fmt) : "-"
+            date_released = p[:release_date] ? p[:release_date].strftime(date_fmt) : "-"
+            rel_by = p[:released_by] ? p[:released_by] : "-"
+            lines << [p[:edition], p[:status], date_added, p[:added_by], date_released, rel_by]
+          end # if show_scope
         end
 
         if lines.empty?
@@ -422,6 +428,8 @@ module D3
         D3.less_text D3.generate_report(lines, header_row: header, title: title)
         puts # empty line between
       end # display_package_list
+
+
 
       ### Show a list of pkgs from the d3admin 'search' action
       ###
@@ -450,7 +458,28 @@ module D3
         end # if what_to_show == :all
 
         display_package_list title, ids, "No matching packages"
+
       end # def list_packages
+
+
+      ### Show a list of all packages with their scoped groups
+      ###
+      ### @param statuses[Array<String>] only show these statuses
+      ###
+      ### @return [void]
+      ###
+      def list_all_pkgs_with_scope (statuses)
+        title = "Group Scoping for all packages"
+        title +=  " with status #{statuses.join(' or ')}" unless statuses.empty?
+
+        if statuses.empty?
+          ids = D3::Package.all_ids
+        else
+          ids = D3::Package.package_data.values.select{|pd| statuses.include? pd[:status].to_s }.map{|pd| pd[:id]}
+        end
+        D3::Admin::Report.display_package_list title, ids, 'No Matching Groups', :show_scope
+
+      end
 
       ### list packages that auto-install onto machines
       ### in one or more given groups
@@ -463,7 +492,7 @@ module D3
         scope_text = scope == :auto ? "auto-install" : "are excluded for"
         title = "Packages that #{scope_text} for group '#{group}'"
 
-        if JSS::ComputerGroup.all_names.include? group
+        if JSS::ComputerGroup.all_names.include? group or D3::STANDARD_AUTO_GROUP == group
           ids = scope == :auto ? D3::Package.auto_install_ids_for_group(group) : D3::Package.exclude_ids_for_group(group)
 
           unless statuses.empty?
@@ -483,6 +512,9 @@ module D3
         display_package_list title, ids, no_match_text
 
       end # list_scoped_installs
+
+
+
 
       ###### Data gathering
 

@@ -186,8 +186,10 @@ class App
           @options.report_q = true
         when '--frozen'
           @options.report_frozen = true
-        when  '--computer'
-          @options.report_by = :computer
+        when  '--computers'
+          @options.report_computers = true
+        when '--groups'
+          @options.search_groups = true
       # add/edit
         when '--import'
           @options.import = true
@@ -260,7 +262,7 @@ class App
         when '--removable'
           # dft is yes, so if arg is empty or /^y(es)$/i, it should be nil,
           # otherwise must be  /^n(o)$/i
-          if arg.emtpy? or arg =~ /^y(es)$/i
+          if arg.empty? or arg =~ /^y(es)$/i
             @options.removable =  nil
           elsif arg =~ /^n(o)$/i
             @options.removable =  "n"
@@ -775,44 +777,57 @@ ENDDEETS
     D3::Admin::Report.connect_for_reports
 
     if @options.walkthru
+      # prompt for search type?
+        search_for = D3::Admin::Interactive.prompt_for_data(
+          desc: "SEARCH PACKAGES BY?\nAre you searching for packages by basename, or by scoped groups?\nEnter 'b' or 'g'",
+          prompt: "Basenames or Groups",
+          default: 'b',
+          required: false
+        )
+      @options.search_groups = true if search_for =~ /^g/i
+
       @targets = [D3::Admin::Interactive.get_search_target] if @targets.empty?
       @options.status = D3::Admin::Interactive.get_status_for_filter.split(/,\s*/) if @options.status.empty?
-    end
+    end #if @options.walkthru
 
     @options.status = [] if @options.status.include? "all"
 
+    # show all pkgs or group scope
     if @targets.empty? or @targets.include? "all"
-      D3::Admin::Report.list_packages nil, @options.status
+      if @options.search_groups
+        D3::Admin::Report.list_all_pkgs_with_scope @options.status
+      else
+        D3::Admin::Report.list_packages nil, @options.status
+      end
       return
     end
 
+    # show specific basenames or group scopes
     @targets.each do |search_target|
-      found_basenames = D3::Package.all_basenames.select{|bn| bn =~ /#{search_target}/}
-      if found_basenames.empty?
-        puts "No basenames in d3 match '#{search_target}'"
-      else
-        found_basenames.each {|fbn| D3::Admin::Report.list_packages fbn, @options.status }
-      end # if found_basenames.empty?
 
-     found_groups = JSS::ComputerGroup.all_names.select{|gn| gn =~ /#{search_target}/}
-      if found_groups.empty?
-        puts "No computer groups in Casper match '#{search_target}'"
+      # groups?
+      if @options.search_groups
+        found_groups = JSS::ComputerGroup.all_names.select{|gn| gn =~ /#{search_target}/}
+        if found_groups.empty?
+          puts "No computer groups in Casper match '#{search_target}'"
+        else
+          found_groups.each {|fgn|
+            D3::Admin::Report.list_scoped_installs fgn, @options.status, :auto
+            D3::Admin::Report.list_scoped_installs fgn, @options.status, :excluded
+          } # found_groups.each
+        end # if found_groups.empty?
+
+      # basenames
       else
-        found_groups.each {|fgn|
-          D3::Admin::Report.list_scoped_installs fgn, @options.status, :auto
-          D3::Admin::Report.list_scoped_installs fgn, @options.status, :excluded
-        } # found_groups.each
-      end # if found_groups.empty?
+        found_basenames = D3::Package.all_basenames.select{|bn| bn =~ /#{search_target}/}
+        if found_basenames.empty?
+          puts "No basenames in d3 match '#{search_target}'"
+        else
+          found_basenames.each {|fbn| D3::Admin::Report.list_packages fbn, @options.status }
+        end # if found_basenames.empty?
+      end # if @options.search_groups
     end # @targets.each do |search_target|
   end # def search
-
-  ### show the packages that are autoinstalled
-  ### and excluded for a group
-  ###
-  def show_scoping_list (group)
-    D3::Admin::Report.list_auto_installs group
-    D3::Admin::Report.list_excl_installs group
-  end
 
   ### show a list of packges on the server
   def show_package_list (basename, statuses)
@@ -827,7 +842,6 @@ ENDDEETS
   ###
   def show_report
     D3::Admin::Report.connect_for_reports
-    @options.report_by ||= :search
 
     # targets are basenames or computer names
 
@@ -841,11 +855,14 @@ ENDDEETS
           default: 'all',
           required: false
         )
+
+        # basename report across computers
         if one_or_all == "all"
-          @options.report_by = :basename
           @targets = [(D3::Admin::Interactive.get_value :get_basename, nil, :validate_basename)]
+
+        # reporting single computers
         else
-          @options.report_by = :computer
+          @options.report_computers = true
           computer_id = D3::Admin::Interactive.get_value :get_computer, nil, :validate_computer
           @targets = [JSS::Computer.map_all_ids_to(:name)[computer_id]]
         end
@@ -881,15 +898,9 @@ ENDDEETS
 
     @targets.each do |target|
 
-      # do we know if the target is a basename or computer?
-      # If not, look for a basename first
-      if @options.report_by == :search
-        @options.report_by = D3::Package.all_basenames.include?(target) ? :basename : :computer
-      end
-
       # report puppies
       if reporting == :puppies
-        if @options.report_by == :computer
+        if @options.report_computers
           D3::Admin::Report.report_single_puppy_queue target, @options.status
         else
           D3::Admin::Report.report_puppy_queues target, @options.status
@@ -897,13 +908,13 @@ ENDDEETS
 
       # report receipts
       else
-        if @options.report_by == :computer
+        if @options.report_computers
           D3::Admin::Report.report_single_computer_receipts target, @options.status
         else
           D3::Admin::Report.report_basename_receipts target, @options.status
         end
-      end # if reporting puppies
 
+      end # if reporting puppies
     end # targets each
   end # show_report
 
