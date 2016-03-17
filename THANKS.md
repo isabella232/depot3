@@ -1,5 +1,6 @@
 # With Thanks To...
 
 * Pixar Systems Management
-* The Pixar Mac Team
+* Aurica Hayes
+* Greg Neagle and the contributors to Munki
 * Alex
