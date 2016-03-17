@@ -875,8 +875,8 @@ module D3
       ###
       def delete
         @jamf_rcpt_file.delete if @jamf_rcpt_file.exist?
-        D3.log "Deleted JAMF receipt file", :debug
         D3::Client::Receipt.remove_receipt @basename
+        D3.log "Deleted JAMF receipt file #{@jamf_rcpt_file.basename}", :debug
         @deleted = true
       end
 
