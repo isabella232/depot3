@@ -229,15 +229,25 @@ That said, here are a few things we know regarding its limitations in other envi
 
 ## HISTORY
 
-Many years ago, Pixar's original NFS-based software deployment system for Unix workstations was called "depot". When it had outgrown itself, a replacement based on RPM packages was created and called "depot2", or "d2" for short. When Mac OS X arrived at Pixar in 2002, the Mac team adopted many of the Linux team's existing tools, including d2.
+#### depot and d2
+Nearly 30 years ago, Pixar's original NFS-based software deployment system for Unix workstations was called "depot". When it had outgrown itself, a replacement based on RPM packages was created and called "depot2", or "d2" for short. When Mac OS X arrived at Pixar in 2002, the Mac team adopted many of the Linux team's existing tools, including d2. 
 
-By 2008 the original developer of d2 had left, and d2's applicability and sustainability for the Macs (never great to start with) was waning. Also, the world of Mac Sys Admins was changing to become what it is today. In 2009 the Pixar Mac team starting looking at third-party tools that might replace d2.
+#### PuppyTime!
+d2 was useful as far it went, but Macs aren't Linux, and d2 couldn't handle the installation of .pkg's, especially those requiring a reboot. To deal with those, Pixar's Mac team created PuppyTime! - a system that could install .pkgs from a server, and if they needed a reboot, would queue them to be installed at the next logout. 
 
-Nothing seemed to be an exact fit for our needs, but the Casper Suite from JAMF Software seemed promising, and offered other tools very similar to our own home-grown Mac infrastructure. We realized that with a little customization, Casper could provide the features we wanted.  The first version of d3 was created in 2010 to add those features.
+During logout installation, something had to be displayed on the screen, or the users would think the machine was crashed, and might force-reboot.  So puppytime would display a slideshow of cute puppies to let the users know what was up, and placate their mood.
 
-The second version of d3, which utilised the newly-released Casper REST API, was presented at the 2012 JAMF Nation User Conference in Minneapolis. One of the first questions from the audience was "Is it open-sourced?", to which we had to say no.
+#### d3
+By 2008 the original developer of d2 had left, and d2's sustainability for the Macs was waning. Also, the world of Mac Sys Admins was changing to become what it is today. In 2009 the Pixar Mac team starting looking at third-party tools that might replace d2.  
 
-Since then, work has been progressing on the third version of d3 with a goal of enhancing its features and refactoring the code-base for eventual open-source release. The first step towards that goal was the 2014 release of the JSS ruby module, which provides comprehensive access to the Casper REST API, and upon which d3 is built. D3 itself took another 18 months before the first upload to github.
+Nothing seemed to be an exact fit for our needs, but the Casper Suite from JAMF Software seemed promising, and offered other tools very similar to our own home-grown Mac infrastructure. We realized that with a little customization, Casper could provide the features we wanted.  The first version of d3 was created in 2010 to add those features. 
+
+The second version of d3, which utilised the newly-released Casper REST API, was presented at the 2012 JAMF Nation User Conference in Minneapolis. One of the first questions from the audience was "Is it open-sourced?", to which we had to say no. 
+
+#### open-source
+Since then, work has been progressing on the third version of d3 with a goal of enhancing its features and refactoring the code-base for eventual open-source release. The first step towards that goal was the 2014 release of the [JSS ruby module](https://github.com/PixarAnimationStudios/ruby-jss), which provides extensive access to the Casper REST API. 
+
+The JSS module was created specifically as the API connection for d3, but has become useful in it's own right for all of our access to the API. d3 itself took another 18 months before the first upload to [github](https://github.com/PixarAnimationStudios/depot3).
 
 ## CONTACT
 
