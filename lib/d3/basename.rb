@@ -116,8 +116,7 @@ module D3
     ###   installed or uninstalled
     attr_reader :prohibiting_process
 
-    # @return [nil,Integer] The number of days of disuse before an expiring package is uninstalled
-    #  nil or zero mean don't expire ever
+    # @return [Integer] the days of disuse before an expirable edition expires. 0=never
     attr_reader :expiration
 
     # @return [String] the path to the executable that needs come to the foreground to prevent expiration
@@ -134,18 +133,7 @@ module D3
     ### @return [String] the basename, version ,and revision of this package, joined with hyphens
     ###
     def edition
-      return @edition if @edition
-      @edition = "#{@basename}-#{@version}-#{@revision}"
-    end
-
-    ### expiration should always return an integer, so if it's nil,
-    ### return zero. (we assume anything non-nil is an Integer)
-    ### due to input validation)
-    ###
-    ### @return[Interger]  the expiration period in days
-    ###
-    def expiration
-      @expiration.to_i
+      "#{@basename}-#{@version}-#{@revision}"
     end
 
     ### Use comparable to give sortability

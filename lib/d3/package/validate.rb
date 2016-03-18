@@ -421,7 +421,7 @@ module D3
       ###
       def validate_expiration (exp)
         exp ||= '0'
-        raise JSS::InvalidDataError, "Expiration must be an Integer." unless exp.to_s =~ /^\d+$/
+        raise JSS::InvalidDataError, "Expiration must be a non-negative Integer." unless exp.to_s =~ /^\d+$/
         exp = 0 if exp.to_i < 0
         exp.to_i
       end
