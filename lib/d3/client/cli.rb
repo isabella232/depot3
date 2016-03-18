@@ -153,6 +153,11 @@ module D3
           :help => "force d3 to perform unnatural acts"
         },
 
+        freeze: {
+          :cli => ['--freeze', '-F', GetoptLong::NO_ARGUMENT ],
+          :help => "with 'install', freeze receipt immediately"
+        },
+
         admin: {
           :cli => ['--admin', '-a', GetoptLong::REQUIRED_ARGUMENT ],
           :arg => 'admin',

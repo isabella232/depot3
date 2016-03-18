@@ -50,7 +50,7 @@ handling capabilities of the Casper Suite from JAMF Software, LLC.
 
 All actions have a 1-2 character shortcut.
 
-For details see http://some/url/here
+For details see https://github.com/PixarAnimationStudios/depot3/wiki/Client
 
 Actions:
   install   i  <basename/edition>       - Install packages or queue for logout
@@ -61,7 +61,7 @@ Actions:
   sync      s                           - Update receipt data, do auto-installs
                                           update installed software & uninstall
                                           expired receipts
-  help                                  - Show this help info
+  help                                  - Show this help summary
 
 List Actions:
   list-available  la                    - Live pkgs available to this computer
@@ -89,6 +89,7 @@ Options:
   -N, --no-puppy-notification  - Don't run the puppy-notification policy
   -e, --expiration <days>      - With 'install', set a custom expiration
                                  if the pkg is expirable
+  -F, --freeze                 - With 'install', freeze receipt immediately
   -d, --debug                  - Set verbosity and logging to full blast
   -V, --version                - Show d3 version info
   -H, --help                   - Show this help info

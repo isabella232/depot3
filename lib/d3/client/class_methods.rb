@@ -98,6 +98,8 @@ module D3
             :alt_download_url => self.cloud_dist_point_to_use
             )
 
+          self.freeze_receipts([desired_pkg.basename]) if options.freeze
+
           D3.log "Finished installing #{installing}", :info
 
         rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
@@ -522,7 +524,7 @@ module D3
         end
         rcpt.freeze
         rcpt.update
-        D3.log "Freezing receipt for #{rcpt.edition}, will no longer auto-update during sync", :warn
+        D3.log "Freezing receipt for #{rcpt.edition}, will not auto-update during sync", :warn
       end
     end # freeze receipts
 

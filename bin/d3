@@ -179,6 +179,10 @@ class App
         when '--force'
           @options.force = true
           D3::force
+
+        when '--freeze'
+          @options.freeze = true
+
         when '--admin'
           @options.admin = arg
 
