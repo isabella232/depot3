@@ -1,9 +1,9 @@
-# D3 - Command line package and patch management for Casper
+# d3 - Command line package and patch management for Casper
 
-D3 is a package deployment and patch management system for OS X that enhances the
-[Casper Suite](http://www.jamfsoftware.com/products/casper-suite/), an enterprise-level management system for Apple devices from [JAMF Software LLC](http://www.jamfsoftware.com/). It was created by [Pixar Animation Studios](http://www.pixar.com/).
+d3 is a package deployment and patch management system for OS X that enhances the
+[Casper Suite](http://www.jamfsoftware.com/products/casper-suite/), an enterprise-level management system for Apple devices from [JAMF Software](http://www.jamfsoftware.com/). It was created by [Pixar Animation Studios](http://www.pixar.com/).
 
-D3 adds these, capabilities and more, to Casper's package handling:
+d3 adds these, capabilities and more, to Casper's package handling:
 
 * Automatic software updates on clients when new versions are released on the server
 * Pre-release piloting of new packages
@@ -13,9 +13,7 @@ D3 adds these, capabilities and more, to Casper's package handling:
 * Both the client and admin tools are command-line only and fully scriptable
 * Admin command-line options allow integration with developer workflows and package-retrieval tools
 
-D3 is written in Ruby and available as a rubygem called 'depot3'. It interfaces with
-Casper mostly via it's REST API using the [JSS Ruby module](https://github.com/PixarAnimationStudios/ruby-jss), available via the
-[ruby-jss ruby gem](https://rubygems.org/gems/ruby-jss). It also accesses the JSS's backend MySQL database directly to provide enhanced features.
+d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper mostly via it's REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
 
 ## Documentation
 
@@ -23,12 +21,12 @@ The main documentation is in the [GitHub wiki](https://github.com/PixarAnimation
 
 The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3)
 
-Also check out the [home page for ruby-jss](http://www.rubydoc.info/gems/ruby-jss), which is useful for working with the Casper REST API. 
+Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Casper REST API in any project. 
 
 
 ## COMPONENTS
 
-D3 is made of several parts.
+d3 is made of several parts.
 
 * d3 - the client.
 
@@ -88,7 +86,7 @@ D3 is made of several parts.
 
 ## EXAMPLES
 
-Check out some [basic vocabulary](https://github.com/PixarAnimationStudios/depot3/wiki/Welcome#basic-vocabulary) for words like 'sync', 'live', 'edition' and so on.
+Check out some [basic vocabulary](http://pixaranimationstudios.github.io/depot3/index.html#basic-vocabulary) for learning how d3 uses words like 'sync', 'live', 'edition' and so on.
 
 ### d3
 
@@ -198,15 +196,16 @@ d3admin add transmogrifier \
   runs `d3 sync` if:
   
   * An older, non-pilot, edition of the same basename is installed (auto updating)
-  * The client is in one of the "auto-install" computer groups listed for the package. (Scoped auto-installs)
+  * The client is in one of the "auto-install" computer groups listed for the package. (scoped auto-installs)
 
 
 * Edit the settings of an existing package interactively
 
-  `d3admin edit transmogrifier-20-7`
+  `d3admin edit transmogrifier-20-7 -w`
 
-  This creates a menu similar to the above. Edits can be made non-interactively by
-  providing all new values on the commandline.
+  This creates a menu similar to the above. -w is the short version of --walkthru. 
+  
+  Edits can be made non-interactively by providing all new values on the commandline.
 
 As with d3, all actions and options for d3admin have short versions.
 
@@ -226,29 +225,6 @@ That said, here are a few things we know regarding its limitations in other envi
 * File-share distribution points are assumed. Especially the Master Distribution Point. However, if your JSS has a Cloud Distribution Point Defined, d3 will attempt to use it if the FileShare Dist point isn't available. We've only tested this with AWS.
 * D3 doesn't automatically find or retrieve updates/patches from the 'net.  Other tools exist to do that, and we may look into integrating AutoPkg, or something similar, eventually.
 
-
-## HISTORY
-
-#### depot and d2
-Nearly 30 years ago, Pixar's original NFS-based software deployment system for Unix workstations was called "depot". When it had outgrown itself, a replacement based on RPM packages was created and called "depot2", or "d2" for short. When Mac OS X arrived at Pixar in 2002, the Mac team adopted many of the Linux team's existing tools, including d2. 
-
-#### PuppyTime!
-d2 was useful as far it went, but Macs aren't Linux, and d2 couldn't handle the installation of .pkg's, especially those requiring a reboot. To deal with those, Pixar's Mac team created PuppyTime! - a system that could install .pkgs from a server, and if they needed a reboot, would queue them to be installed at the next logout. 
-
-During logout installation, something had to be displayed on the screen, or the users would think the machine was crashed, and might force-reboot.  So puppytime would display a slideshow of cute puppies to let the users know what was up, and placate their mood.
-
-#### d3
-By 2008 the original developer of d2 had left, and d2's sustainability for the Macs was waning. Also, the world of Mac Sys Admins was changing to become what it is today. In 2009 the Pixar Mac team starting looking at third-party tools that might replace d2.  
-
-Nothing seemed to be an exact fit for our needs, but the Casper Suite from JAMF Software seemed promising, and offered other tools very similar to our own home-grown Mac infrastructure. We realized that with a little customization, Casper could provide the features we wanted.  The first version of d3 was created in 2010 to add those features. 
-
-The second version of d3, which utilised the newly-released Casper REST API, was presented at the 2012 JAMF Nation User Conference in Minneapolis. One of the first questions from the audience was "Is it open-sourced?", to which we had to say no. 
-
-#### open-source
-Since then, work has been progressing on the third version of d3 with a goal of enhancing its features and refactoring the code-base for eventual open-source release. The first step towards that goal was the 2014 release of the [JSS ruby module](https://github.com/PixarAnimationStudios/ruby-jss), which provides extensive access to the Casper REST API. 
-
-The JSS module was created specifically as the API connection for d3, but has become useful in it's own right for all of our access to the API. d3 itself took another 18 months before the first upload to [github](https://github.com/PixarAnimationStudios/depot3).
-
 ## CONTACT
 
 [Email the developer](mailto:d3@pixar.com)
@@ -260,7 +236,7 @@ The JSS module was created specifically as the API connection for d3, but has be
 Copyright 2016 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License")
-with the following modification; you may not use this file except in
+with the following modification; you may not use d3 except in
 compliance with the Apache License and the following modification to it:
 
 Section 6. Trademarks. is deleted and replaced with:
