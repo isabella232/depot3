@@ -26,6 +26,8 @@
 
 ### - log_file
 ###   the path to the file to which d3 writes log data,
+###
+###   If you leave this blank:
 ###   defaults to "/var/log/d3.log"
 ###
 log_file:
@@ -33,6 +35,8 @@ log_file:
 
 ### - log_level
 ###   one of 'fatal', 'error', 'warn', 'info' or 'debug',
+###
+###   If you leave this blank:
 ###   defaults to info
 ###
 log_level:
@@ -40,16 +44,18 @@ log_level:
 ### - log_timestamp_format
 ###   the strftime format string to apply to the log entries,
 ###   for example: %b %d %Y %H:%M:%S
+###
+###   If you leave this blank:
 ###   defaults to "%Y-%m-%d %H:%M:%S", e.g. "2016-04-01 13:45:02"
 ###
 log_timestamp_format:
 
 ### - client_jss_ro_user
-###
-###   *** REQUIRED ***
-###
 ###   the name of a JSS API user that has enough read-only
 ###   API access for d3 to work.
+###
+###   If you leave this blank:
+###   Will use the api_username from /etc/ruby-jss.conf
 ###
 client_jss_ro_user:
 
@@ -69,15 +75,20 @@ client_jss_ro_user:
 ###   The file is read, or command executed, as needed, and the result is
 ###   never stored in a variable. Developers: please do likewise.
 ###
+###
+###   If you leave this blank:
+###     d3 clients will be unable to connect to the JSS
+###
 client_jss_ropw_path:
 
 ### - client_db_ro_user
 ###
-###   *** REQUIRED ***
-###
 ###   the name of a MySQL user that has enough access to the
 ###   jamfsoftware MySQL database for d3 to work.
 ###
+###
+###   If you leave this blank:
+###    will use the db_username value from /etc/ruby-jss.conf
 client_db_ro_user:
 
 ### - client_db_ropw_path
@@ -86,6 +97,9 @@ client_db_ro_user:
 ###
 ###   Access to the password for the client_db_ro_user
 ###   See client_jss_ropw_path, above
+###
+###   If you leave this blank:
+###     d3 clients will be unable to connect to the database
 ###
 client_db_ropw_path:
 
@@ -97,6 +111,11 @@ client_db_ropw_path:
 ###   filesharing service
 ###   See client_jss_ropw_path, above
 ###
+###
+###   If you leave this blank:
+###     d3 will be unable to download packages from
+###     fileserver distribution points
+###
 client_distpoint_ropw_path:
 
 ### - client_http_ropw_path
@@ -107,27 +126,41 @@ client_distpoint_ropw_path:
 ###   machines Casper Distribution point.
 ###   See client_jss_ropw_path, above
 ###
+###
+###   If you leave this blank:
+###     d3 will be unable to use http for downloading packages
+##3     if a password is required.
 client_http_ropw_path:
 
 ### - client_try_cloud_distpoint
 ###   If there's a cloud distribution point available in the JSS
 ###   and the fileshare dist.point for the client isn't reachable,
-###   should we try the cloud?  "true" or "false"
+###   should we try the cloud? Use "true" or "false"
+###
+###   If you leave this blank:
+###   defaults to false
 ###
 client_try_cloud_distpoint:
 
 ### - client_prohibited_admin_names
 ###   A comma-separated list of names not allowed to be the 'admin'
 ###   for the d3 --admin option.
+###
 ###   If you have a single admin-acct name on all your computers,
 ###   you might include it here, so that it can't be used for d3 actions,
 ###   helping keep track of who did what.
+###
+###   If you leave this blank:
+###    defaults to 'root, auto-installed'
 ###
 client_prohibited_admin_names:
 
 ### - client_expiration_allowed
 ###   Are pkgs allowed to expire on this machine?
-###   Use "true" or "false", defaults to false
+###   Use "true" or "false"
+###
+###   If you leave this blank:
+###    defaults to false
 ###
 client_expiration_allowed:
 
@@ -136,6 +169,9 @@ client_expiration_allowed:
 ###   a 'd3 sync' expires any packages. The space-separated list of
 ###   editions expired will be available in the environment variable
 ###   D3_FINISHED_EXPIRATIONS during the policy execution
+###
+###   If you leave this blank:
+###     No policy will be executed after packages are expired
 ###
 client_expiration_policy:
 
@@ -148,6 +184,9 @@ client_expiration_policy:
 ###   will be available in the environment variable D3_NOTIFYING_PUPPIES while
 ###   the policy is running
 ###
+###   If you leave this blank:
+###    Users will not be notified when items are awaiting logout.
+###
 puppy_notification_policy:
 
 ### - puppy_notification_frequency
@@ -159,6 +198,8 @@ puppy_notification_policy:
 ###
 ###   BE CAREFUL. A single d3 sync could add several things to the queue.
 ###
+###
+###   If you leave this blank:
 ###   Default is 7
 ###
 puppy_notification_frequency:
@@ -168,6 +209,9 @@ puppy_notification_frequency:
 ###
 ###   This value is updated automatically, and you shouldn't change it
 ###   without great care.
+###
+###   If you leave this blank:
+###     the world is good. You SHOULD leave this blank
 ###
 puppy_last_notification:
 
@@ -182,12 +226,18 @@ puppy_last_notification:
 ###   This policy should not do too much, since the
 ###   underlying OS may be in an unknown state until the reboot.
 ###
+###   If you leave this blank:
+###     the machine will reboot with 'shutdown -r now' after puppytime
+###
 puppy_reboot_policy:
 
 ### - puppy_notify_image_path
 ###   the path to an image to use in the puppy notification display
 ###   (if you use the d3helper command to do the puppy notification
 ###   from the notification policy)
+###
+###   If you leave this blank:
+###
 ###   the default is
 ###   /Library/Application Support/d3/puppytime/notification_image
 ###   (with no extension)
@@ -196,13 +246,19 @@ puppy_notify_image_path:
 
 ### - puppy_optout_seconds
 ###   The number of seconds to wait, with an option to cancel, before
-###   starting the puppy installs. Defaults to 30
+###   starting the puppy installs.
+###
+###   If you leave this blank:
+###    Defaults to 30
 ###
 puppy_optout_seconds:
 
 ### - puppy_optout_text
 ###   The text to display in the puppy window during the
 ###   optout period.
+###
+###   If you leave this blank:
+###
 ###   Defaults to:
 ###     Software updates will start when you click OK,
 ###     or when the timer runs out.
@@ -212,7 +268,11 @@ puppy_optout_text:
 
 ### - puppy_optout_image_path
 ###   The image to display during in the puppy window during the
-###   optout period. Defaults to
+###   optout period.
+###
+###   If you leave this blank:
+###
+###   Defaults to
 ###   /Library/Application Support/d3/puppytime/opt_out_image
 ###
 puppy_optout_image_path:
@@ -223,6 +283,9 @@ puppy_optout_image_path:
 ###   If puppy_display_captions is true the names of the image files
 ###   are used as the captions under the displayed images, with
 ###   the filename extension is removed.
+###
+###   If you leave this blank:
+###
 ###   Defaults to
 ###   /Library/Application Support/d3/puppytime/slideshow
 ###
@@ -234,24 +297,38 @@ puppy_slideshow_folder_path:
 ###   filename extention (like .jpg) removed. They are displayed
 ###   in larger text at the top of the window. (jamfHelper's
 ###   'Heading' )
-###   Use 'true' or 'false', Defaults to 'false'
+###   Use 'true' or 'false'
+###
+###   If you leave this blank:
+###
+###    Defaults to 'false'
 ###
 puppy_display_captions:
 
 ### - puppy_no_captions_text
 ###   If puppy_display_captions is false, this text is
-###   displayed instead. Defaults to "The puppies are..."
+###   displayed instead.
+###
+###   If you leave this blank:
+###
+###   Defaults to "The puppies are..."
 ###
 puppy_no_captions_text:
 
 ### - puppy_image_size
 ###   The maximum pixel size of the images in the slideshow
+###
+###   If you leave this blank:
+###
 ###   Defaults to 250
 ###
 puppy_image_size:
 
 ### - puppy_title
 ###   The title in the titlebar of the puppy window.
+###
+###   If you leave this blank:
+###
 ###   Defaults to "PuppyTime!"
 ###
 puppy_title:
@@ -260,12 +337,18 @@ puppy_title:
 ###   The number of seconds each slide is displayed in the slideshow.
 ###   Don't make this too long, since the window needs to refresh to update
 ###   the status of the process.
+###
+###   If you leave this blank:
+###
 ###   Defaults to 8
 ###
 puppy_display_secs:
 
 ### - jss_default_pkg_category
 ###   The default JSS category to use for packages added to d3
+###
+###   If you leave this blank:
+###
 ###   Defaults to none
 ###
 jss_default_pkg_category:
@@ -273,28 +356,37 @@ jss_default_pkg_category:
 ### - jss_default_script_category
 ###   The default JSS category to use for pre- and post- scrtips
 ###   added to d3
+###
+###   If you leave this blank:
+###
 ###   Defaults to none
 ###
 jss_default_script_category:
 
 ### - admin_make_live_script
-###   The id or name of a casper script to execute when a pkg is made live.
+###   The id or name of an existing Casper script to execute when
+###   a package is made live.
 ###
 ###   The original use-case is for the script to send an email announcement
 ###   about the now-live package to an appropriate audience.
 ###
-###   Following environment variables are set during policy execution
+###   Following environment variables are set during script execution
 ###   - D3_MAKE_LIVE_EDITION: the pkg edition
 ###   - D3_MAKE_LIVE_ADMIN: the admin making it live
 ###   - D3_MAKE_LIVE_DESC: the description of the pkg
 ###   - D3_MAKE_LIVE_AUTO_GROUPS: the auto-groups, as a comma-sepated string
 ###   - D3_MAKE_LIVE_EXCL_GROUPS: the excluded groups, as a comma-separated string.
 ###
-###   Note: This script runs only on the machine where d3admin is making the
+###   NOTE: This script runs only on the machine where d3admin is making the
 ###   package live, and it runs as the user who is running d3admin. It is
-###   NOT run as root, nor with 'jamf script...'.
+###   NOT run as root, nor with the 'jamf runScript' command of the jamf binary.
+###   Instead, the script code is copied to a local temp file, made executable
+###   (only by the user running d3admin), executed, and then deleted.
 ###
 ###   So make sure it doesn't need root privileges for anything.
+###
+###   If you leave this blank:
+###     nothing will happen when a package is made live.
 ###
 admin_make_live_script:
 
@@ -313,7 +405,10 @@ admin_make_live_script:
 ###
 ###   - The package will NOT be kept in the JSS.
 ###
-###   Use "true" or "false", defaults to false
+###   Use "true" or "false"
+###
+###   If you leave this blank:
+###     defaults to false
 ###
 admin_auto_clean:
 
@@ -326,6 +421,9 @@ admin_auto_clean:
 ###
 ###   The default is zero, auto_cleaning (if used) will delete all older packages
 ###   when a new one is made live.
+###
+###   If you leave this blank:
+###     No deprecated packages will be kept if admin_auto_clean is true.
 ###
 admin_auto_clean_keep_deprecated:
 
@@ -340,6 +438,10 @@ admin_auto_clean_keep_deprecated:
 ###   If the Ext Attr is not used, then Caspers inventory data about installed
 ###   casper receipts is used, but the report detail is limited.
 ###
+###   If you leave this blank:
+###      The reports from  `d3admin report` will not contain data about
+###      frozen receipts, or receipt install-time or admin.
+###
 report_receipts_ext_attr_name:
 
 ### - report_puppyq_ext_attr_name
@@ -352,6 +454,8 @@ report_receipts_ext_attr_name:
 ###   It is used by the d3admin utility for generating reports about clients.
 ###   If unused, no puppyqueue reporting is available.
 ###
+###   If you leave this blank:
+###    the `--queue` option to `d3admin report` will not work
 ###
 report_puppyq_ext_attr_name:
 
@@ -365,5 +469,9 @@ report_puppyq_ext_attr_name:
 ###   It needs to have the same SQL user, password and access as for read-write
 ###   access to the production database, however on this sql server, the user's
 ###   permissions should  be read-only
+###
+###   If you leave this blank:
+###     The primary MySQL db server defined in /etc/ruby-jss.conf
+###     will be used for all report queries.
 ###
 report_db_server:
