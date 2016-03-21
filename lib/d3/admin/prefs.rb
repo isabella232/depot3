@@ -190,9 +190,9 @@ Master Distribution Point
   Read/Write user: (stored in JSS)
   Read/Write password: #{dist_creds[:password] ? 'stored in keychain' : 'unset' }
 
-Building .pkg's
-  Workspace: #{wkspc ? wkspc : D3::Admin::DFT_WORKSPACE}
-  Editor: #{editor ? editor : D3::Admin::Interactive::DFT_EDITOR}
+Adding Packages
+  Description Editor: #{editor ? editor : D3::Admin::Interactive::DFT_EDITOR}
+  Build Workspace: #{wkspc ? wkspc : D3::Admin::DFT_WORKSPACE}
   Identifier prefix: #{pkg_id_pfx ? pkg_id_pfx : D3::Admin::DFT_PKG_ID_PREFIX}
 
 DISPLAY
