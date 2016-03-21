@@ -57,8 +57,6 @@ class App
   ### Setup
   def initialize
 
-    D3::LOG.progname = File.basename __FILE__
-
     ### parse the commandline
     parse_commandline
 
