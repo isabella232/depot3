@@ -100,7 +100,7 @@ module D3
           rcpt_line << (computer[:as_of] ? computer[:as_of].strftime("%Y-%m-%d") : nil)
 
           if got_ea
-             rcpt_line << rcpt[:frozen] ? "frozen"  : "-"
+             rcpt_line << (rcpt[:frozen] ? "frozen"  : "-")
              rcpt_line << (rcpt[:installed_at] ? rcpt[:installed_at].strftime("%Y-%m-%d") : nil)
              rcpt_line << rcpt[:admin]
           end #  if rcpt[:installed_at]
