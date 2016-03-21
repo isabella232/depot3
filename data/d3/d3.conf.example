@@ -63,14 +63,27 @@ client_jss_ro_user:
 ###
 ###   *** REQUIRED ***
 ###
-###   The path to a file containing the password for the client_jss_ro_user.
+###   This value can be:
+###   
+###   - A Path: 
+###      The path to a file containing the password for the client_jss_ro_user.
+###      The file should contain nothing but the password. Trailing whitespace 
+###      is stripped.
+###      For security, the file MUST be owned by root with permissions mode 0600
+###      (-rw-------)  or else a fatal error occurs when d3 tries to read it.
 ###
-###   If the value ends with a pipe '|' it is assumed to be a shell command
-###   that will return the passwd via its standard-output. The pipe is removed
-###   and the command is executed.
+###      Example:  /Library/Application Support/d3/client_jss
+###         (the password is read from the file
+###            /Library/Application Support/d3/client_jss)
 ###
-###   If a path is used, an exception will be raised if the file isn't owned
-###   by root with mode 0600
+###   - A command to execute
+###      If the value ends with a pipe '|' it is assumed to be a shell command
+###      that will return the passwd via its standard-output. The pipe is
+###      removed and the command is executed.
+###
+###      Example: /usr/local/sbin/pwgetter jss-api-ro|
+###         (executes the command `/usr/local/sbin/pwgetter jss-api-ro`
+###           and reads the passwd from its stdout)
 ###
 ###   The file is read, or command executed, as needed, and the result is
 ###   never stored in a variable. Developers: please do likewise.
@@ -96,6 +109,7 @@ client_db_ro_user:
 ###   *** REQUIRED ***
 ###
 ###   Access to the password for the client_db_ro_user
+###
 ###   See client_jss_ropw_path, above
 ###
 ###   If you leave this blank:
@@ -109,6 +123,7 @@ client_db_ropw_path:
 ###
 ###   Access to this machine's Casper distribution point's
 ###   filesharing service
+###
 ###   See client_jss_ropw_path, above
 ###
 ###
@@ -124,6 +139,7 @@ client_distpoint_ropw_path:
 ###
 ###   Access to the password for http downloads from this
 ###   machines Casper Distribution point.
+###
 ###   See client_jss_ropw_path, above
 ###
 ###
