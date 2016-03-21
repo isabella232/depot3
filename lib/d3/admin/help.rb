@@ -109,6 +109,9 @@ Action report:
   --computers                        Target is a computer name. Reports
                                         rcpts/puppies on that computer.
 
+For details use -H or --extended-help
+
+See also: https://github.com/PixarAnimationStudios/depot3/wiki/Admin
 
 ENDHELP
       end # help text
@@ -126,7 +129,7 @@ management & deployment tool that enhances the package-handling capabilities
 of the Casper Suite from JAMF Software, LLC.
 
 For detailed documentation see:
-    http://some/url/here
+https://github.com/PixarAnimationStudios/depot3/wiki/Admin
 
 Important Terms:
 
