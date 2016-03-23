@@ -460,9 +460,17 @@ ENDVERS
       return
     end
     pkg = D3::Package.new id: pkg_id
+
     if pkg.status == :live
       puts "Doh, '#{pkg.edition}' is already live"
       return
+    end
+
+    # is this a rollback?
+    rollback_warning = ""
+    if pkg.skipped? or pkg.deprecated?
+      rollback_warning = "\n\nWARNING: You're rolling back to an older edition!\n"
+      rollback_warning += "ALL non-frozen installs of '#{pkg.basename}' will be downgraded to this edition! \n"
     end
 
     # is the prev. live pkg in use in any policies?
@@ -479,7 +487,7 @@ ENDVERS
       end # unless empty
     end # if pkg_id_being_deprecated
 
-    confirm "Make #{pkg.edition} live for basename '#{pkg.basename}'#{policy_warning}" , ""
+    confirm "Make #{pkg.edition} live for basename '#{pkg.basename}'#{rollback_warning}#{policy_warning}" , ""
 
     pkg.make_live @admin
 

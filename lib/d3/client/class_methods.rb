@@ -44,7 +44,7 @@ module D3
     ###
     ### @return [void]
     ###
-    def self.install(pkgs, options = {})
+    def self.install(pkgs, options )
 
       pkgs = [pkgs] if pkgs.is_a? String
 
@@ -65,9 +65,9 @@ module D3
           # These things are the responsibility of the
           # client.
           unless options.force
-            # deprecated pkgs
+            # deprecated pkgs need force for installing
             desired_pkg.check_for_deprecated
-            # skipped?
+            # skipped pkgs need force for installing
             desired_pkg.check_for_skipped
             # same or newer?
             desired_pkg.check_for_newer_version
@@ -76,15 +76,7 @@ module D3
 
           if curr_rcpt
             D3.log("Un-freezing #{curr_rcpt.edition} by installing #{desired_pkg.edition} manually", :warn) if curr_rcpt.frozen?
-            D3.log("Updating skipped #{curr_rcpt.edition} by installing #{desired_pkg.edition} manually", :warn) if  curr_rcpt.skipped?
-
-            if  curr_rcpt.pilot? && (curr_rcpt.edition != desired_pkg.edition)
-              if options.force
-                 D3.log "Updating pilot #{curr_rcpt.edition} by force-installing #{desired_pkg.edition}(#{desired_pkg.status})", :warn
-              else
-                raise D3::InstallError, "#{curr_rcpt.edition} is currently in pilot. Use --force to install over it."
-              end # if options.force
-            end # if  curr_rcpt.pilot? && (curr_rcpt.edition != desired_pkg.edition)
+            D3.log("Updating #{curr_rcpt.edition}(#{curr_rcpt.status}) by installing #{desired_pkg.edition} manually", :warn) unless  curr_rcpt.live?
           end # if curr rcpt
 
           installing = desired_pkg.live? ? "currently live #{desired_pkg.basename}" : "#{desired_pkg.edition} (#{desired_pkg.status})"
@@ -96,9 +88,9 @@ module D3
             :expiration => options.custom_expiration,
             :verbose => options.verbose,
             :alt_download_url => self.cloud_dist_point_to_use
-            )
+          )
 
-          self.freeze_receipts([desired_pkg.basename]) if options.freeze
+          self.freeze_receipts([desired_pkg.basename]) if options.freeze_on_install
 
           D3.log "Finished installing #{installing}", :info
 
@@ -205,6 +197,7 @@ module D3
     def self.sync (options = OpenStruct.new)
       D3::Client.set_env :sync
       D3.log "Starting sync", :warn
+
       begin
         # update rcpts
         update_rcpts
@@ -258,9 +251,9 @@ module D3
           next
         end
 
-        # status - this will also 'enliven' pilots that have
-        # gone live.
+        # status
         if rcpt.status != pkgdata[:status]
+          # update the status
           rcpt.status = pkgdata[:status]
           D3.log "Updating status for #{rcpt.edition} to #{pkgdata[:status]}", :info
           rcpt.update
@@ -293,7 +286,8 @@ module D3
 
         # expiration
         if rcpt.removable?
-          if rcpt.expiration_path != pkgdata[:expiration_path]
+
+          if rcpt.expiration_path.to_s != pkgdata[:expiration_path].to_s
             rcpt.expiration_path = pkgdata[:expiration_path]
             D3.log "Updating expiration path for #{rcpt.edition}", :info
             rcpt.update
@@ -416,8 +410,8 @@ module D3
       end
     end
 
-    ### Update any currently installed pkgs as needed
-    ### skipping any basenames currently in pilot
+    ### Update any currently installed basenames to the currently live one
+    ### skipping any basenames currently frozen
     ###
     ### @param options[OpenStruct] the options from the commandline
     ###
@@ -429,60 +423,64 @@ module D3
       D3.log "Checking for updates to installed packages", :warn
       D3::Client.set_env :auto_update
       begin # see ensure below
+
         # get the current list of live basenames and the ids of the live editions
         live_basenames_to_ids = D3::Package.basenames_to_live_ids
 
         # loop through the install pkgs
         D3::Client::Receipt.all.values.each do |rcpt|
 
-          # skip unless the live id is higher than the rcpt id
-          unless live_basenames_to_ids[rcpt.basename].to_i > rcpt.id
-            D3.log "No update for #{rcpt.edition}", :debug
+          # is there a live pkg for this basename?
+          if live_basenames_to_ids[rcpt.basename]
+            live_id = live_basenames_to_ids[rcpt.basename]
+            live_pkg_data = D3::Package.package_data[live_id]
+          else
+            D3.log "Skipping update for #{rcpt.edition}: no currently live package for basename", :info
             next
+          end
+
+          # are we rolling back?
+          if live_pkg_data[:id] < rcpt.id
+            rollback = true
+
+          # no we aren't rolling back
+          else
+            # skip unless the live id is higher than the rcpt id
+            unless live_pkg_data[:id] > rcpt.id
+              D3.log "No update for #{rcpt.edition}", :debug
+              next
+            end
           end
 
           # skip any frozen receipts
           if rcpt.frozen?
-            D3.log "Skipping update check for #{rcpt.edition}: currently frozen on this machine.", :info
+            D3.log "Skipping update check for #{rcpt.edition}(#{rcpt.status}): currently frozen on this machine.", :warn
             next
           end
 
-          # skip installed pilots
-          if rcpt.pilot?
-            D3.log "Skipping update for #{rcpt.edition}: currently in pilot", :info
-            next
-          end
-
-          # skip skipped pkgs
-          if rcpt.skipped?
-            D3.log "Skipping update for #{rcpt.edition}: piloted edition was skipped.", :info
-            # TO DO - some kind of notification policy ??
-            next
-          end
-
-          # skip any installed basename that doesn't have a live id
-          unless live_basenames_to_ids.keys.include? rcpt.basename
-            D3.log "Skipping update check for #{rcpt.edition}: no currently live package for basename", :info
-            next
-          end
-
-          # if we're here, there's a new version to install
-          new_pkg = D3::Package.new :id => live_basenames_to_ids[rcpt.basename]
-
-          if new_pkg.reboot?
-            queued_id = puppy_in_queue new_pkg.basename
-            if queued_id && queued_id >= new_pkg.id
-              D3.log "Skipping auto-update of puppy-package #{new_pkg.edition}, there's a newer one in the queue already", :info
+          # check the puppy queue if needed
+          if live_pkg_data[:reboot]
+            queued_id = puppy_in_queue(live_pkg_data[:basename])
+            if queued_id && queued_id >= live_pkg_data[:id]
+              D3.log "Skipping auto-update of puppy-queue item #{ live_pkg_data[:edition]}, there's a newer one in the queue already", :info
               next
-            end # if queued_id && queued_id >= new_pkg.id
-          end #  if new_pkg.reboot?
+            end # if queued_id && queued_id >= live_pkg.id
+          end #  if live_pkg.reboot?
+
+          # mention rollbacks
+          if rollback
+            D3.log "Rolling back #{rcpt.edition} (#{rcpt.status}) to older live #{ live_pkg_data[:edition]}.", :warn
+          end
 
           # are we bringing over a custom expiration period?
           expiration = rcpt.custom_expiration ? rcpt.expiration : nil
 
+          # heres the pkg
+          live_pkg = D3::Package.new :id => live_basenames_to_ids[rcpt.basename]
+          D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :warn
+
           begin
-            D3.log "Attempting to update #{rcpt.edition} to #{new_pkg.edition}", :info
-            new_pkg.install(
+            live_pkg.install(
               :admin => rcpt.admin,
               :expiration => expiration,
               :verbose => verbose,
@@ -490,23 +488,23 @@ module D3
               :puppywalk => options.puppies,
               :alt_download_url => self.cloud_dist_point_to_use
               )
-            D3.log "Updated #{rcpt.edition} to #{new_pkg.edition}", :warn
+            D3.log "Done updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :info
           rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-            D3.log "Skipping update of #{rcpt.edition} to #{new_pkg.edition}:\n   #{$!}", :error
+            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}:\n   #{$!}", :error
             D3.log_backtrace
           rescue D3::PreInstallError
-            D3.log "There was an error with the pre-install script for #{new_pkg.edition}:\n   #{$!}", :error
+            D3.log "There was an error with the pre-install script for #{live_pkg.edition}:\n   #{$!}", :error
             D3.log_backtrace
           rescue D3::PostInstallError
-            D3.log "There was an error with the post-install script for #{new_pkg.edition}:\n   #{$!}", :error
-            D3.log "   NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+            D3.log "There was an error with the post-install script for #{live_pkg.edition}:\n   #{$!}", :error
+            D3.log "   NOTE: #{live_pkg.edition} was installed, but may not work.", :error
             D3.log_backtrace
           end # begin
         end # D3::Client::Receipt.all.values.each
       ensure
         D3::Client.unset_env :auto_update
       end # begin..ensure
-    end
+    end # update installed pkgs
 
     ### Freeze one or more receipts
     ###
