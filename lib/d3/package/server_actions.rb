@@ -216,8 +216,10 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # while we're writing to the db, mark any missing packages as missing
       mark_missing_packages
 
+      puts "Done '#{edition}' is now live."
+
       # auto_clean if we should
-      auto_clean if D3::CONFIG.admin_auto_clean
+      auto_clean(admin) if D3::CONFIG.admin_auto_clean
 
       # run any post-make-live script if needed
       run_make_live_script
@@ -311,12 +313,16 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
     ### Perform any auto_cleanup, if the config says we should
     ###
+    ### @param admin[String] the admin doing the make-live
+    ###
     ### @return [void]
     ###
-    def auto_clean
+    def auto_clean  (admin)
 
       ### safety
       return unless D3::CONFIG.admin_auto_clean
+
+      puts "Starting auto-clean of old packages for '#{@basename}'"
 
       #### First the deprecated pkgs
 
@@ -328,13 +334,22 @@ INSERT INTO #{P_TABLE[:table_name]} (
       number_deprecated_to_keep = D3::CONFIG.admin_auto_clean_keep_deprecated
       number_deprecated_to_keep ||= 0
 
+      puts "Keeping #{number_deprecated_to_keep} deprecated packages."
+
       # this selects the highest 'number_deprecated_to_keep' of them
       deprecated_ids_to_keep = deprecated_ids[-number_deprecated_to_keep..-1]
 
       # delete them if we should
       deprecated_ids.each do |id|
         next if deprecated_ids_to_keep.include? id
-        D3::Package.new(:id => id).delete
+        victim = D3::Package.new(:id => id)
+        victim.delete(
+          admin: admin,
+          delete_scripts: true,
+          keep_in_jss: false,
+          rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
+        )
+        puts "Deleted deprecated package: #{victim.edition}."
       end
 
       #### then the skipped pkgs
@@ -347,18 +362,26 @@ INSERT INTO #{P_TABLE[:table_name]} (
         just_deprecated = deprecated_ids_to_keep.max
         just_deprecated ||= 0
         skipped_ids_to_keep = skipped_ids.select{|id| id > just_deprecated }
-
+        puts "Keeping most recent pilot packages as skipped."
       # no, delete them all
       else
         skipped_ids_to_keep  = []
+        puts "Not keeping any pilot or skipped packages."
       end
 
       # delete them if we should
-      skipped_ids_to_delete.each do |id|
+      skipped_ids.each do |id|
         next if skipped_ids_to_keep.include? id
-        D3::Package.new(:id => id).delete
+        victim = D3::Package.new(:id => id)
+        victim.delete(
+          admin: admin,
+          delete_scripts: true,
+          keep_in_jss: false,
+          rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
+        )
+        puts "Deleted skipped package: #{victim.edition}."
       end
-
+      puts "Finished auto-clean of old packages for '#{@basename}'"
       return true
     end
 
