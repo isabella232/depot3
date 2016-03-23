@@ -181,7 +181,7 @@ class App
           D3::force
 
         when '--freeze'
-          @options.freeze = true
+          @options.freeze_on_install = true
 
         when '--admin'
           @options.admin = arg
