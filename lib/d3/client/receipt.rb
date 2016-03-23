@@ -928,7 +928,7 @@ Apple.pkg ids: #{@apple_pkg_ids.join(', ')}
             if lu.nil?
               last_usage_display = "Unknonwn"
             elsif lu == @installed_at
-              last_usage_display = "Never (installed #{days_since_last_usage} days ago)"
+              last_usage_display = "Not since installation (#{days_since_last_usage} days ago)"
             else
               last_usage_display = "#{lu.strftime '%Y-%m-%d %H:%M:%S'} (#{days_since_last_usage} days ago)"
             end #  if my_last_usage == @installed_at
@@ -1122,6 +1122,12 @@ Last brought to foreground: #{last_usage_display}
 
           # if never been used, last usage is the install date
           @last_usage ||= @installed_at
+
+          # if the install time is newer than the last usage,
+          # use the install time.
+          # this basically "resets the timer" when
+          # something is re-installed.
+          @last_usage = @installed_at if @installed_at > @last_usage
 
           @last_usage_as_of = now
 
