@@ -64,10 +64,10 @@ client_jss_ro_user:
 ###   *** REQUIRED ***
 ###
 ###   This value can be:
-###   
-###   - A Path: 
+###
+###   - A Path:
 ###      The path to a file containing the password for the client_jss_ro_user.
-###      The file should contain nothing but the password. Trailing whitespace 
+###      The file should contain nothing but the password. Trailing whitespace
 ###      is stripped.
 ###      For security, the file MUST be owned by root with permissions mode 0600
 ###      (-rw-------)  or else a fatal error occurs when d3 tries to read it.
@@ -407,11 +407,12 @@ jss_default_script_category:
 admin_make_live_script:
 
 ### - admin_auto_clean
-###   When a pacakge is made live, should older skipped and deprecated packages
+###   When a package is made live, should older skipped and deprecated packages
 ###   of the same basename be deleted?
 ###
-###   If true, all older skippd & pilot packages will be deleted, and some or all
-###   previously live packages will be. (see admin_auto_clean_keep_deprecated).
+###   If true, some or all older packages will be deleted.
+###   See admin_auto_clean_keep_deprecated and
+###   admin_auto_clean_keep_latest_pilots below
 ###
 ###   Delete Options:
 ###
@@ -442,6 +443,19 @@ admin_auto_clean:
 ###     No deprecated packages will be kept if admin_auto_clean is true.
 ###
 admin_auto_clean_keep_deprecated:
+
+### - admin_auto_clean_keep_latest_pilots
+###   When admin_auto_clean is true (see above),
+###   AND admin_auto_clean_keep_deprecated is greater than 0 (see above)
+###
+###   Should unreleased packages between the newly-live one,
+###   and the newly-deprecated one be kept as "skipped"?
+###   Use 'true' or 'false'
+###
+###   If you leave this blank:
+###     defaults to 'false' - no unreleased packages are kept
+###
+admin_auto_clean_keep_latest_pilots:
 
 ### - report_receipts_ext_attr_name
 ###   The name of a Computer Extension Attribute populated with the output of
