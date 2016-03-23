@@ -319,22 +319,45 @@ INSERT INTO #{P_TABLE[:table_name]} (
       return unless D3::CONFIG.admin_auto_clean
 
       #### First the deprecated pkgs
-      number_deprecated_to_keep = D3::CONFIG.admin_auto_clean_keep_deprecated
 
       # the id's of the deprecated pkgs for this basename, in numerical order
-      # meaning we'll keep the last ones
-      deprecated_ids = D3::Package.deprecated_data.values.select{|dp| dp[:basename] == @basename}.map{|dp| dp[:id]}.sort
+      deprecated_ids = D3::Package.deprecated_data(:refresh).values.select{|dp| dp[:basename] == @basename}
+      deprecated_ids.map!{|dp| dp[:id] }.sort!
 
-      # remove the last 'number_deprecated_to_keep' of them
-      #  - those won't be deleted
-      number_deprecated_to_keep.times{ deprecated_ids.pop }
+      # keeping any?
+      number_deprecated_to_keep = D3::CONFIG.admin_auto_clean_keep_deprecated
+      number_deprecated_to_keep ||= 0
 
-      # deprecated_ids is now the list of ids to delete, so delete them
-      deprecated_ids.each{|id| D3::Package.new(:id => id).delete }
+      # this selects the highest 'number_deprecated_to_keep' of them
+      deprecated_ids_to_keep = deprecated_ids[-number_deprecated_to_keep..-1]
 
-      #### then the skipped pkgs, all of them
-      skipped_ids = D3::Package.skipped_data.values.select{|sp| sp[:basename] == @basename}.map{|sp| sp[:id]}.sort
-      skipped_ids.each{|id| D3::Package.new(:id => id).delete }
+      # delete them if we should
+      deprecated_ids.each do |id|
+        next if deprecated_ids_to_keep.include? id
+        D3::Package.new(:id => id).delete
+      end
+
+      #### then the skipped pkgs
+
+      skipped_ids = D3::Package.skipped_data.values.select{|sp| sp[:basename] == @basename}
+      skipped_ids.map!{|sp| sp[:id] }.sort!
+
+      # keep the ones newer than the just-deprecated pkg?
+      if D3::CONFIG.admin_auto_clean_keep_latest_pilots
+        just_deprecated = deprecated_ids_to_keep.max
+        just_deprecated ||= 0
+        skipped_ids_to_keep = skipped_ids.select{|id| id > just_deprecated }
+
+      # no, delete them all
+      else
+        skipped_ids_to_keep  = []
+      end
+
+      # delete them if we should
+      skipped_ids_to_delete.each do |id|
+        next if skipped_ids_to_keep.include? id
+        D3::Package.new(:id => id).delete
+      end
 
       return true
     end

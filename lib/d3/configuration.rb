@@ -117,6 +117,7 @@ module D3
       :admin_make_live_script => :to_s,
       :admin_auto_clean =>  :jss_to_bool,
       :admin_auto_clean_keep_deprecated => :to_i,
+      :admin_auto_clean_keep_latest_pilots => :jss_to_bool,
 
       :report_receipts_ext_attr_name => :to_s,
       :report_puppyq_ext_attr_name => :to_s,
