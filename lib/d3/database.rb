@@ -83,6 +83,11 @@ module D3
     STATUS_TO_STRING = Proc.new{|v| v.to_s }
     STRING_TO_STATUS = Proc.new{|v| v.to_sym }
 
+    ### Expiration paths are stored as strings, but used as Pathnames
+    STRING_TO_PATHNAME = Proc.new{|v| Pathname.new v.to_s}
+    PATHNAME_TO_STRING = Proc.new{|v| v.to_s}
+
+
     ### The MySQL table that defines which JSS Packages are a part of d3
     ###
     ### This complex Hash contains all the data needed to create and work with the
@@ -323,8 +328,8 @@ module D3
           :field_name => "expiration_app_path",
           :sql_type => 'varchar(300)',
           :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+          :to_sql => PATHNAME_TO_STRING,
+          :to_ruby => STRING_TO_PATHNAME
         }
       },
 
