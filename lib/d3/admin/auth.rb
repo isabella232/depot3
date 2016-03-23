@@ -67,8 +67,8 @@ module D3
 
       # Disconnect admin credentials from the JSS API and MySQL DB
       def disconnect
-        JSS::API.disconnect
-        JSS::DB_CNX.disconnect
+        JSS::API.disconnect if JSS::API.connected?
+        JSS::DB_CNX.disconnect if JSS::DB_CNX.connected?
       end
 
       ### Fetch read-write credentials from the login keychain
@@ -306,12 +306,12 @@ module D3
       ###
       def check_jss_credentials(user,pw)
         begin
-          JSS::API.disconnect
+          JSS::API.disconnect  if JSS::API.connected?
           JSS::API.connect :user => user, :pw => pw, :server => JSS::CONFIG.api_server_name
         rescue JSS::AuthenticationError
           return false
         end
-        JSS::API.disconnect
+        JSS::API.disconnect  if JSS::API.connected?
         return true
       end
 
@@ -327,12 +327,12 @@ module D3
       ###
       def check_db_credentials(user,pw)
         begin
-          JSS::DB_CNX.disconnect
+          JSS::DB_CNX.disconnect if JSS::DB_CNX.connected?
           JSS::DB_CNX.connect :user => user, :pw => pw, :server => JSS::CONFIG.db_server_name
         rescue Mysql::ServerError::AccessDeniedError
           return false
         end
-        JSS::DB_CNX.disconnect
+        JSS::DB_CNX.disconnect if JSS::DB_CNX.connected?
         return true
       end
 
