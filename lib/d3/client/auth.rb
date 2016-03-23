@@ -49,8 +49,8 @@ module D3
 
     ### Disconnect from the JSS and DB
     def self.disconnect
-      JSS::API.disconnect
-      JSS::DB_CNX.disconnect
+      JSS::API.disconnect if JSS::API.connected?
+        JSS::DB_CNX.disconnect if JSS::DB_CNX.connected?
     end # disconnect
 
 
