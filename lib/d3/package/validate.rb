@@ -42,7 +42,7 @@ module D3
       end
     end # check for newer version
 
-    ### Check that we're not deprecated, and raise an exception if we are.
+    ### Check that we're not installing a deprecated pkg, and raise an exception if we are.
     ###
     ### return [void]
     ###
@@ -50,13 +50,12 @@ module D3
       raise D3::InstallError, "#{edition} is deprecated. Use --force if needed." if deprecated?
     end
 
-    ### Check that we're not skipped, and raise an exception if we are.
-    ### Used if we try to pilot something that's older than the current live.
+    ### Check that we're not trying to install a skipped pkg, and raise an exception if we are.
     ###
     ### return [void]
     ###
     def check_for_skipped
-      raise D3::InstallError, "#{edition} was skipped. Installing will put it into pilot mode. Use --force if needed." if skipped?
+      raise D3::InstallError, "#{edition} was skipped. Use --force if needed." if skipped?
     end
 
     ### Check if this machine is in an excluded group.
@@ -66,7 +65,7 @@ module D3
     ###
     def check_for_exclusions
       excl_grps = D3::Client.computer_groups & @excluded_groups
-      raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}.\nUse --force if needed." unless excl_grps.empty?
+      raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}. Use --force if needed." unless excl_grps.empty?
     end # check for exclusions
 
     ### Check if this machine is OK wrt to the os limitations
