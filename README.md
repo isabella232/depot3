@@ -98,11 +98,6 @@ Check out some [basic vocabulary](http://pixaranimationstudios.github.io/depot3/
 
   `sudo d3 install transmogrifier-15-2`
 
-  Once a package is installed as a pilot, it is no longer checked for updates
-  during a sync. It is the admin's responsibility to remove the pilot install
-  when testing is complete. The only exception is when the same package
-  becomes live, the status of the local receipt is changed from pilot to live.
-
 * List currently installed packages
 
   `sudo d3 list-installed`
@@ -117,10 +112,10 @@ Check out some [basic vocabulary](http://pixaranimationstudios.github.io/depot3/
   Syncing is usually done at regular intervals by a launchd job or Casper policy.
   However it can be run manually at any time to get a client immediately
   up-to-date. The sync command performs these tasks:
-  * Updated receipts with relevant info from the matching packages.
-  * Auto-install new packages that are in-scope
-  * Auto-update any installed non-pilot packages if an update has been made live
+  
   * Update the local receipts with any relevant changes from the server packages
+  * Auto-install new packages that are in-scope
+  * Auto-update any installed packages if an update has been made live
   * Expire any packages that haven't been brought to the foreground within the
     expiration period.
 
@@ -195,7 +190,7 @@ d3admin add transmogrifier \
   Once live, the package will install automatically when a client
   runs `d3 sync` if:
   
-  * An older, non-pilot, edition of the same basename is installed (auto updating)
+  * An older edition of the same basename is installed (auto updating)
   * The client is in one of the "auto-install" computer groups listed for the package. (scoped auto-installs)
 
 
