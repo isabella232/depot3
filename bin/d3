@@ -50,8 +50,6 @@ require 'd3'
 
 class App
 
-  VERSION = "3.0.0"
-
   # the following d3 commands all require one or more arguments to work on
   ACTIONS_NEEDING_ARGS = D3::Client::ACTIONS.select{|k,v| v[:arg] }
 
@@ -290,7 +288,6 @@ class App
   ### Show the current d3 version
   def show_version
     puts <<-ENDVERS
-d3 version: #{VERSION}
 D3 module version: #{D3::VERSION}
 JSS module version: #{JSS::VERSION}
 ENDVERS

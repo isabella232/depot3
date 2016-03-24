@@ -182,7 +182,6 @@ class App
 
   def show_version
     puts <<-ENDVERS
-puppytime version: #{VERSION}
 D3 module version: #{D3::VERSION}
 JSS module version: #{JSS::VERSION}
 ENDVERS
