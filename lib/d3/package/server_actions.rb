@@ -423,7 +423,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
       @status = :deleted
 
       # delete it from the JSS unless asked not to
-      super() unless keep_in_jss
+      unless keep_in_jss
+         super delete_file: true, rw_pw: rwpw, unmount: false
+      end
 
      # while we're writing to the db, mark any missing packages as missing
       mark_missing_packages
