@@ -40,20 +40,7 @@ Gem::Specification.new do |s|
   s.description = <<-EOD
 d3 extends the package-deployment capabilities of the Casper Suite, an enterprise/education
 tool for managing Apple devices, from JAMF Software LLC.
-
-Among the enhancements to Casper's built-in package management are:
-
-- Automatic deployment of patches & updates
-- Testing/piloting of packages before release
-- Fully command-line accessible & scriptable
-- Pre- and Post-install and -uninstall JSS-based scripts, separate
-  from scripts embedded in .pkgs, available to .dmgs also.
-- Conditional un/installs based on pre- script exit status
-- Scoping by Computer Groups, no policies needed
-- Installs requiring reboots are performed at logout while
-  displaying a slideshow of cute puppies. (or any desired
-  images)
-- Automatic uninstalls of unused packages
+For details, see http://pixaranimationstudios.github.io/depot3/index.html
   EOD
 
   # files
