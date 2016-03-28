@@ -238,33 +238,36 @@ class App
         when '--reboot'
           # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
           # otherwise must be /^y(es)$/i
-          if arg.emtpy? or arg =~ /^n(o)$/i
-            @options.reboot =  nil
-          elsif arg =~ /^y(es)$/i
+          if arg.empty? or arg =~ /^no?$/i
+            @options.reboot =  "n"
+          elsif arg =~ /^y(es)?$/i
             @options.reboot =  "y"
           else
             raise ArgumentError, "--reboot must be 'y' or 'n'"
           end
+          
         when '--remove-first'
           # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
           # otherwise must be /^y(es)$/i
-          if arg.emtpy? or arg =~ /^n(o)$/i
-            @options.remove_first =  nil
-          elsif arg =~ /^y(es)$/i
+          if arg.empty? or arg =~ /^no?$/i
+            @options.remove_first =  "n"
+          elsif arg =~ /^y(es)?$/i
             @options.remove_first =  "y"
           else
             raise ArgumentError, "--remove-first must be 'y' or 'n'"
           end
+          
         when '--removable'
           # dft is yes, so if arg is empty or /^y(es)$/i, it should be nil,
           # otherwise must be  /^n(o)$/i
-          if arg.empty? or arg =~ /^y(es)$/i
-            @options.removable =  nil
-          elsif arg =~ /^n(o)$/i
+          if arg.empty? or arg =~ /^y(es)?$/i
+            @options.removable =  "y"
+          elsif arg =~ /^no?$/i
             @options.removable =  "n"
           else
             raise ArgumentError, "--removable must be 'y' or 'n'"
           end
+          
         when '--oses'
           @options.oses = arg
         when '--expiration'
