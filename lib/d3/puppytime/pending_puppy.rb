@@ -97,7 +97,7 @@ module D3
         ensure
           # but we need to remove it even if not successfull, so it doesn't
           # keep trying and failing (and reminding the users)
-          D3::PuppyTime::PuppyQueue - self
+          D3::PuppyTime::PuppyQueue.instance - self
         end
       end # install
 
