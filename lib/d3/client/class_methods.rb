@@ -328,7 +328,7 @@ module D3
       D3::PUPPY_Q.pending_puppies.each do |basename, pup|
         unless D3::Package.all_ids.include? pup.id
           D3.log "Removing #{pup.edition} from puppy queue: no longer in d3", :info
-          DD3::PuppyTime::PuppyQueue - pup
+          D3::PuppyTime::PuppyQueue - pup
           next
         end
         if D3::Package.missing_data.keys.include? pup.id
