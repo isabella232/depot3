@@ -327,7 +327,8 @@ INSERT INTO #{P_TABLE[:table_name]} (
       #### First the deprecated pkgs
 
       # the id's of the deprecated pkgs for this basename, in numerical order
-      deprecated_ids = D3::Package.deprecated_data(:refresh).values.select{|dp| dp[:basename] == @basename}
+      # the last ones are the newest. 
+      deprecated_ids = D3::Package.deprecated_data.values.select{|dp| dp[:basename] == @basename}
       deprecated_ids.map!{|dp| dp[:id] }.sort!
 
       # keeping any?
@@ -336,9 +337,11 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
       puts "Keeping #{number_deprecated_to_keep} deprecated packages."
 
-      # this selects the highest 'number_deprecated_to_keep' of them
-      deprecated_ids_to_keep = deprecated_ids[-number_deprecated_to_keep..-1]
-
+      # 'pop' pulls them off the end
+      deprecated_ids_to_keep = []
+      number_deprecated_to_keep.times{ deprecated_ids_to_keep << deprecated_ids.pop  }
+      deprecated_ids_to_keep.compact!
+      
       # delete them if we should
       deprecated_ids.each do |id|
         next if deprecated_ids_to_keep.include? id
@@ -349,7 +352,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
           keep_in_jss: false,
           rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
-        puts "Deleted deprecated package: #{victim.edition}."
+        puts "Deleted deprecated package: #{victim.edition}, id:#{victim.id}, filename: #{victim.filename}."
       end
 
       #### then the skipped pkgs
@@ -359,7 +362,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
       # keep the ones newer than the just-deprecated pkg?
       if D3::CONFIG.admin_auto_clean_keep_latest_pilots
-        just_deprecated = deprecated_ids_to_keep.max
+        deprecated_ids = D3::Package.deprecated_data(:refresh).values.select{|dp| dp[:basename] == @basename}
+        deprecated_ids.map!{|dp| dp[:id] }
+        just_deprecated = deprecated_ids.max
         just_deprecated ||= 0
         skipped_ids_to_keep = skipped_ids.select{|id| id > just_deprecated }
         puts "Keeping most recent pilot packages as skipped."
@@ -379,7 +384,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
           keep_in_jss: false,
           rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
-        puts "Deleted skipped package: #{victim.edition}."
+        puts "Deleted skipped package: #{victim.edition}, id:#{victim.id}, filename: #{victim.filename}."
       end
       puts "Finished auto-clean of old packages for '#{@basename}'"
       return true
