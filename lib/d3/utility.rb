@@ -180,8 +180,12 @@ module D3
     format += "\n"
 
     # limit the total line width for the header the width of the terminal
-    height, width = IO.console.winsize
-    line_width = width if line_width > width
+    if IO.console
+      height, width = IO.console.winsize
+      line_width = width if line_width > width
+    else
+      line_width = 80
+    end
 
     # title if given
     report = args[:title] ? "# #{args[:title]}\n" : ""
@@ -233,6 +237,11 @@ module D3
   ### @result [void]
   ###
   def self.less_text (text, show_help = true)
+    unless IO.console
+      puts text
+      return
+    end
+
     height, width = IO.console.winsize
 
     if text.lines.count <= (height - 3)
