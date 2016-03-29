@@ -66,6 +66,7 @@ module D3
     def check_for_exclusions
       excl_grps = D3::Client.computer_groups & @excluded_groups
       raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}. Use --force if needed." unless excl_grps.empty?
+      return true
     end # check for exclusions
 
     ### Check if this machine is OK wrt to the os limitations
@@ -76,6 +77,7 @@ module D3
     def check_oses
        my_os = `/usr/bin/sw_vers -productVersion`.chomp
        raise D3::InstallError,  "This machine doesn't have the correct OS to install #{self.edition}." unless JSS.os_ok?  @os_requirements, my_os
+       return true
     end
 
     ### Check if this machine is OK wrt to the processor limitations
