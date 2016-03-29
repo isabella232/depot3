@@ -274,7 +274,7 @@ module D3
     ### @return [void]
     ###
     def post_install= (new_val = @post_install_script_id)
-      name_or_path = validate_pre_install_script(new_val)
+      name_or_path = validate_post_install_script(new_val)
       if name_or_path.is_a?(Pathname)
         @post_install_script_id = new_script script_type: :post_install, source: name_or_path
       else
@@ -293,7 +293,7 @@ module D3
     ### @return [void]
     ###
     def pre_remove= (new_val = @pre_remove_script_id)
-      name_or_path = validate_pre_install_script(new_val)
+      name_or_path = validate_pre_remove_script(new_val)
       if name_or_path.is_a?(Pathname)
         @pre_remove_script_id = new_script script_type: :pre_remove, source: name_or_path
       else
@@ -312,7 +312,7 @@ module D3
     ### @return [void]
     ###
     def post_remove= (new_val = @post_remove_script_id)
-      name_or_path = validate_pre_install_script(new_val)
+      name_or_path = validate_post_remove_script(new_val)
       if name_or_path.is_a?(Pathname)
         @post_remove_script_id = new_script script_type: :post_remove, source: name_or_path
       else
