@@ -88,7 +88,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
       # we might be importing an existing JSS pkg to d3, which
       # means we need to create the d3 record, but the JSS record needs updating
-      create if @import and (not @in_d3)
+      create if @importing and (not @in_d3)
 
       # update the JSS first, if needed
       super
