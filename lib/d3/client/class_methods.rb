@@ -439,10 +439,15 @@ module D3
             next
           end
 
-          # are we rolling back?
+          # are we rolling back? Not if the recpt is in pilot.
           if live_pkg_data[:id] < rcpt.id
-            rollback = true
 
+            if rcpt.pilot?
+              D3.log "Skipping rollback of #{live_pkg_data[:edition]}, #{rcpt.edition} is in pilot", :info
+              next
+            else
+              rollback = true
+            end
           # no we aren't rolling back
           else
             # skip unless the live id is higher than the rcpt id
