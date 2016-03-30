@@ -260,6 +260,8 @@ module D3
         D3.log "Running pre_install script for #{edition}", :info
         (exit_status, output) = JSS::Script.new(:id => @pre_install_script_id).run :verbose => verbose, :show_output => verbose
         D3.log "Finished pre_install script for #{edition}", :debug
+      rescue D3::ScriptError
+        raise PreInstallError, $!
       ensure
         D3::Client.unset_env :pre_install
       end # begin
@@ -279,6 +281,8 @@ module D3
         D3.log "Running post_install script for #{edition}", :info
         (exit_status, output) = JSS::Script.new(:id => @post_install_script_id).run :verbose => verbose, :show_output => verbose
         D3.log "Finished post_install script for #{edition}", :debug
+      rescue D3::ScriptError
+        raise PostInstallError, $!
       ensure
         D3::Client.unset_env :post_install
       end # begin

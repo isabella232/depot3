@@ -707,6 +707,8 @@ module D3
         D3.log "Running pre_remove script", :debug
         begin
           result = JSS::Script.new(:id => @pre_remove_script_id).run :verbose => verbose, :show_output => verbose
+        rescue D3::ScriptError
+          raise PreRemoveError, $!
         ensure
           D3::Client.unset_env :pre_remove
         end
@@ -725,6 +727,8 @@ module D3
         D3.log "Running post_remove script", :debug
         begin
           result = JSS::Script.new(:id => @post_remove_script_id).run :verbose => verbose, :show_output => verbose
+        rescue D3::ScriptError
+          raise PostRemoveError, $!
         ensure
           D3::Client.unset_env :post_remove
         end
