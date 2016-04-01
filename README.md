@@ -5,7 +5,7 @@ d3 is a package deployment and patch management system for OS X that enhances th
 
 
 
-d3 adds these, capabilities and more, to Casper's package handling:
+d3 adds these capabilities and more to Casper's package handling:
 
 * Automatic software updates on clients when new versions are released on the server
 * Pre-release piloting of new packages
@@ -15,14 +15,14 @@ d3 adds these, capabilities and more, to Casper's package handling:
 * Both the client and admin tools are command-line only and fully scriptable
 * Admin command-line options allow integration with developer workflows and package-retrieval tools
 
-d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper mostly via it's REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
+d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper mostly via its REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
 
 
-Please see the [wiki](https://github.com/PixarAnimationStudios/depot3/wiki) for full documentation
+Please see the [wiki](https://github.com/PixarAnimationStudios/depot3/wiki) for full documentation.
 
-The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3)
+The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3).
 
-Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Casper REST API in any project. 
+Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Casper REST API in any project.
 
 
 ## CONTACT
@@ -41,10 +41,7 @@ compliance with the Apache License and the following modification to it:
 
 Section 6. Trademarks. is deleted and replaced with:
 
-  6\. Trademarks. This License does not grant permission to use the trade
-  names, trademarks, service marks, or product names of the Licensor
-  and its affiliates, except as required to comply with Section 4(c) of
-  the License and to reproduce the content of the NOTICE file.
+> 6\. Trademarks. This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor and its affiliates, except as required to comply with Section 4(c) of the License and to reproduce the content of the NOTICE file.
 
 You may obtain a copy of the Apache License at
 

@@ -1,5 +1,5 @@
 # Change History
 
-## v3.0.0 - 2016-04-04
+## v3.0.0 - 2016-04-01
 
-Planned initial open source release
+Initial open source release
