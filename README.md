@@ -18,11 +18,11 @@ d3 adds these capabilities and more to Casper's package handling:
 d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper mostly via its REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
 
 
-Please see the [wiki](https://github.com/PixarAnimationStudios/depot3/wiki) for full documentation
+Please see the [wiki](https://github.com/PixarAnimationStudios/depot3/wiki) for full documentation.
 
-The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3)
+The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3).
 
-Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Casper REST API in any project. 
+Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Casper REST API in any project.
 
 
 ## CONTACT
