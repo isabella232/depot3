@@ -176,7 +176,7 @@ module D3
             return pre_install_status
           elsif pre_install_status != 0  then
              D3.log  "Pre_install script for #{edition} failed, exit status: #{pre_install_status}, not installing.", :error
-            raise D3::InstallError,  "Pre_install script for #{edition} failed, exit status: #{pre_install_status}, not installing."
+            raise D3::PreInstallError,  "Pre_install script for #{edition} failed, exit status: #{pre_install_status}, not installing."
           end # pre_install_status == 111
 
           # if forced, make the os forget this has been installed before
@@ -206,7 +206,7 @@ module D3
             post_install_status = run_post_install_script(args[:verbose])
             if  post_install_status != 0
               D3.log "Post_install script for #{edition} failed, exit status: #{post_install_status}", :error
-              raise D3::ScriptError, "Post_install script for #{edition} failed, exit status: #{post_install_status}"
+              raise D3::PostInstallError, "Post_install script for #{edition} failed, exit status: #{post_install_status}"
             end
             D3.log "Done installing #{edition}#{@using_force}", :warn
 
