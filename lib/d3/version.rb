@@ -24,5 +24,5 @@
 
 
 module D3
-  VERSION = '3.0.7a4'
+  VERSION = '3.0.7'
 end # module
