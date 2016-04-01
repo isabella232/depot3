@@ -94,7 +94,7 @@ module D3
 
           D3.log "Finished installing #{installing}", :info
 
-        rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
+        rescue JSS::MissingDataError, JSS::NoSuchItemError, JSS::InvalidDataError, D3::InstallError
           D3.log "Skipping installation of #{pkg_to_search}:\n   #{$!}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
@@ -301,7 +301,7 @@ module D3
         end # if removable
 
         # prohibiting_process
-        if rcpt.prohibiting_process != pkgdata[:prohibiting_process]
+        if rcpt.prohibiting_process.to_s != pkgdata[:prohibiting_process].to_s
           rcpt.prohibiting_process = pkgdata[:prohibiting_process]
           D3.log "Updating prohibiting_process for #{rcpt.edition}", :info
           rcpt.update
