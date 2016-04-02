@@ -75,11 +75,16 @@ module D3
           end # unless options.force
 
           if curr_rcpt
-            D3.log("Un-freezing #{curr_rcpt.edition} by installing #{desired_pkg.edition} manually", :warn) if curr_rcpt.frozen?
-            D3.log("Updating #{curr_rcpt.edition}(#{curr_rcpt.status}) by installing #{desired_pkg.edition} manually", :warn) unless  curr_rcpt.live?
-          end # if curr rcpt
+            D3.log("Un-freezing #{curr_rcpt.edition} by installing #{desired_pkg.edition}", :warn) if curr_rcpt.frozen?
 
-          installing = desired_pkg.live? ? "currently live #{desired_pkg.basename}" : "#{desired_pkg.edition} (#{desired_pkg.status})"
+            if  desired_pkg.id == curr_rcpt.id
+              D3.log("Re-installing #{desired_pkg.edition}(#{desired_pkg.status})", :warn)
+            elsif  desired_pkg.id < curr_rcpt.id
+              D3.log("Rolling back #{curr_rcpt.edition}(#{curr_rcpt.status}) to #{desired_pkg.edition}(#{desired_pkg.status})", :warn)
+            else
+              D3.log("Updating #{curr_rcpt.edition}(#{curr_rcpt.status}) to #{desired_pkg.edition}(#{desired_pkg.status})", :warn)
+            end
+          end # if curr rcpt
 
           desired_pkg.install(
             :force => options.force,
@@ -92,7 +97,7 @@ module D3
 
           self.freeze_receipts([desired_pkg.basename]) if options.freeze_on_install
 
-          D3.log "Finished installing #{installing}", :info
+          D3.log "Finished installing #{desired_pkg.edition}(#{desired_pkg.status})", :info
 
         rescue JSS::MissingDataError, JSS::NoSuchItemError, JSS::InvalidDataError, D3::InstallError
           D3.log "Skipping installation of #{pkg_to_search}:\n   #{$!}", :error
