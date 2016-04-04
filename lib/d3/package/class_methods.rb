@@ -207,7 +207,7 @@ module D3
       @@filenames = nil if refresh
       return @@filenames if @@filenames
       @@filenames = {}
-      qr = JSS::DB_CNX.db.query "SELECT package_id, file_name FROM packages"
+      qr = JSS::DB_CNX.db.query "SELECT package_id, file_name FROM packages WHERE package_id IN (SELECT package_id FROM #{D3::Package::P_TABLE[:table_name]})"
       qr.each_hash{|p| @@filenames[p["package_id"].to_i] =  p["file_name"]}
       qr.free
       @@filenames
