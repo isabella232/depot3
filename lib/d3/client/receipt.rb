@@ -287,10 +287,11 @@ module D3
               raise JSS::AlreadyExistsError, "There's already a receipt on this machine for basemame '#{receipt.basename}'"
             end # if
           end # unless replace
-
+          
+          replacing = @@installed_rcpts[receipt.basename] ? true : false
           @@installed_rcpts[receipt.basename] = receipt
           self.save_receipts
-          D3.log "#{replace ? "Replaced" : "Added"} receipt for #{receipt.edition}", :info
+          D3.log "#{replacing ? "Replaced" : "Added"} receipt for #{receipt.edition}", :info
 
         ensure
           # always release the rw lock even after an error
