@@ -27,9 +27,9 @@ Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), wh
 
 ## CONTACT
 
-[Email the developer](mailto:d3@pixar.com)
+[Email](mailto:d3@pixar.com)
 
-[Macadmins Slack Channel](https://macadmins.slack.com/messages/#d3/)
+[Macadmins Slack Channel](https://macadmins.slack.com/messages/#d3/)(@glenfarclas17)
 
 ## LICENSE
 
