@@ -22,6 +22,9 @@
 ###
 ###
 
+
+
+###
 module D3
   class Client < JSS::Client
 
@@ -287,7 +290,7 @@ module D3
               raise JSS::AlreadyExistsError, "There's already a receipt on this machine for basemame '#{receipt.basename}'"
             end # if
           end # unless replace
-          
+
           replacing = @@installed_rcpts[receipt.basename] ? true : false
           @@installed_rcpts[receipt.basename] = receipt
           self.save_receipts

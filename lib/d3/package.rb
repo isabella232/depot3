@@ -22,9 +22,11 @@
 ###
 ###
 
+
+
+###
 module D3
 
-  ###
   ### Package - A JSS::Package that can be installed and maintained by d3
   ###
   class Package < JSS::Package

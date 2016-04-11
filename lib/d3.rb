@@ -19,16 +19,24 @@
 ###    distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 ###    KIND, either express or implied. See the Apache License for the specific
 ###    language governing permissions and limitations under the Apache License.
-###
-###
+
+
+
+### The D3 module provides the foundation, and the guts, of d3. Most of the work
+### of the executables (d3, d3admin, d3helper, puppytime) is performed here. It
+### in turn, is built upon the JSS module, provided by the ruby-jss gem, for API
+### and MySQL access to the JSS.
+module D3
+  # Set to true after all files are required
+  @@loaded = false
+end
 
 #####################################
 # Required Libraries, etc
 #####################################
 
 ###################
-# gems
-
+# Gems
 require 'jss'
 require 'keychain'
 
@@ -66,14 +74,10 @@ require 'd3/client'
 require 'd3/puppytime'
 
 
+###
 module D3
-
-  ### we're loaded!
   @@loaded = true
-
-  # Start logging
   D3.log "D3 module loaded, logging started", :debug
-
 end # module D3
 
 

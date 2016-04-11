@@ -23,9 +23,12 @@
 ###
 
 
+###
 module D3
   module PuppyTime
+
       ### PuppyQ - the current queue of pending puppy installs.
+      ###
       ### This class only has one real value: A hash of
       ### PendingPuppy objects, keyed by basename.
       ### But, PendingPuppies can be added and removed
@@ -44,6 +47,7 @@ module D3
         DFT_NOTIFICATION_FREQUENCY = 7
 
         ################# Class Methods #################
+
 
         ################# Attributes #################
 
@@ -77,11 +81,13 @@ module D3
 
         ### Save the current q out to disk
         ###
+        ### @return [void]
+        ###
         def save_q
           D3.log "Saving puppy queue", :debug
           if @q.empty?
             D3.log "Puppy queue is empty, deleting from disk", :debug
-            QUEUE_FILE.delete
+            QUEUE_FILE.delete if QUEUE_FILE.exist?
           else
             QUEUE_FILE.jss_save YAML.dump(@q)
             D3.log "Puppy queue saved to disk", :debug
@@ -89,6 +95,8 @@ module D3
 
         end # save_q
 
+        ### An array of basenames for all pending puppies.
+        ###
         ### @return [Array<String>] the basenames of the pending puppies
         ###
         def pups

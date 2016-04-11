@@ -23,6 +23,7 @@
 ###
 
 
+###
 module D3
 
 
@@ -37,10 +38,11 @@ module D3
     return false
   end #
 
-  ### Try to figure out the login name of the admin
-  ### running this code
+  ### Try to figure out the login name of the admin running this code
   ###
-  def self.admin (refresh = false)
+  ### @return [String] an admin name.
+  ###
+  def self.admin
 
     no_good = self.badmins
 
@@ -59,8 +61,7 @@ module D3
     return admin
   end # get admin name
 
-  ### The list of names not allowed as the --admin option in
-  ### d3 and d3admin
+  ### The list of names not allowed as the --admin option in d3
   ###
   ### This just combines DISALLOWED_ADMINS and
   ### D3::CONFIG.client_prohibited_admin_names
@@ -83,15 +84,19 @@ module D3
   ### @return [boolean] Did the policy run?
   ###
   def self.run_policy (policy, type, verbose = false)
+
     D3.log "Running #{type} policy", :info
+
     # if numeric, and there's a policy with that id
     if policy =~ /^\d+$/ and polname = JSS::Policy.map_all_ids_to(:name)[policy]
       D3.log "Executing #{type} policy '#{polname}', id: #{policy}", :debug
       pol_to_run = "-id #{policy}"
+
     # if there's a policy with that name
     elsif polid = JSS::Policy.map_all_ids_to(:name).invert[policy]
       D3.log "Executing #{type} policy '#{policy}', id: #{polid}", :debug
       pol_to_run = "-id #{polid}"
+
     # else assume its a trigger
     else
       D3.log "Executing #{type} policy with trigger '#{policy}'", :debug
@@ -115,6 +120,7 @@ module D3
 
   ### Get the ids of all scripts used by all policies
   ### This is a hash of PolicyName => Array of Script id's
+  ###
   ### @return [Hash{String => Array<Integer>}]
   ###
   def self.policy_scripts
@@ -272,7 +278,7 @@ module D3
   ### This enhances Plist::parse_xml taking file paths, as well as XML Strings
   ### and reading the files regardless of binary/XML format.
   ###
-  ### see JSS::parse_plsit
+  ### see JSS::parse_plist
   ### TODO - make all calls to this go directly to JSS.parse_plist
   ###
   ### @param plist[Pathname, String] the plist XML, or the path to a plist file

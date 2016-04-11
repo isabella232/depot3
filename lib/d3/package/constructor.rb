@@ -23,8 +23,10 @@
 ###
 
 
+###
 module D3
   class Package < JSS::Package
+
     ################# Constructor #################
 
     ###  Existing d3 pkgs are looked up by providing :id, :name,

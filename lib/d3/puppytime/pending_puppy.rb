@@ -23,21 +23,13 @@
 ###
 
 
+###
 module D3
+
   module PuppyTime
 
     ###
     ### PendingPuppy - a d3 pkg awaiting installation during puppytime.
-    ###
-    ### We don't need much data about the pkg to be installed
-    ### These are required in the args:
-    ###    :basename
-    ###    :version
-    ###    :revision
-    ###    :admin
-    ###    :status
-    ### These are optional:
-    ###    :force - use force when installing
     ###
     class PendingPuppy
 
@@ -60,8 +52,15 @@ module D3
 
       ################# Constructor #################
 
-      ###
-      ###
+      ### We don't need much data about the pkg to be installed
+      ### These are required in the args:
+      ###    :basename
+      ###    :version
+      ###    :revision
+      ###    :admin
+      ###    :status
+      ### These are optional:
+      ###    :force - use force when installing
       ###
       def initialize (args = {})
         raise JSS::MissingDataError, "Puppies need a :basename" unless args[:basename]
@@ -85,6 +84,9 @@ module D3
       end # init
 
       ### Install this puppy
+      ###
+      ### @return [void]
+      ###
       def install
 
         begin # for ensure
@@ -100,8 +102,6 @@ module D3
           D3::PuppyTime::PuppyQueue.instance - self
         end
       end # install
-
-
 
     end #class PendingPuppy
   end # module puppytime

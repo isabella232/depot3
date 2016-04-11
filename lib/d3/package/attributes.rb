@@ -23,8 +23,11 @@
 ###
 
 
+###
 module D3
+
   class Package < JSS::Package
+
         ################# Instance Attributes #################
 
     ### Note - I was tempted to set these up programmatically

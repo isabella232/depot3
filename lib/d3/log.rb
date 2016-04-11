@@ -23,6 +23,7 @@
 ###
 
 
+###
 module D3
 
   ### Log a message to the d3 log, possibly sending it to stderr as well.

@@ -23,12 +23,17 @@
 ###
 
 
-### client/lists.rb
-###
-### Methods related to the display of lists via the d3 client tool
-###
 
+
+###
 module D3
+
+  ### client/lists.rb
+  ###
+  ### Methods related to the display of lists via the d3 client tool
+  ###
+
+
   class Client < JSS::Client
 
     ### list installed d3 items.

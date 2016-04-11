@@ -22,9 +22,13 @@
 ###
 ###
 
-
+###
 module D3
   module Admin
+
+    ### The Admin::Add modile contains constants and methods related to
+    ### adding packages to d3 via d3admin.
+    ###
     module Add
       extend self
 

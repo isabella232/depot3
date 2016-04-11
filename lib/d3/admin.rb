@@ -23,8 +23,12 @@
 ###
 
 
-
+###
 module D3
+
+  ### D3::Admin provides the inner-workings of the d3admin command.
+  ### See the various submodules, and d3admin itself, for details.
+  ###
   module Admin
 
   end # module Admin
@@ -40,3 +44,4 @@ require "d3/admin/options"
 require "d3/admin/prefs"
 require "d3/admin/report"
 require "d3/admin/validate"
+

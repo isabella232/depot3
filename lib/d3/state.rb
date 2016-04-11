@@ -23,22 +23,25 @@
 ###
 
 
+###
 module D3
 
-  # this will be set to true when we finish loading
-  @@loaded = false
-
+  ### is the module fully loaded?
+  ###
+  ### @return [Boolean]
+  ###
   def self.loaded?
     @@loaded
   end
 
-  # This stores the current level of log messages
-  # sent to stdout. See
-  # D3::Log.level to set the level for messages
-  # sent to the log.
-  # @return [Integer]
+  ### This stores the current level of log messages sent to stdout. See
+  ### D3::Log.level to set the level for messages sent to the log.
+  ###
   @@verbosity = D3::Log::DFT_VERBOSITY
 
+  ### The current verbosity level
+  ### @return [Integer]
+  ###
   def self.verbosity
     @@verbosity
   end
@@ -63,23 +66,35 @@ module D3
   end
 
 
-  # have we been asked to be forceful, and perform
-  # unnatural acts?
-  # Force is used in many different was in many places
-  # so we'll store it here and anything can access it
-  # using D3::force, D3::unforce, and D3::forced?
+  ### Have we been asked to be forceful, and perform
+  ### unnatural acts?
+  ### Force is used in many different was in many places
+  ### so we'll store it here and anything can access it
+  ### using D3::force, D3::unforce, and D3::forced?
   @@force = false
 
+  ### Turn on force, module-wide
+  ###
+  ### @return [void]
+  ###
   def self.force
     @@force = true
     D3::Client.set_env :force
   end
 
+  ### Turn off force, module-wide
+  ###
+  ### @return [void]
+  ###
   def self.unforce
     @@force = false
     D3::Client.unset_env :force
   end
 
+  ### Is force turned on, module-wide?
+  ###
+  ### @return [Boolean]
+  ###
   def self.forced?
     @@force
   end
@@ -95,6 +110,7 @@ module D3
   ###   what hosts and usernames
   ###
   def self.connected?
+    return false unless loaded?
     return false unless JSS::API.connected? and JSS::DB_CNX.connected?
     return {
       :api => (JSS::API.cnx.options[:user] + "@" + JSS::API.cnx.options[:server]),

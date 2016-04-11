@@ -4,7 +4,6 @@ d3 is a package deployment and patch management system for OS X that enhances th
 [Casper Suite](http://www.jamfsoftware.com/products/casper-suite/), an enterprise-level management system for Apple devices from [JAMF Software](http://www.jamfsoftware.com/). It was created by [Pixar Animation Studios](http://www.pixar.com/).
 
 
-
 d3 adds these capabilities and more to Casper's package handling:
 
 * Automatic software updates on clients when new versions are released on the server
@@ -15,10 +14,11 @@ d3 adds these capabilities and more to Casper's package handling:
 * Both the client and admin tools are command-line only and fully scriptable
 * Admin command-line options allow integration with developer workflows and package-retrieval tools
 
-d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper mostly via its REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
+d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper via its REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
 
+## DOCUMENTATION
 
-Please see the [wiki](https://github.com/PixarAnimationStudios/depot3/wiki) for full documentation.
+Full user/administrator documentation is available at the [GitHub project's wiki page](https://github.com/PixarAnimationStudios/depot3/wiki).
 
 The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3).
 

@@ -25,13 +25,12 @@
 require 'd3/puppytime/pending_puppy'
 require 'd3/puppytime/puppy_queue'
 
-
-
+###
 module D3
 
-  # Constants and methods for PuppyTime, which installs the pkgs listed in the
-  # PuppyQueue at logout.
-  #
+  ### Constants and methods for PuppyTime, which installs the pkgs listed in the
+  ### PuppyQueue at logout.
+  ###
   module PuppyTime
 
     ################# Module Constants #################
