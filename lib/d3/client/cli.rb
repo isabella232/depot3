@@ -75,22 +75,27 @@ module D3
         list_installed: {
           :aka => :li,
           :help => "list all installed d3 pkgs on this machine",
+          :needs_root => false
         },
         list_manual: {
           :aka => :lm,
           :help => "list all d3 pkgs on this machine not auto-installed",
+          :needs_root => false
         },
         list_pilots: {
           :aka => :lp,
           :help => "list pkgs currently in pilot on this machine",
+          :needs_root => false
         },
         list_frozen: {
           :aka => :lf,
           :help => "list pkgs currently frozen on this machine",
+          :needs_root => false
         },
         list_puppies: {
           :aka => :lq,
           :help => "list any queued pkgs awaiting puppytime at logout",
+          :needs_root => false
         },
         list_details: {
           :aka => :ld,
@@ -101,7 +106,7 @@ module D3
         list_files: {
           :aka => :ls,
           :help => "list the files installed by the given editions",
-          :arg => :"basename or edition",
+          :arg => :"basename or edition" ,
           :needs_connection => true
         },
         query_file: {

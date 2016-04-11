@@ -59,6 +59,9 @@ class App
   # the following d3 commands need a connection to the server
   ACTIONS_NEEDING_SERVER = D3::Client::ACTIONS.select{|k,v| v[:needs_connection] }
 
+  # these actions can be done w/o being root, by default, actions need root
+  ACTIONS_OK_WO_ROOT = D3::Client::ACTIONS.select{|k,v| v[:needs_root] == false }
+
   ### set up
   ###
   def initialize(args)
@@ -89,7 +92,7 @@ class App
 
     # otherwise, yell if we need to be root.
     else
-      raise D3::PermissionError, "You must be root to use d3." unless [:help, :version].include? @action
+      raise D3::PermissionError, "You must be root to do that with d3." unless ACTIONS_OK_WO_ROOT.include? @action
     end #if root
 
     # bail if the jamf binary isn't installed
