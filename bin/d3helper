@@ -72,7 +72,11 @@ class App
   ### and set up the infrasctructure. No actual processing/error checking
   ### until the run method is called.
   ###
-  def initialize(args)
+  def initialize
+
+    # Debugging file? if so, always set debug.
+    ARGV << "--debug" if D3::DEBUG_FILE.exist?
+
     opts = GetoptLong.new(
       [ '--help', '-h', '-H', GetoptLong::NO_ARGUMENT ],
       [ '--debug', '-d', GetoptLong::NO_ARGUMENT ],
@@ -283,10 +287,10 @@ Watch a parade of cute puppies while these items are installed:
 
       # do we have a match?
       pkg_id = d3_pkg_filenames[jss_rcpt_name]
-      
+
       # if not, the filename might end with .zip, but the rcpt name doesn't
       pkg_id ||= d3_pkg_filenames[jss_rcpt_name + ".zip"]
-      
+
       # if still not, this jss recipt doesn't point to a d3 package.
       next unless pkg_id
 
@@ -297,7 +301,7 @@ Watch a parade of cute puppies while these items are installed:
       # If we're here, we need to import the receipt, so get the matching D3
       # package and make a receipt from it.
       D3.log "Importing Casper Receipt #{jss_rcpt_name}", :warn
-      
+
       begin
         d3_pkg = D3::Package.new id: pkg_id
 
@@ -346,7 +350,7 @@ end # class App
 ############
 begin
   app = nil
-  app = App.new(ARGV)
+  app = App.new
   app.run
   exit 0
 rescue

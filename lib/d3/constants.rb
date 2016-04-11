@@ -58,4 +58,9 @@ module D3
   # reports can take a long time to generate, lets set the timeout to a long time.
   REPORT_CONNECTION_TIMEOUT = 3600
 
+  # when this file exists, d3, d3admin are set to debug mode. This is
+  # useful when you have a d3 command embedded in some other tool, but need to get
+  # debug logging.
+  DEBUG_FILE = Pathname.new "/tmp/d3debug-on"
+
 end # module

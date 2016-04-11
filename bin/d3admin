@@ -134,6 +134,9 @@ class App
   ###
   def parse_commandline
 
+    # Debugging file? if so, always set debug.
+    ARGV << "--debug" if D3::DEBUG_FILE.exist?
+
     # this holds everything that comes from the commandline
     # or from prompting the user
     @options = OpenStruct.new

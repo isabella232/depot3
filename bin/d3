@@ -149,6 +149,9 @@ class App
   ###
   def parse_cli
 
+    # Debugging file? if so, always set debug.
+    ARGV << "--debug" if D3::DEBUG_FILE.exist?
+
     # when finished, this leaves the d3 command and its arg in ARGV
     opts = GetoptLong.new( *D3::Client::OPTIONS.values.map{|opt| opt[:cli]} )
 
