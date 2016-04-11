@@ -23,6 +23,7 @@
 ###
 
 
+###
 module D3
   class Package < JSS::Package
 
@@ -65,7 +66,7 @@ module D3
     ###
     def check_for_exclusions
       excl_grps = D3::Client.computer_groups & @excluded_groups
-      raise D3::InstallError,  "This machine is excluded for #{desired_pkg.edition}. Use --force if needed." unless excl_grps.empty?
+      raise D3::InstallError,  "This machine is excluded for #{edition}. Use --force if needed." unless excl_grps.empty?
       return true
     end # check for exclusions
 
