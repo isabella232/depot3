@@ -2,3 +2,4 @@
 *.gem
 d3-notes.rb
 d3-testing.rb
+.yardoc
