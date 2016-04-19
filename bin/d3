@@ -305,8 +305,18 @@ end # class App
 ############
 # Do it
 ############
-stty_save = `stty -g`.chomp
-trap("SIGINT") { puts "\nCancelled! Woot!" ; system('stty', stty_save); exit 0 }
+
+
+### save terminal state incase user interrupts during readline or less
+if $stdin.tty?
+  stty_save = `stty -g`.chomp
+  trap("SIGINT") do
+    puts "\nCancelled! Woot!" 
+    system('stty', stty_save)
+    exit 0
+  end
+end
+
 
 begin
   # if needed, set debugging even before we make the app
