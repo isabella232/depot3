@@ -57,8 +57,8 @@ class App
     ### parse the commandline
     parse_commandline
 
-    # can't ever be run as root - no keychain, among other things
-    raise "d3admin can't be run as root" if JSS.superuser? and (not @action =~ /^h/)
+    # can't  be run as root other than help, search or report - no keychain, among other things
+    raise "d3admin can't make server changes as root" if JSS.superuser? and (not @action =~ /^[hsr]/)
 
   end #initialize
 
@@ -837,13 +837,6 @@ ENDDEETS
     end # @targets.each do |search_target|
   end # def search
 
-  ### show a list of packges on the server
-  def show_package_list (basename, statuses)
-
-      D3::Admin::Report.show_list basename, @options.status
-
-  end # show_package_list
-
   ### show a report
   ###
   ### @return [void]
@@ -923,6 +916,9 @@ ENDDEETS
         end
 
       end # if reporting puppies
+      
+      # blank line between reports, for clarity
+      puts
     end # targets each
   end # show_report
 
