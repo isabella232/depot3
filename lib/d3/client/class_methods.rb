@@ -101,14 +101,13 @@ module D3
           D3.log "Finished installing #{desired_pkg.edition}(#{desired_pkg.status})", :info
 
         rescue JSS::MissingDataError, JSS::NoSuchItemError, JSS::InvalidDataError, D3::InstallError
-          D3.log "Skipping installation of #{pkg_to_search}:\n   #{$!}", :error
+          D3.log "Skipping installation of #{pkg_to_search}: #{$!}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
-          D3.log "There was an error with the pre-install script for #{desired_pkg.edition}:\n   #{$!}", :error
+          D3.log "There was an error with the pre-install script for #{desired_pkg.edition}: #{$!}", :error
           D3.log_backtrace
         rescue D3::PostInstallError
-          D3.log "There was an error with the post-install script for #{desired_pkg.edition}:\n   #{$!}", :error
-          D3.log "   NOTE: it was installed, but may have problems.", :error
+          D3.log "There was an error with the post-install script for #{desired_pkg.edition}: #{$!} NOTE: it was installed, but may have problems.", :error
           D3.log_backtrace
         end # begin
       end # args.each
@@ -133,7 +132,7 @@ module D3
           D3.log "Finished uninstalling #{rcpt.edition}.", :info
 
         rescue JSS::MissingDataError, D3::UninstallError, JSS::InvalidDataError
-          D3.log "Skipping uninstall of #{rcpt_to_remove}:\n   #{$!}", :error
+          D3.log "Skipping uninstall of #{rcpt_to_remove}: #{$!}", :error
           D3.log_backtrace
           next
         end # begin
@@ -399,14 +398,13 @@ module D3
               )
               D3.log "Auto-installed #{new_pkg.basename}", :warn
             rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-              D3.log "Skipping auto-install of #{new_pkg.edition}:\n   #{$!}", :error
+              D3.log "Skipping auto-install of #{new_pkg.edition}: #{$!}", :error
               D3.log_backtrace
             rescue D3::PreInstallError
-              D3.log "There was an error with the pre-install script for #{new_pkg.edition}:\n   #{$!}", :error
+              D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$!}", :error
               D3.log_backtrace
             rescue D3::PostInstallError
-              D3.log "There was an error with the post-install script for #{new_pkg.edition}:\n   #{$!}", :error
-              D3.log "   NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+              D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$!} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
               D3.log_backtrace
             end #begin
           end # live_ids_for_group.each do |live_id|
@@ -501,14 +499,13 @@ module D3
               )
             D3.log "Done updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :info
           rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}:\n   #{$!}", :error
+            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}: #{$!}", :error
             D3.log_backtrace
           rescue D3::PreInstallError
-            D3.log "There was an error with the pre-install script for #{live_pkg.edition}:\n   #{$!}", :error
+            D3.log "There was an error with the pre-install script for #{live_pkg.edition}: #{$!}", :error
             D3.log_backtrace
           rescue D3::PostInstallError
-            D3.log "There was an error with the post-install script for #{live_pkg.edition}:\n   #{$!}", :error
-            D3.log "   NOTE: #{live_pkg.edition} was installed, but may not work.", :error
+            D3.log "There was an error with the post-install script for #{live_pkg.edition}: #{$!} NOTE: #{live_pkg.edition} was installed, but may not work.", :error
             D3.log_backtrace
           end # begin
         end # D3::Client::Receipt.all.values.each
@@ -583,14 +580,13 @@ module D3
           D3.log_backtrace
           D3::PUPPY_Q - puppy
         rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-          D3.log "Skipping install of #{new_pkg.edition} from queue:\n   #{$!}", :error
+          D3.log "Skipping install of #{new_pkg.edition} from queue: #{$!}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
-          D3.log "There was an error with the pre-install script for #{new_pkg.edition}:\n   #{$!}", :error
+          D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$!}", :error
           D3.log_backtrace
         rescue D3::PostInstallError
-          D3.log "There was an error with the post-install script for #{new_pkg.edition}:\n   #{$!}", :error
-          D3.log "   NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+          D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$!} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
           D3.log_backtrace
           D3::PUPPY_Q - puppy
         end # begin
@@ -634,7 +630,7 @@ module D3
           expired_edition = rcpt.expire verbose, force
           @@editions_expired << expired_edition if expired_edition
         rescue
-          D3.log "There was an error expiring #{rcpt.edition}:\n   #{$!}", :error
+          D3.log "There was an error expiring #{rcpt.edition}: #{$!}", :error
           D3.log_backtrace
         end
       end
