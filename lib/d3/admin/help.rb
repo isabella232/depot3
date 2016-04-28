@@ -95,8 +95,8 @@ Action add and edit:
   -P, --expiration-path <path>       Path to executable that must be used
 
 Action delete:
-  --delete-scripts                   Delete scripts associated with this pkg
-  --keep-in-jss                      Delete from d3 but leave in the JSS
+  --keep-scripts                     Keep pre-/post- scripts in Casper
+  --keep-in-jss                      Delete pkg from d3 but leave in Casper
 
 Action search or report:
   -S, --status <status>              Limit package list to this status
@@ -353,12 +353,13 @@ Action add and edit:
 
 Action delete:
 
-  --delete-scripts                   Delete any scripts associated with this pkg
-                                       if they aren't in use elsewhere. Those in
-                                       use will be reported.
+  --keep-scripts                     Keep any scripts associated with this pkg
+                                       in Casper. Note: scripts used by other
+                                       packages or polices are never deleted.
 
-  --keep-in-jss                      Leave the package in the JSS after deleting
-                                       it from d3
+  --keep-in-jss                      Leave the package in Casper after deleting
+                                       it from d3. Note: packages used by
+                                       policies are never deleted from Casper.
 
 
 Action search:
@@ -394,4 +395,3 @@ ENDHELP
     end # module help
   end # module admin
 end # module D3
-

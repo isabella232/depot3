@@ -278,8 +278,8 @@ class App
           @options.expiration_path = arg
 
       # delete
-        when '--delete-scripts'
-          @options.delete_scripts = 'y'
+        when '--keep-scripts'
+          @options.keep_scripts = 'y'
         when '--keep-in-jss'
           @options.keep_in_jss = 'y'
 
@@ -594,17 +594,21 @@ ENDVERS
 
     got_scripts = (not pkg.script_ids.values.empty?)
 
-    if @options.walkthru
-      @options.delete_scripts = D3::Admin::Interactive.get_value(:get_delete_scripts, default = 'n', check_method = :validate_yes_no)
-      @options.keep_in_jss = D3::Admin::Interactive.get_value(:get_keep_in_jss, default = 'n', check_method = :validate_yes_no)
-    end
-
     if got_scripts
-      if @options.delete_scripts
-        deets = " - Deleting pre- or post- scripts not in use elsewhere"
-      else
+
+      if @options.walkthru
+        @options.keep_scripts =  D3::Admin::Interactive.get_value(:get_keep_scripts, default = 'n', check_method = :validate_yes_no)
+
+        @options.keep_in_jss = D3::Admin::Interactive.get_value(:get_keep_in_jss, default = 'n', check_method = :validate_yes_no)
+      end # if @options.walkthru
+
+
+      if @options.keep_scripts
         deets = " - Keeping pre- or post- scripts in the JSS"
-      end # if @options.delete_scripts
+      else
+        deets = " - Deleting pre- or post- scripts not used elsewhere"
+      end # if @options.keep_scripts
+
     else
       deets = " - No pre- or post- scripts to delete"
     end # if got_scripts
@@ -617,13 +621,13 @@ ENDVERS
 
     confirm "DELETE #{pkg.edition}, JSS id #{pkg.id}\nDist.Point Filename: #{pkg.filename}", deets
 
-    if @options.delete_scripts && got_scripts
+    if @options.keep_scripts && got_scripts
       puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
     end
 
     script_actions = pkg.delete(
         admin: @admin,
-        delete_scripts: @options.delete_scripts,
+        keep_scripts: @options.keep_scripts,
         keep_in_jss: @options.keep_in_jss,
         rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
@@ -646,11 +650,11 @@ ENDVERS
     if script_ids.empty?
       deets = " - No pre- or post- scripts to delete"
     else
-      if @options.delete_scripts
-        deets = " - Deleting pre- or post- scripts not in use elsewhere"
-      else
+      if @options.keep_scripts
         deets = " - Keeping pre- or post- scripts in the JSS"
-      end # if @options.delete_scripts
+      else
+        deets = " - Deleting pre- or post- scripts not in use elsewhere"
+      end # if @options.keep_scripts
     end # if script_ids.empty?
 
     confirm "DELETE #{pkg_data[:edition]}\n** Already missing from the JSS **", deets
@@ -658,7 +662,7 @@ ENDVERS
     JSS::DB_CNX.db.query "DELETE FROM #{D3::Database::PACKAGE_TABLE[:table_name]} WHERE package_id = #{pkgid}"
     puts "Package #{pkg_data[:edition]} deleted."
 
-    if @options.delete_scripts && (not script_ids.empty?)
+    if (not @options.keep_scripts) && (not script_ids.empty?)
       puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
       policy_scripts = D3.policy_scripts
       script_ids.each do |victim_script_id|
@@ -679,7 +683,7 @@ ENDVERS
           puts "Deleted script '#{victim_script_name}'"
         end
       end # do script id
-    end # if @options.delete_scripts && (not script_ids.empty?)
+    end # if @options.keep_scripts && (not script_ids.empty?)
 
   end # delete_missing_package (pkgid)
 

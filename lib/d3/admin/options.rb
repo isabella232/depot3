@@ -415,12 +415,12 @@ module D3
 
 
         # Delete
-        delete_scripts: {
+        keep_scripts: {
           :default => nil,
-          :cli => [ '--delete-scripts', GetoptLong::NO_ARGUMENT ],
-          :label => "Delete associated scripts",
+          :cli => [ '--keep-scripts', GetoptLong::NO_ARGUMENT ],
+          :label => "Keep associated scripts in Casper",
           :display_conversion => DISPLAY_TRUE_FALSE,
-          :get => :get_delete_scripts,
+          :get => :get_keep_scripts,
           :validate => :validate_yes_no
         },
         keep_in_jss: {

@@ -847,20 +847,20 @@ Enter 'n' for none
         prompt_for_data(desc: desc, prompt: "Expiration Path", default: default, required: true)
       end
 
-      ### when deleting a pkg, should its pre- and post- scripts be deleted
+      ### when deleting a pkg, should its pre- and post- scripts be kept?
       ###
       ### @param default[String] the default answer when user hits return
       ###
       ### @return [String] the users response
       ###
-      def get_delete_scripts (default = 'n')
+      def get_keep_scripts (default = 'n')
         desc = <<-END_DESC
-DELETE ASSOCIATED SCRIPTS?
+KEEP ASSOCIATED SCRIPTS IN CASPER?
 When deleting a package, should any associated scripts
-(pre-install, post-install, pre-remove, post-remove) also be deleted?
+(pre-install, post-install, pre-remove, post-remove) be kept in Casper?
 
 NOTE: If any other d3 packages or policies are using the scripts
-they won't be deleted, but the other users will be reported.
+they won't be deleted. The other users of the scripts will be reported.
 Enter 'y' or 'n'
         END_DESC
         prompt_for_data(desc: desc, prompt: "Delete Scripts? (y/n)", default: default, required: true)
@@ -874,8 +874,8 @@ Enter 'y' or 'n'
       ###
       def get_keep_in_jss (default = 'n')
         desc = <<-END_DESC
-KEEP THE PACKAGE IN THE JSS?
-When deleting a package, should it be kept as a JSS package
+KEEP THE PACKAGE IN CASPER?
+When deleting a package, should it be kept as a Casper package
 and only deleted from d3?
 Enter 'y' or 'n'
         END_DESC
@@ -970,4 +970,3 @@ END_DESC
     end # module
   end # module Admin
 end # module D3
-
