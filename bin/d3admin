@@ -920,7 +920,7 @@ ENDDEETS
         end
 
       end # if reporting puppies
-      
+
       # blank line between reports, for clarity
       puts
     end # targets each
@@ -953,7 +953,7 @@ end # class App
 if $stdin.tty?
   stty_save = `stty -g`.chomp
   trap("SIGINT") do
-    puts "\nCancelled! Woot!" 
+    puts "\nCancelled! Woot!"
     system('stty', stty_save)
     exit 0
   end
@@ -967,8 +967,8 @@ rescue
   puts $@ if D3::Admin.debug
   exit 1
 ensure
-  if JSS::API.connected?
-    JSS::DistributionPoint.master_distribution_point.unmount if JSS::DistributionPoint.master_distribution_point.mounted?
+  if D3::Admin::Auth.connected?
+    # JSS::DistributionPoint.master_distribution_point.unmount if JSS::DistributionPoint.master_distribution_point.mounted?
     D3::Admin::Auth.disconnect
   end
 end # begin
