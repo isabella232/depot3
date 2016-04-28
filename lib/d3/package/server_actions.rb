@@ -349,7 +349,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
         victim = D3::Package.new(:id => id)
         victim.delete(
           admin: admin,
-          delete_scripts: true,
+          keep_scripts: false,
           keep_in_jss: false,
           rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
@@ -381,7 +381,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
         victim = D3::Package.new(:id => id)
         victim.delete(
           admin: admin,
-          delete_scripts: true,
+          keep_scripts: false,
           keep_in_jss: false,
           rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
@@ -403,7 +403,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
     ###
     ### @return [Array<String>] a textual list of scripts delted and not
     ###   deleted because they're in use by other d3 pkgs or casper policies
-    ###    (empty if delete_scripts is false)
+    ###    (empty if keep_scripts is true)
     ###
     def delete (keep_in_jss: false, keep_scripts: false, admin: @admin, rwpw: nil)
 
@@ -419,7 +419,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # use @ admin if its defined and needed
       admin ||= @admin
 
-      # if delete_scripts
+      # delete scripts or not?  the result is an array of what happened.
       script_actions = keep_scripts ? [] : delete_pkg_scripts
 
       # delete it from the pakcages table
