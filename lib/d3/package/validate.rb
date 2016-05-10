@@ -430,6 +430,7 @@ module D3
 
       ### Confirm the validity of an expiration path.
       ### any string that starts with a / is valid.
+      ### "n" or "none" returns nil
       ###
       ### @param path[Pathname, String] the path to check
       ###
@@ -437,7 +438,7 @@ module D3
       ###
       def validate_expiration_path (path)
         path = path.to_s
-        return nil if path.empty?
+        return nil if path.empty? or path =~ /^n(one)?$/i
         raise JSS::InvalidDataError, "Expiration Path must be a full path starting with /." unless path.start_with? "/"
         Pathname.new path
       end
