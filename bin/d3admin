@@ -398,11 +398,20 @@ ENDVERS
 
     # via the commandline
     else
-      # for any options that weren't given on the commandline, use the defaults
-      default_options.each_pair do |opt, val|
-        next if @options[opt]
-        @options[opt] = val
+
+      # if we were given a new version but not a new revision,
+      # set the new revision to 1
+      if @options[:version] and  @options[:version] !=  default_options[:version]
+        @options[:revision] ||= 1
+        @options[:edition] ||=  "#{@options.basename}-#{@options[:version]}-#{@options[:revision]}"
+        @options.package_name ||= @options[:edition]
+        @options.filename ||= "#{@options[:edition]}.#{default_options.package_build_type}"
+
       end
+
+      # for any options that weren't given on the commandline, use the defaults
+      default_options.each_pair { |opt, val| @options[opt] ||= val }
+
 
       new_package_options = D3::Admin::Add.add_pilot_cli(@options)
 

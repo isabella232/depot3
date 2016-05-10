@@ -115,6 +115,7 @@ END_HEADER
             # Here the value we're actually editing
             current_opt_value = options[chosen_opt]
 
+
             # if we're editing version or revision, and the current pkg or filenames are
             # based on them then make a note to update the names  when we get the new values
             if chosen_opt == :basename or chosen_opt == :version or chosen_opt == :revision
@@ -136,6 +137,14 @@ END_HEADER
 
             # prompt for a new value and put it in place
             options[chosen_opt] = D3::Admin::Interactive.get_value(chosen_opt, current_opt_value, nil)
+
+            # if we changed the version, reset the revision to 1 and update values as needed
+            if chosen_opt == :version and options[chosen_opt] != current_opt_value
+              options[:revision] = 1
+              update_edition = true
+              update_pkg_name = options.package_name.start_with? options.edition
+              update_filename = options.filename.start_with? options.edition
+            end
 
             # if we edited the version or revision, we might need to update names and edition
             options.edition = "#{options.basename}-#{options.version}-#{options.revision}" if update_edition
