@@ -97,6 +97,11 @@ module D3
           :help => "list any queued pkgs awaiting puppytime at logout",
           :needs_root => false
         },
+        list_queue: {
+          :aka => :lq,
+          :help => "list any queued pkgs awaiting puppytime at logout",
+          :needs_root => false
+        },
         list_details: {
           :aka => :ld,
           :help => "show detailed info about packages in d3",
