@@ -81,7 +81,7 @@ module D3
     ### @return [Boolean] Does this pkg expire by default?
     ###
     def expires?
-      @expiration.to_i > 0 && @expiration_path
+      @expiration.to_i > 0 && @expiration_paths
     end
 
     ### @return [Boolean] Is this pkg 'indexed' in the jss, so that it can be removable?
