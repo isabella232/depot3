@@ -105,7 +105,7 @@ module D3
         :pre_remove_script_id,
         :post_remove_script_id,
         :expiration,
-        :expiration_path,
+        :expiration_paths,
         :prohibiting_process
       ]
 
@@ -470,8 +470,8 @@ module D3
             :removable => d3_pkg.removable,
             :pre_remove_script_id => d3_pkg.pre_remove_script_id,
             :post_remove_script_id => d3_pkg.post_remove_script_id,
-            :expiraation => d3_pkg.expiraation,
-            :expiraation_path => d3_pkg.expiraation_path
+            :expiration => d3_pkg.expiration,
+            :expiration_paths => d3_pkg.expiration_paths
           )
 
         end # .each do |d3_pkg|
@@ -519,11 +519,11 @@ module D3
       attr_accessor :frozen
 
       # @return [Time, nil] When was this app last used.
-      #   nil if never checked, or no @expiration_path
+      #   nil if never checked, or no @expiration_paths
       attr_reader :last_usage
 
       # @return [Time, nil] When was @last_usage updated?
-      #   nil if never checked, or no @expiration_path
+      #   nil if never checked, or no @expiration_paths
       attr_reader :last_usage_as_of
 
       ################# Constructor #################
@@ -579,7 +579,7 @@ module D3
         @post_remove_script_id = args[:post_remove_script_id]
 
         @expiration = args[:expiration].to_i
-        @expiration_path = args[:expiration_path]
+        @expiration_paths = args[:expiration_paths]
         @custom_expiration = args[:custom_expiration]
 
         @manually_installed = (@admin != D3::AUTO_INSTALL_ADMIN)
@@ -807,7 +807,7 @@ module D3
         @manually_installed = (@admin != D3::AUTO_INSTALL_ADMIN)
         @package_type = @jamf_rcpt_file.end_with?(".dmg") ? :dmg : :pkg
         @expiration = d3_pkg.expiration
-        @expiration_path = d3_pkg.expiration_path
+        @expiration_paths = d3_pkg.expiration_paths
 
       end # repair rcpt
 
@@ -860,8 +860,8 @@ module D3
       ###
       ### @return [void]
       ###
-      def expiration_path= (new_val)
-        @expiration_path = Pathname.new new_val
+      def expiration_paths= (new_val)
+        @expiration_paths = new_val
       end
 
       ### Set a new prohibiting process
@@ -930,7 +930,7 @@ Post-remove script: #{post_name}
 Apple.pkg ids: #{@apple_pkg_ids.join(', ')}
           END_DEETS
         end
-        if @expiration_path
+        if @expiration_paths
           if @expiration.to_i > 0
             lu = last_usage
             if lu.nil?
@@ -943,7 +943,7 @@ Apple.pkg ids: #{@apple_pkg_ids.join(', ')}
 
             deets += <<-END_DEETS
 Expiration period: #{@expiration} days#{@custom_expiration ? ' (custom)' : ''}
-Expiration path: #{@expiration_path}
+Expiration path(s): #{@expiration_paths}
 Last brought to foreground: #{last_usage_display}
             END_DEETS
           end # if exp > 0
@@ -970,8 +970,8 @@ Last brought to foreground: #{last_usage_display}
         return false if @expiration.nil? or @expiration == 0
 
         # gotta have an expiration path
-        unless @expiration_path
-          D3.log "Not expiring #{edition} because: No Expiration Path for #{edition}", :debug
+        unless @expiration_paths
+          D3.log "Not expiring #{edition} because: No Expiration Path(s) for #{edition}", :debug
           return false
         end
 
@@ -1048,7 +1048,7 @@ Last brought to foreground: #{last_usage_display}
         return deleted? ? edition : nil
       end # expire
 
-      ### Return the number of days since the last usage for the @expiration_path
+      ### Return the number of days since the last usage for the @expiration_paths
       ### for this receipt
       ###s
       ### Returns nil if last_usage is nil
@@ -1079,19 +1079,19 @@ Last brought to foreground: #{last_usage_display}
       ###    expiration path or the data wasn't retrievable.
       ###
       def last_usage
-        return nil unless @expiration_path
+        return nil unless @expiration_paths
 
         now = Time.now
 
         # if it's in the foreground right now, return [now, 0]
         fgnd_path = D3::Client.foreground_executable_path
         if fgnd_path
-          now_in_forground = (fgnd_path.to_s ==  @expiration_path.to_s.chomp('/'))
+          now_in_foreground = (@expiration_paths.to_s.include? (fgnd_path.to_s))
         else
-          now_in_forground = nil
+          now_in_foreground = nil
         end
 
-        if now_in_forground
+        if now_in_foreground
           @last_usage = now
           @last_usage_as_of = now
           return @last_usage
@@ -1117,13 +1117,14 @@ Last brought to foreground: #{last_usage_display}
             return nil
           end
 
-          # loop through the plists, get the newest usage time for this
+         # loop through the plists, get the newest usage time for this
           # expiration path, and append it to all_usages
           all_usages = []
           plists.each do |plist|
             usage_times = D3.parse_plist plist
-            my_usage_keys = usage_times.keys.select{|k| k.start_with? @expiration_path.to_s }
-            all_usages << my_usage_keys.map{|k| usage_times[k].to_time }.max
+            my_usage_keys = usage_times.keys.map{|p| Pathname.new(p)}
+            exp_paths_with_usage = @expiration_paths & my_usage_keys
+            exp_paths_with_usage.each{|p| all_usages <<  usage_times[p] }
           end # do plist
 
           @last_usage = all_usages.compact.max
