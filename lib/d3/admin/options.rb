@@ -348,12 +348,12 @@ module D3
           :unsetable => true,
           :validate => :validate_expiration
         },
-        expiration_path: {
+        expiration_paths: {
           :default => nil,
-          :cli => [ '--expiration-path', '-P', GetoptLong::REQUIRED_ARGUMENT ],
+          :cli => [ '--expiration-path', '--expiration-paths', '-P', GetoptLong::REQUIRED_ARGUMENT ],
           :label=> "Expiration Path",
           :display_conversion => DISPLAY_DFT_NONE,
-          :get => :get_expiration_path,
+          :get => :get_expiration_paths,
           :unsetable => true,
           :validate => :validate_expiration_path
         },
