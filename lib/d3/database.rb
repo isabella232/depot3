@@ -325,7 +325,7 @@ module D3
           :to_ruby => STRING_TO_INT
         },
 
-        :expiration_path => {
+        :expiration_paths => {
           :field_name => "expiration_app_path",
           :sql_type => 'varchar(300)',
           :index => nil,

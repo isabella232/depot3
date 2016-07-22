@@ -355,7 +355,7 @@ module D3
           :display_conversion => DISPLAY_DFT_NONE,
           :get => :get_expiration_paths,
           :unsetable => true,
-          :validate => :validate_expiration_path
+          :validate => :validate_expiration_paths
         },
         description: {
           :default => '',

@@ -121,7 +121,7 @@ module D3
     attr_reader :expiration
 
     # @return [String] the path to the executable that needs come to the foreground to prevent expiration
-    attr_reader :expiration_path
+    attr_reader :expiration_paths
 
 
     ################# Public Instance Methods #################
