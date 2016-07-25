@@ -148,6 +148,7 @@ module D3
         self.get_datastore_lock(lock_timeout) if rw
 
         @@installed_rcpts = DATASTORE.file? ? YAML.load(DATASTORE.read) : {}
+        @@installed_rcpts ||= {}
 
         D3.log "Receipts loaded", :debug
       end # seld.load_receipts
@@ -162,7 +163,7 @@ module D3
       ###
       ### @return [void]
       ###
-      def self.reload_receipts(rw = false, lock_timeout = DATASTORE_LOCK_TIMEOUT)
+      def self.reload_receipts (rw = false, lock_timeout = DATASTORE_LOCK_TIMEOUT)
 
         # if we  haven't loaded them at all yet, just do that.
         unless @@installed_rcpts
@@ -183,6 +184,7 @@ module D3
 
         # reload it
         @@installed_rcpts = DATASTORE.file? ? YAML.load(DATASTORE.read) : {}
+        @@installed_rcpts ||= {}
         D3.log "Receipts reloaded", :debug
       end # self.reload_receipts
 
