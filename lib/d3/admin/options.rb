@@ -351,7 +351,7 @@ module D3
         expiration_paths: {
           :default => nil,
           :cli => [ '--expiration-path', '--expiration-paths', '-P', GetoptLong::REQUIRED_ARGUMENT ],
-          :label=> "Expiration Path",
+          :label=> "Expiration Path(s)",
           :display_conversion => DISPLAY_DFT_NONE,
           :get => :get_expiration_paths,
           :unsetable => true,

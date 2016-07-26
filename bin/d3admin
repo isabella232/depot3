@@ -274,7 +274,7 @@ class App
           @options.oses = arg
         when '--expiration'
           @options.expiration = arg
-        when '--expiration-path' or '--expiration_paths'
+        when '--expiration-path', '--expiration_paths'
           @options.expiration_paths = arg
 
       # delete
