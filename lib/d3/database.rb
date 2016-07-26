@@ -42,7 +42,7 @@ module D3
     MIN_SCHEMA_VERSION = "9.4"
 
     # the minimum JSS schema version allower
-    MAX_SCHEMA_VERSION = "9.91"
+    MAX_SCHEMA_VERSION = "9.92"
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql
@@ -59,6 +59,10 @@ module D3
 
     ### Some values are stored as comma-separated strings, but used as Arrays
     COMMA_STRING_TO_ARRAY = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform] }
+    
+    ### Some values are stored as comma-separated strings, but used as Arrays of Pathnames
+    COMMA_STRING_TO_ARRAY_OF_PATHNAMES = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform].map{|p| Pathname.new(p)} }
+    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.join(", ")}
 
     ### Some values are used as Arrays but stored as comma-separated strings
     ARRAY_TO_COMMA_STRING = Proc.new{|v| JSS.to_s_and_a(v)[:stringform] }
@@ -329,8 +333,8 @@ module D3
           :field_name => "expiration_app_path",
           :sql_type => 'varchar(300)',
           :index => nil,
-          :to_sql => PATHNAME_TO_STRING,
-          :to_ruby => STRING_TO_PATHNAME
+          :to_sql => ARRAY_OF_PATHNAMES_TO_COMMA_STRING,
+          :to_ruby => COMMA_STRING_TO_ARRAY_OF_PATHNAMES
         }
       },
 

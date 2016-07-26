@@ -437,7 +437,7 @@ module D3
       ### @return [Array<Pathname>] the valid path
       ###
       def validate_expiration_paths (paths)
-        return [] if paths.to_s.empty? or path.to_s =~ /^n(one)?$/i
+        return [] if paths.to_s.empty? or paths.to_s =~ /^n(one)?$/i
 
         paths = paths.chomp.split(/\s*,\s*/) if paths.is_a? String
 
