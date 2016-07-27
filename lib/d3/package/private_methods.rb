@@ -77,7 +77,7 @@ module D3
             :pre_remove_script_id => @pre_remove_script_id,
             :post_remove_script_id => @post_remove_script_id,
             :expiration => @expiration_to_apply.to_i,
-            :expiration_path => @expiration_path,
+            :expiration_paths => @expiration_paths,
             :custom_expiration => @custom_expiration,
             :prohibiting_process => @prohibiting_process)
 

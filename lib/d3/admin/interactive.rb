@@ -830,21 +830,22 @@ Enter the number of days, or 0 for no expiration.
         prompt_for_data(desc: desc, prompt: "Expiration days", default: default, required: true)
       end
 
-      ### Get the path to the application to monitor for expiration
+      ### Get the path to the executable(s) to monitor for expiration
       ###
-      ### @param default[Pathname, String] the default choice when typing return
+      ### @param default[String, Pathname, Array<String,Pathname>] the path(s)
       ###
-      ### @return [Pathname] the path to the application
+      ### @return [Array<Pathname>] the path(s) to the executable
       ###
-      def get_expiration_path (default = 'n')
+      def get_expiration_paths (default = 'n')
         desc = <<-END_DESC
-EXPIRATION PATH
-Enter the path to a the application that must be used
-to prevent expiration.
-E.g. /Applications/Google Chrome.app
+EXPIRATION PATH(S)
+Enter the path(s) to the executable(s) that must be used
+to prevent expiration. Multiple paths should be separated by commas, spaces
+should not be escaped. E.g.
+/Applications/Google Chrome.app/Contents/MacOS/Google Chrome, /Applications/Firefox.app/Contents/MacOS/firefox
 Enter 'n' for none
         END_DESC
-        prompt_for_data(desc: desc, prompt: "Expiration Path", default: default, required: true)
+        prompt_for_data(desc: desc, prompt: "Expiration Path(s)", default: default, required: true)
       end
 
       ### when deleting a pkg, should its pre- and post- scripts be kept?

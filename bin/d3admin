@@ -274,8 +274,8 @@ class App
           @options.oses = arg
         when '--expiration'
           @options.expiration = arg
-        when '--expiration-path'
-          @options.expiration_path = arg
+        when '--expiration-path', '--expiration_paths'
+          @options.expiration_paths = arg
 
       # delete
         when '--keep-scripts'

@@ -54,7 +54,7 @@ module D3
           pre_remove
           post_remove
           expiration
-          expiration_path
+          expiration_paths
           source_path
         }.map{|i| i.to_sym}
 
@@ -280,7 +280,7 @@ END_HEADER
 
         # expiration path if expiration
         if options_from_user[:expiration] > 0
-            errors << "expiration path cannot be empty if expiration is > 0 ." unless options_from_user[:expiration_path]
+            errors << "expiration path cannot be empty if expiration is > 0 ." unless options_from_user[:expiration_paths]
         end
         return [options_from_user, errors]
       end # validate_all_new_package_options

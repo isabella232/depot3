@@ -53,7 +53,7 @@ module D3
         pre_remove
         post_remove
         expiration
-        expiration_path
+        expiration_paths
         description
       }.map{|i| i.to_sym}
 

@@ -428,21 +428,39 @@ module D3
         exp.to_i
       end
 
+      ### Confirm the validity of one or more expiration paths.
+      ### Any string that starts with a / is valid.
+      ### The strings "n" or "none" returns an empty array.
+      ###
+      ### @param paths[Pathname, String, Array<String,Pathname>] the path(s) to check
+      ###
+      ### @return [Array<Pathname>] the valid path
+      ###
+      def validate_expiration_paths (paths)
+        return [] if paths.to_s.empty? or paths.to_s =~ /^n(one)?$/i
+
+        paths = paths.chomp.split(/\s*,\s*/) if paths.is_a? String
+
+        if paths.is_a? Array
+          return paths.map!{|p| validate_expiration_path p}
+        else
+          return [validate_expiration_path(paths)]
+        end
+      end
+
       ### Confirm the validity of an expiration path.
-      ### any string that starts with a / is valid.
-      ### "n" or "none" returns nil
+      ### Any string that starts with a / is valid, d3 can't confirm
+      ### the paths existing on client machines.
       ###
-      ### @param path[Pathname, String] the path to check
+      ### @param paths[Pathname, String] the path to check
       ###
-      ### @return [Pathname, nil] the valid path
+      ### @return [Pathname] the valid path
       ###
       def validate_expiration_path (path)
         path = path.to_s
-        return nil if path.empty? or path =~ /^n(one)?$/i
         raise JSS::InvalidDataError, "Expiration Path must be a full path starting with /." unless path.start_with? "/"
         Pathname.new path
       end
-
 
     end # module Validate
 
