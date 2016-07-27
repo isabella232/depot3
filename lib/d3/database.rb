@@ -42,7 +42,7 @@ module D3
     MIN_SCHEMA_VERSION = "9.4"
 
     # the minimum JSS schema version allower
-    MAX_SCHEMA_VERSION = "9.92"
+    MAX_SCHEMA_VERSION = "9.93"
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql

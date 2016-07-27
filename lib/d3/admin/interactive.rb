@@ -840,8 +840,9 @@ Enter the number of days, or 0 for no expiration.
         desc = <<-END_DESC
 EXPIRATION PATH(S)
 Enter the path(s) to the executable(s) that must be used
-to prevent expiration. Multiple paths should be separated by commas, spaces should not be escaped.
-E.g. /Applications/Google Chrome.app/Contents/MacOS/Google Chrome, /Applications/Firefox.app/Contents/MacOS/firefox
+to prevent expiration. Multiple paths should be separated by commas, spaces
+should not be escaped. E.g.
+/Applications/Google Chrome.app/Contents/MacOS/Google Chrome, /Applications/Firefox.app/Contents/MacOS/firefox
 Enter 'n' for none
         END_DESC
         prompt_for_data(desc: desc, prompt: "Expiration Path(s)", default: default, required: true)

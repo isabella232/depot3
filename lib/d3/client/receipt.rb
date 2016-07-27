@@ -943,7 +943,7 @@ Apple.pkg ids: #{@apple_pkg_ids.join(', ')}
 
             deets += <<-END_DEETS
 Expiration period: #{@expiration} days#{@custom_expiration ? ' (custom)' : ''}
-Expiration path(s): #{@expiration_paths}
+Expiration path(s): #{D3::Database::ARRAY_OF_PATHNAMES_TO_COMMA_STRING.call @expiration_paths}
 Last brought to foreground: #{last_usage_display}
             END_DEETS
           end # if exp > 0
@@ -1086,7 +1086,7 @@ Last brought to foreground: #{last_usage_display}
         # if it's in the foreground right now, return [now, 0]
         fgnd_path = D3::Client.foreground_executable_path
         if fgnd_path
-          now_in_foreground = (@expiration_paths.to_s.include? (fgnd_path.to_s))
+          now_in_foreground = @expiration_paths.select{|p| fgnd_path == p}.length > 0
         else
           now_in_foreground = nil
         end

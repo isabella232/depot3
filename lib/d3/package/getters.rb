@@ -110,7 +110,7 @@ Installation prohibited by process: #{@prohibiting_process or 'None'}
 Auto installed for groups: #{auto_disp.empty? ? 'None' : auto_disp}
 Excluded for groups: #{excl_disp.empty? ? 'None' : excl_disp}
 Expiration period: #{@expiration.to_i} days
-Expiration path(s): #{@expiration_paths}
+Expiration path(s): #{D3::Database::ARRAY_OF_PATHNAMES_TO_COMMA_STRING.call @expiration_paths}
 Released by: #{@released_by or '-'}
 Release date: #{@release_date ? @release_date.strftime('%Y-%m-%d') : '-'}
       END_DEETS

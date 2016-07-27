@@ -406,15 +406,7 @@ module D3
       ### @return [Array<Pathname>] the valid path
       ###
       def validate_expiration_paths (paths)
-        return [] if paths.to_s.empty? or paths.to_s =~ /^n(one)?$/i
-
-        paths = paths.chomp.split(/\s*,\s*/) if paths.is_a? String
-
-        if paths.is_a? Array
-          return paths.map!{|p| validate_expiration_path p}
-        else
-          return [validate_expiration_path(paths)]
-        end
+        D3::Package::Validate.validate_expiration_paths paths
       end
 
       ### Confirm the validity of an expiration path.
