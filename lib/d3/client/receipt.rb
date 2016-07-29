@@ -972,7 +972,7 @@ Last brought to foreground: #{last_usage_display}
         return false if @expiration.nil? or @expiration == 0
 
         # gotta have an expiration path
-        unless @expiration_paths
+        if @expiration_paths.empty?
           D3.log "Not expiring #{edition} because: No Expiration Path(s) for #{edition}", :debug
           return false
         end
