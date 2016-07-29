@@ -499,9 +499,9 @@ module D3
 
           # mention rollbacks
           if rollback
-            D3.log "Rolling back #{rcpt.edition} (#{rcpt.status}) to older live #{ live_pkg_data[:edition]}.", :warn
+            D3.log "Rolling back #{rcpt.edition} (#{rcpt.status}) to older live #{live_pkg_data[:edition]}.", :warn
           else
-            D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :warn
+            D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg_data[:edition]} (#{live_pkg_data[:status]})", :warn
           end
 
           # are we bringing over a custom expiration period?
