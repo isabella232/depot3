@@ -262,6 +262,7 @@ module D3
           rcpt.update
           next
         end
+        need_update = false
 
         # Are we rolling back to a prev version?
         # If the pkgdata[:status] is :pilot and the
@@ -274,7 +275,7 @@ module D3
             # update the status
             rcpt.status = pkgdata[:status]
             D3.log "Updating status for #{rcpt.edition} to #{pkgdata[:status]}", :info
-            rcpt.update
+            need_update = true
           end # if
         end # unless
 
@@ -282,14 +283,14 @@ module D3
         if rcpt.pre_remove_script_id != pkgdata[:pre_remove_script_id]
           rcpt.pre_remove_script_id = pkgdata[:pre_remove_script_id]
           D3.log "Updating pre-remove script for #{rcpt.edition}", :info
-          rcpt.update
+          need_update = true
         end # if
 
         # post-remove script
         if rcpt.post_remove_script_id != pkgdata[:post_remove_script_id]
           rcpt.post_remove_script_id = pkgdata[:post_remove_script_id]
           D3.log "Updating post-remove script for #{rcpt.edition}", :info
-          rcpt.update
+          need_update = true
         end # if
 
         # removability
@@ -300,7 +301,7 @@ module D3
             rcpt.expiration = 0
             D3.log "#{rcpt.edition} is not expirable now that it's not removable", :info
           end
-          rcpt.update
+          need_update = true
         end # if
 
         # expiration
@@ -309,13 +310,13 @@ module D3
           if rcpt.expiration_paths.to_s != pkgdata[:expiration_paths].to_s
             rcpt.expiration_paths = pkgdata[:expiration_paths]
             D3.log "Updating expiration path(s) for #{rcpt.edition}", :info
-            rcpt.update
+            need_update = true
           end # if
 
           if (rcpt.expiration != pkgdata[:expiration].to_i) and (not rcpt.custom_expiration)
             rcpt.expiration = pkgdata[:expiration].to_i
             D3.log "Updating expiration for #{rcpt.edition}", :info
-            rcpt.update
+            need_update = true
           end # if
         end # if removable
 
@@ -323,18 +324,12 @@ module D3
         if rcpt.prohibiting_process.to_s != pkgdata[:prohibiting_process].to_s
           rcpt.prohibiting_process = pkgdata[:prohibiting_process]
           D3.log "Updating prohibiting_process for #{rcpt.edition}", :info
-          rcpt.update
+          need_update = true
         end # if
 
-        # last usage
-        # this will update the last_usage value stored in the rcpt (for reporting only)
-        # (expiration only looks at current usage data)
-        if rcpt.expiration_paths
-          rcpt.last_usage
-          rcpt.update
-        end
 
-        end # each do basename, rcpt
+        rcpt.update if need_update
+      end # each do basename, rcpt
     end # update
 
     ### remove any invalid puppies from the queue
