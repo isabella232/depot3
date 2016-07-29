@@ -256,13 +256,20 @@ module D3
           next
         end
 
+        # Are we rolling back to a prev version?
+        # If the pkgdata[:status] is :pilot and the
+        # rcpt.status is NOT :pilot, then we are.
+        rolling_back = (pkgdata[:status] == :pilot) && (rcpt.status != :pilot)
+
         # status
-        if rcpt.status != pkgdata[:status]
-          # update the status
-          rcpt.status = pkgdata[:status]
-          D3.log "Updating status for #{rcpt.edition} to #{pkgdata[:status]}", :info
-          rcpt.update
-        end # if
+        unless rolling_back
+          if rcpt.status != pkgdata[:status]
+            # update the status
+            rcpt.status = pkgdata[:status]
+            D3.log "Updating status for #{rcpt.edition} to #{pkgdata[:status]}", :info
+            rcpt.update
+          end # if
+        end # unless
 
         # pre-remove script
         if rcpt.pre_remove_script_id != pkgdata[:pre_remove_script_id]
@@ -479,6 +486,8 @@ module D3
           # mention rollbacks
           if rollback
             D3.log "Rolling back #{rcpt.edition} (#{rcpt.status}) to older live #{ live_pkg_data[:edition]}.", :warn
+          else
+            D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :warn
           end
 
           # are we bringing over a custom expiration period?
@@ -486,7 +495,6 @@ module D3
 
           # heres the pkg
           live_pkg = D3::Package.new :id => live_basenames_to_ids[rcpt.basename]
-          D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :warn
 
           begin
             live_pkg.install(
