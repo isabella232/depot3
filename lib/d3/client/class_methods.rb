@@ -57,6 +57,10 @@ module D3
           raise JSS::NoSuchItemError, "No d3 package matching #{pkg_to_search}" unless desired_pkg
           raise D3::InstallError, "The package for #{desired_pkg.edition} is missing from the JSS" if desired_pkg.missing?
 
+          if options.custom_expiration
+            raise "Sorry #{desired_pkg.edition} is not expirable. A d3 admin needs to add an expiration path." if desired_pkg.expiration_paths.empty?
+          end
+
           curr_rcpt = D3::Client::Receipt.all[desired_pkg.basename]
 
           # many things can be forced
