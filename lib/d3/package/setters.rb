@@ -93,7 +93,7 @@ module D3
 
     ### Set the expiration period for all installs of this pkg.
     ### Once installed, if this many days go by without
-    ### the @expiration_path being launched, as noted by casper's the pkg
+    ### the @expiration_paths being launched, as noted by d3repoman, the pkg
     ### will be silently uninstalled.
     ###
     ### Use nil, false, or 0 (the default) to prevent expiration.
@@ -115,24 +115,51 @@ module D3
       @need_to_update_d3 = true unless  @initializing
     end # expiration =
 
-    ### Set the expiration path for this pkg.
-    ### This is the path to the app that must be launched
-    ### at least once every @expiration days to prevent
+    ### Set the expiration paths for this pkg.
+    ### These are abosulute paths to executables one of which must be brought to the
+    ### foreground at least once every @expiration days to prevent
     ### silent un-installing of this package.
     ###
-    ### This is the path as recorded in Casper's application usage logs.
-    ### @example "/Applications/FileMaker Pro 11/FileMaker Pro.app"
+    ### The paths are those recorded in d3RepoMan's timestamp plists.
+    ### @example "/Applications/FileMaker Pro 11/FileMaker Pro.app/Contents/MacOS/Filemaker Pro"
     ###
-    ### @param new_val[String] The path to the application
+    ### @param new_val[String,Pathname,Array<String,Pathname>] The expiration paths. 
+    ###   A Pathname for a single path, a String for single, or multiple 
+    ###   (comma-separated) or an Array of Strings or Pathnames for single paths.
+    ###   Each path must be an absolute path starting with a /
     ###
     ### @return [void]
     ###
-    def expiration_path= (new_val = @expiration_path)
-      return @expiration_path if new_val == @expiration_path
-      @expiration_path = validate_expiration_path (new_val)
+    def expiration_paths= (new_val = @expiration_paths)
+      return @expiration_paths if new_val == @expiration_paths
+      @expiration_paths = validate_expiration_paths (new_val)
       @need_to_update_d3 = true unless @initializing
     end # expiration =
 
+    ### Add a path to expiration_paths
+    ### @param new_val[String,Pathname]
+    ###
+    ### The paths are those recorded in d3RepoMan's timestamp plists.
+    ### @example "/Applications/FileMaker Pro 11/FileMaker Pro.app/Contents/MacOS/Filemaker Pro"
+    ###
+    def add_expiration_path (path)
+      path = validate_expiration_path(path)
+      @expiration_paths << path
+      @need_to_update_d3 = true unless @initializing
+    end # add_expiration_path
+    
+    ### Remove a path from expiration_paths
+    ### @param new_val[String,Pathname]
+    ###
+    ### The paths are those recorded in d3RepoMan's timestamp plists.
+    ### @example "/Applications/FileMaker Pro 11/FileMaker Pro.app/Contents/MacOS/Filemaker Pro"
+    ###
+    def remove_expiration_path (path)
+      @expiration_paths.delete Pathname.new(path)
+      @need_to_update_d3 = true unless @initializing
+    end # remove_expiration_path
+    
+  
     ### Set the prohibiting process for this installer.
     ###
     ### The value of this attribute is compared at install time to the lines output

@@ -167,7 +167,7 @@ module D3
 
           # if we have a setter method for this key, call it to set the attribute.
           setter = "#{fld_key}=".to_sym
-          send(setter, fld_val) if self.respond_to?(setter, true)  # the 'true' makes respond_to? look at private methods also
+          self.send(setter, fld_val) if self.respond_to?(setter, true)  # the 'true' makes respond_to? look at private methods also
 
         end # PFIELDS.each
       end # if d3pkg_data
@@ -175,6 +175,9 @@ module D3
       # some nil-values shouldn't be nil
       @auto_groups ||= []
       @excluded_groups ||= []
+      
+      # expiration_paths should always be an array
+      @expiration_paths ||= []
 
       # these don't come from the table def.
       @admin = args[:admin]

@@ -92,7 +92,8 @@ Action add and edit:
   -c, --cpu <type>                   Limit installation to 'intel' or 'ppc'
   -C, --category <category>          The JSS Category for this package
   -X, --expiration <days>            Auto-uninstall if unused for <days>
-  -P, --expiration-path <path>       Path to executable that must be used
+  -P, --expiration-path(s) <path>    Path(s) to executable(s) that must be used
+                                     (Multiple paths should be comma separated)
 
 Action delete:
   --keep-scripts                     Keep pre-/post- scripts in Casper
@@ -347,9 +348,9 @@ Action add and edit:
                                        and expiration must be allowed in the
                                        client config.
 
-  -P, --expiration-path <path>       The path to the executable the must be used
-                                       within the expiration period to avoid
-                                       being uninstalled
+  -P, --expiration-path(s) <path>    The path(s) to the executable(s) the must
+                                       be used within the expiration period to
+                                       avoid being uninstalled
 
 Action delete:
 

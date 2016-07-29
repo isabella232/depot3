@@ -261,6 +261,9 @@ class App
       when :list_puppies then
         D3::Client.list_pending_puppies
 
+      when :list_queue then
+        D3::Client.list_pending_puppies
+
       when :list_details then
         D3::Client.list_details @targets
 

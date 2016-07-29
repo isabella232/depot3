@@ -299,9 +299,9 @@ module D3
         # expiration
         if rcpt.removable?
 
-          if rcpt.expiration_path.to_s != pkgdata[:expiration_path].to_s
-            rcpt.expiration_path = pkgdata[:expiration_path]
-            D3.log "Updating expiration path for #{rcpt.edition}", :info
+          if rcpt.expiration_paths.to_s != pkgdata[:expiration_paths].to_s
+            rcpt.expiration_paths = pkgdata[:expiration_paths]
+            D3.log "Updating expiration path(s) for #{rcpt.edition}", :info
             rcpt.update
           end # if
 
@@ -322,7 +322,7 @@ module D3
         # last usage
         # this will update the last_usage value stored in the rcpt (for reporting only)
         # (expiration only looks at current usage data)
-        if rcpt.expiration_path
+        if rcpt.expiration_paths
           rcpt.last_usage
           rcpt.update
         end
