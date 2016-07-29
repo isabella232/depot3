@@ -408,7 +408,8 @@ module D3
     ### Raise an exception if JSS schema is to old or too new
     def self.check_schema_version
       raw = JSS::DB_CNX.db.query("SELECT version FROM #{SCHEMA_TABLE}").fetch[0]
-      current = JSS.parse_jss_version(raw)[:version]
+      simmered = raw.split('.')[0..1].join('.')
+      current = JSS.parse_jss_version(simmered)[:version]
       min = JSS.parse_jss_version(MIN_SCHEMA_VERSION)[:version]
       max = JSS.parse_jss_version(MAX_SCHEMA_VERSION)[:version]
       raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if current < min or current > max
