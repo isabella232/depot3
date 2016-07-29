@@ -181,6 +181,7 @@ module D3
 
       if writable
         @logger = Logger.new @log_file
+        @logger.level = D3::Log.check_level(@level)
         set_format
       else
         @logger = nil
