@@ -222,6 +222,13 @@ module D3
         # expirations
         do_expirations
 
+        # removie receipts w/ missing packages on the server
+        # This must happen AFTER update_installed_pkgs
+        # so that the basename gets any updates on the server
+        # before removing the recetip (which wouild prevent
+        # updates)
+        clean_missing_receipts
+
         D3.log "Finished sync", :warn
       ensure
         D3::Client.unset_env :sync
@@ -418,6 +425,18 @@ module D3
         end # each group
       ensure
         D3::Client.unset_env :auto_install
+      end
+    end
+
+    ### remove any receipts for packages that are missing from the server
+    ###
+    ###
+    def self.clean_missing_receipts
+      D3.log "Checking for receipts no longer in d3", :warn
+      D3::Client::Receipt.all.values.select{|r| r.status == :missing}.each do |mrcpt|
+        D3.log "Removing receipt for missing edition #{mrcpt.edition}", :info
+        D3::Client::Receipt.remove_receipt mrcpt.basename
+        D3.log "Removed receipt for missing edition #{mrcpt.edition}", :info
       end
     end
 
