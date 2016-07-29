@@ -560,7 +560,23 @@ module D3
         rcpt.update
         D3.log "Thawing receipt for #{rcpt.edition}, will resume auto-update during sync", :warn
       end
-    end # freeze receipts
+    end # thaw_receipts
+
+    ### forget one or more receipts, and their matching apple pkg receipts
+    ###
+    ### @param basenames[Array] the basenames of the rcpts to forget
+    ###
+    ### @return [void]
+    ###
+    def self.forget_receipts (basenames)
+      basenames.each do |bn|
+        rcpt = D3::Client::Receipt.all[bn]
+        next unless rcpt
+        rcpt.apple_pkg_ids.each{|ar| system "/usr/sbin/pkgutil --forget '#{ar}'" }
+        D3::Client::Receipt.remove_receipt bn
+        D3.log "Receipt for #{rcpt.edition} has been forgotten", :warn
+      end
+    end # thaw_receipts
 
     ### Do any pending puppy installs right now, because we're
     ### syncing and --puppies option was given

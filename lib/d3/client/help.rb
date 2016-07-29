@@ -58,6 +58,7 @@ Actions:
   uninstall u  <basename>               - Uninstall packages
   freeze    f  <basename>               - Stop auto-updates of this basename
   thaw      t  <basename>               - Resume auto-updates of this basename
+  forget    fg <basename>               - Remove receipt without uninstalling
   dequeue   dq <basename>               - Remove a pending logout install
   sync      s                           - Update receipt data, do auto-installs
                                           update installed software & uninstall

@@ -243,6 +243,9 @@ class App
       when :thaw then
         D3::Client.thaw_receipts @targets
 
+      when :forget then
+        D3::Client.forget_receipts @targets
+
       when :list_available then
         D3::Client.list_available @options.force
 
@@ -314,7 +317,7 @@ end # class App
 if $stdin.tty?
   stty_save = `stty -g`.chomp
   trap("SIGINT") do
-    puts "\nCancelled! Woot!" 
+    puts "\nCancelled! Woot!"
     system('stty', stty_save)
     exit 0
   end

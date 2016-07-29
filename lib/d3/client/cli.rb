@@ -67,6 +67,12 @@ module D3
           :needs_connection => false,
           :arg => :basename
         },
+        forget: {
+          :aka => :fg,
+          :help => "Remove receipt but don't try uninstalling.",
+          :needs_connection => false,
+          :arg => :basename
+        },
         list_available: {
           :aka => :la,
           :help => "list all available live installers on the server",
