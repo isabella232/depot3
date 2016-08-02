@@ -311,12 +311,12 @@ module D3
         # expiration
         if rcpt.removable?
 
-          if rcpt.expiration_paths.to_s != pkgdata[:expiration_paths].to_s
+          unless rcpt.expiration_paths_match? pkgdata[:expiration_paths]
             rcpt.expiration_paths = pkgdata[:expiration_paths]
             D3.log "Updating expiration path(s) for #{rcpt.edition}", :info
             need_update = true
           end # if
-
+          
           if (rcpt.expiration != pkgdata[:expiration].to_i) and (not rcpt.custom_expiration)
             rcpt.expiration = pkgdata[:expiration].to_i
             D3.log "Updating expiration for #{rcpt.edition}", :info
