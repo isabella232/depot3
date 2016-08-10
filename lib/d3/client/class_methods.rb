@@ -57,6 +57,10 @@ module D3
           raise JSS::NoSuchItemError, "No d3 package matching #{pkg_to_search}" unless desired_pkg
           raise D3::InstallError, "The package for #{desired_pkg.edition} is missing from the JSS" if desired_pkg.missing?
 
+          if options.custom_expiration
+            raise "Sorry #{desired_pkg.edition} is not expirable. A d3 admin needs to add an expiration path." if desired_pkg.expiration_paths.empty?
+          end
+
           curr_rcpt = D3::Client::Receipt.all[desired_pkg.basename]
 
           # many things can be forced
@@ -101,14 +105,13 @@ module D3
           D3.log "Finished installing #{desired_pkg.edition}(#{desired_pkg.status})", :info
 
         rescue JSS::MissingDataError, JSS::NoSuchItemError, JSS::InvalidDataError, D3::InstallError
-          D3.log "Skipping installation of #{pkg_to_search}:\n   #{$!}", :error
+          D3.log "Skipping installation of #{pkg_to_search}: #{$!}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
-          D3.log "There was an error with the pre-install script for #{desired_pkg.edition}:\n   #{$!}", :error
+          D3.log "There was an error with the pre-install script for #{desired_pkg.edition}: #{$!}", :error
           D3.log_backtrace
         rescue D3::PostInstallError
-          D3.log "There was an error with the post-install script for #{desired_pkg.edition}:\n   #{$!}", :error
-          D3.log "   NOTE: it was installed, but may have problems.", :error
+          D3.log "There was an error with the post-install script for #{desired_pkg.edition}: #{$!} NOTE: it was installed, but may have problems.", :error
           D3.log_backtrace
         end # begin
       end # args.each
@@ -133,7 +136,7 @@ module D3
           D3.log "Finished uninstalling #{rcpt.edition}.", :info
 
         rescue JSS::MissingDataError, D3::UninstallError, JSS::InvalidDataError
-          D3.log "Skipping uninstall of #{rcpt_to_remove}:\n   #{$!}", :error
+          D3.log "Skipping uninstall of #{rcpt_to_remove}: #{$!}", :error
           D3.log_backtrace
           next
         end # begin
@@ -223,6 +226,13 @@ module D3
         # expirations
         do_expirations
 
+        # removie receipts w/ missing packages on the server
+        # This must happen AFTER update_installed_pkgs
+        # so that the basename gets any updates on the server
+        # before removing the recetip (which wouild prevent
+        # updates)
+        clean_missing_receipts
+
         D3.log "Finished sync", :warn
       ensure
         D3::Client.unset_env :sync
@@ -256,27 +266,35 @@ module D3
           rcpt.update
           next
         end
+        need_update = false
+
+        # Are we rolling back to a prev version?
+        # If the pkgdata[:status] is :pilot and the
+        # rcpt.status is NOT :pilot, then we are.
+        rolling_back = (pkgdata[:status] == :pilot) && (rcpt.status != :pilot)
 
         # status
-        if rcpt.status != pkgdata[:status]
-          # update the status
-          rcpt.status = pkgdata[:status]
-          D3.log "Updating status for #{rcpt.edition} to #{pkgdata[:status]}", :info
-          rcpt.update
-        end # if
+        unless rolling_back
+          if rcpt.status != pkgdata[:status]
+            # update the status
+            rcpt.status = pkgdata[:status]
+            D3.log "Updating status for #{rcpt.edition} to #{pkgdata[:status]}", :info
+            need_update = true
+          end # if
+        end # unless
 
         # pre-remove script
         if rcpt.pre_remove_script_id != pkgdata[:pre_remove_script_id]
           rcpt.pre_remove_script_id = pkgdata[:pre_remove_script_id]
           D3.log "Updating pre-remove script for #{rcpt.edition}", :info
-          rcpt.update
+          need_update = true
         end # if
 
         # post-remove script
         if rcpt.post_remove_script_id != pkgdata[:post_remove_script_id]
           rcpt.post_remove_script_id = pkgdata[:post_remove_script_id]
           D3.log "Updating post-remove script for #{rcpt.edition}", :info
-          rcpt.update
+          need_update = true
         end # if
 
         # removability
@@ -287,22 +305,22 @@ module D3
             rcpt.expiration = 0
             D3.log "#{rcpt.edition} is not expirable now that it's not removable", :info
           end
-          rcpt.update
+          need_update = true
         end # if
 
         # expiration
         if rcpt.removable?
 
-          if rcpt.expiration_path.to_s != pkgdata[:expiration_path].to_s
-            rcpt.expiration_path = pkgdata[:expiration_path]
-            D3.log "Updating expiration path for #{rcpt.edition}", :info
-            rcpt.update
+          unless rcpt.expiration_paths_match? pkgdata[:expiration_paths]
+            rcpt.expiration_paths = pkgdata[:expiration_paths]
+            D3.log "Updating expiration path(s) for #{rcpt.edition}", :info
+            need_update = true
           end # if
-
+          
           if (rcpt.expiration != pkgdata[:expiration].to_i) and (not rcpt.custom_expiration)
             rcpt.expiration = pkgdata[:expiration].to_i
             D3.log "Updating expiration for #{rcpt.edition}", :info
-            rcpt.update
+            need_update = true
           end # if
         end # if removable
 
@@ -310,18 +328,12 @@ module D3
         if rcpt.prohibiting_process.to_s != pkgdata[:prohibiting_process].to_s
           rcpt.prohibiting_process = pkgdata[:prohibiting_process]
           D3.log "Updating prohibiting_process for #{rcpt.edition}", :info
-          rcpt.update
+          need_update = true
         end # if
 
-        # last usage
-        # this will update the last_usage value stored in the rcpt (for reporting only)
-        # (expiration only looks at current usage data)
-        if rcpt.expiration_path
-          rcpt.last_usage
-          rcpt.update
-        end
 
-        end # each do basename, rcpt
+        rcpt.update if need_update
+      end # each do basename, rcpt
     end # update
 
     ### remove any invalid puppies from the queue
@@ -399,20 +411,31 @@ module D3
               )
               D3.log "Auto-installed #{new_pkg.basename}", :warn
             rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-              D3.log "Skipping auto-install of #{new_pkg.edition}:\n   #{$!}", :error
+              D3.log "Skipping auto-install of #{new_pkg.edition}: #{$!}", :error
               D3.log_backtrace
             rescue D3::PreInstallError
-              D3.log "There was an error with the pre-install script for #{new_pkg.edition}:\n   #{$!}", :error
+              D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$!}", :error
               D3.log_backtrace
             rescue D3::PostInstallError
-              D3.log "There was an error with the post-install script for #{new_pkg.edition}:\n   #{$!}", :error
-              D3.log "   NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+              D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$!} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
               D3.log_backtrace
             end #begin
           end # live_ids_for_group.each do |live_id|
         end # each group
       ensure
         D3::Client.unset_env :auto_install
+      end
+    end
+
+    ### remove any receipts for packages that are missing from the server
+    ###
+    ###
+    def self.clean_missing_receipts
+      D3.log "Checking for receipts no longer in d3", :warn
+      D3::Client::Receipt.all.values.select{|r| r.status == :missing}.each do |mrcpt|
+        D3.log "Removing receipt for missing edition #{mrcpt.edition}", :info
+        D3::Client::Receipt.remove_receipt mrcpt.basename
+        D3.log "Removed receipt for missing edition #{mrcpt.edition}", :info
       end
     end
 
@@ -480,7 +503,9 @@ module D3
 
           # mention rollbacks
           if rollback
-            D3.log "Rolling back #{rcpt.edition} (#{rcpt.status}) to older live #{ live_pkg_data[:edition]}.", :warn
+            D3.log "Rolling back #{rcpt.edition} (#{rcpt.status}) to older live #{live_pkg_data[:edition]}.", :warn
+          else
+            D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg_data[:edition]} (#{live_pkg_data[:status]})", :warn
           end
 
           # are we bringing over a custom expiration period?
@@ -488,7 +513,6 @@ module D3
 
           # heres the pkg
           live_pkg = D3::Package.new :id => live_basenames_to_ids[rcpt.basename]
-          D3.log "Updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :warn
 
           begin
             live_pkg.install(
@@ -501,14 +525,13 @@ module D3
               )
             D3.log "Done updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :info
           rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}:\n   #{$!}", :error
+            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}: #{$!}", :error
             D3.log_backtrace
           rescue D3::PreInstallError
-            D3.log "There was an error with the pre-install script for #{live_pkg.edition}:\n   #{$!}", :error
+            D3.log "There was an error with the pre-install script for #{live_pkg.edition}: #{$!}", :error
             D3.log_backtrace
           rescue D3::PostInstallError
-            D3.log "There was an error with the post-install script for #{live_pkg.edition}:\n   #{$!}", :error
-            D3.log "   NOTE: #{live_pkg.edition} was installed, but may not work.", :error
+            D3.log "There was an error with the post-install script for #{live_pkg.edition}: #{$!} NOTE: #{live_pkg.edition} was installed, but may not work.", :error
             D3.log_backtrace
           end # begin
         end # D3::Client::Receipt.all.values.each
@@ -555,7 +578,23 @@ module D3
         rcpt.update
         D3.log "Thawing receipt for #{rcpt.edition}, will resume auto-update during sync", :warn
       end
-    end # freeze receipts
+    end # thaw_receipts
+
+    ### forget one or more receipts, and their matching apple pkg receipts
+    ###
+    ### @param basenames[Array] the basenames of the rcpts to forget
+    ###
+    ### @return [void]
+    ###
+    def self.forget_receipts (basenames)
+      basenames.each do |bn|
+        rcpt = D3::Client::Receipt.all[bn]
+        next unless rcpt
+        rcpt.apple_pkg_ids.each{|ar| system "/usr/sbin/pkgutil --forget '#{ar}'" }
+        D3::Client::Receipt.remove_receipt bn
+        D3.log "Receipt for #{rcpt.edition} has been forgotten", :warn
+      end
+    end # thaw_receipts
 
     ### Do any pending puppy installs right now, because we're
     ### syncing and --puppies option was given
@@ -583,14 +622,13 @@ module D3
           D3.log_backtrace
           D3::PUPPY_Q - puppy
         rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-          D3.log "Skipping install of #{new_pkg.edition} from queue:\n   #{$!}", :error
+          D3.log "Skipping install of #{new_pkg.edition} from queue: #{$!}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
-          D3.log "There was an error with the pre-install script for #{new_pkg.edition}:\n   #{$!}", :error
+          D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$!}", :error
           D3.log_backtrace
         rescue D3::PostInstallError
-          D3.log "There was an error with the post-install script for #{new_pkg.edition}:\n   #{$!}", :error
-          D3.log "   NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+          D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$!} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
           D3.log_backtrace
           D3::PUPPY_Q - puppy
         end # begin
@@ -634,7 +672,7 @@ module D3
           expired_edition = rcpt.expire verbose, force
           @@editions_expired << expired_edition if expired_edition
         rescue
-          D3.log "There was an error expiring #{rcpt.edition}:\n   #{$!}", :error
+          D3.log "There was an error expiring #{rcpt.edition}: #{$!}", :error
           D3.log_backtrace
         end
       end

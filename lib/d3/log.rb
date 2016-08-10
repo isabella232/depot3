@@ -28,13 +28,16 @@ module D3
 
   ### Log a message to the d3 log, possibly sending it to stderr as well.
   ###
-  ### The message will appear in the log based upon its severity level,
-  ### and the current D3::Log.level. Any message more severe than the log level
-  ### will be logged.
+  ### The message will appear in the log:
+  ###   - if the log is writable by the current user
+  ###   - based upon its severity level, and the current D3::Log.level.
+  ###     Any message more severe than the log level will be logged.
   ###
-  ### The message will appear on stderr if the message severity is
-  ### at or higher than the current @@verbosity. If the @@verbosity is :debug
-  ### the messages to stderr will be prefixed with the message severity.
+  ### The message will also appear on stderr if the message severity is
+  ### at or higher than the current @@verbosity.
+  ###
+  ### If the @@verbosity is :debug the messages to stderr will be prefixed with
+  ### the message severity.
   ###
   ### In the d3 command, @@verbosity is controlled with the -v, -q and -d
   ### options
@@ -62,12 +65,8 @@ module D3
       end
     end #
 
-    # can't write to the log unless we're super user
-    return unless  JSS.superuser?
-
     # send to the logger
     D3::Log.instance.log msg, severity
-
   end
 
   ### Log the lines of backtrace from the most recent exception
@@ -173,30 +172,24 @@ module D3
       @level = D3::CONFIG.log_level if D3::CONFIG.log_level
       @timestamp_format = D3::CONFIG.log_timestamp_format if D3::CONFIG.log_timestamp_format
 
-      # the logger will be created when it's needed
-      @logger = nil
+      # the logger will be created if the file is writable
+      writable =  if @log_file.file?
+                    @log_file.writable?
+                  else
+                    @log_file.parent.writable?
+                  end
 
-
+      if writable
+        @logger = Logger.new @log_file
+        @logger.level = D3::Log.check_level(@level)
+        set_format
+      else
+        @logger = nil
+      end
 
     end # init
 
     ################# Public Instance Methods #################
-
-    ### Access the logger, creating it if needed.
-    ### We don't make it when the instance is created because it
-    ### might want to write to a place we don't have permissions.
-    ### So anything that uses it will call this to create it when
-    ### its needed.
-    def the_logger
-      return @logger if @logger
-      # make logger if needed
-      unless @logger
-        @logger = Logger.new @log_file
-        set_format
-      end
-      @logger.level = D3::Log.check_level @level
-      return @logger
-    end
 
     ### Send a message to be logged
     ### If the severity is less severe than the current level,
@@ -215,7 +208,8 @@ module D3
     ### @return [Boolean] the message was handled appropriately, or not
     ###
     def log (msg, severity = DFT_LOG_LEVEL)
-      the_logger.add(D3::Log.check_level(severity), msg, @progname)
+      return nil unless @logger
+      @logger.add(D3::Log.check_level(severity), msg, @progname)
     end
 
     ### Set a new severity-level for logging.
@@ -226,8 +220,9 @@ module D3
     ### @return [void]
     ###
     def level= (new_level)
-      the_logger.level = D3::Log.check_level(new_level)
-      @level = new_level
+      return nil unless @logger
+      @level = D3::Log.check_level(new_level)
+      @logger.level = @level
     end
 
 
@@ -250,20 +245,21 @@ module D3
     ### @return [void]
     ###
     def timestamp_format= (new_format)
-      new_format = new_format.to_s
-      the_logger.datetime_format = new_format
-      @timestamp_format = new_format
+      return nil unless @logger
+      @timestamp_format = new_format.to_s
+      @logger.datetime_format = @timestamp_format
     end # timestamp_format=
 
     private
 
     ### set up the log line format
     def set_format
-      # set the line format
-      the_logger.formatter = proc do |severity, datetime, progname, msg|
+      return nil unless @logger
+      @logger.formatter = proc do |severity, datetime, progname, msg|
         "#{datetime.strftime @timestamp_format} #{progname} [#{$$}]: #{severity}: #{msg}\n"
       end #
-    end
+    end # set format
+
   end # class Log
 
   # the singleton instance of our logger

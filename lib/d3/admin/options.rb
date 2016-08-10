@@ -348,14 +348,14 @@ module D3
           :unsetable => true,
           :validate => :validate_expiration
         },
-        expiration_path: {
+        expiration_paths: {
           :default => nil,
-          :cli => [ '--expiration-path', '-P', GetoptLong::REQUIRED_ARGUMENT ],
-          :label=> "Expiration Path",
-          :display_conversion => DISPLAY_DFT_NONE,
-          :get => :get_expiration_path,
+          :cli => [ '--expiration-path', '--expiration-paths', '-P', GetoptLong::REQUIRED_ARGUMENT ],
+          :label=> "Expiration Path(s)",
+          :display_conversion => D3::Database::ARRAY_OF_PATHNAMES_TO_COMMA_STRING ,
+          :get => :get_expiration_paths,
           :unsetable => true,
-          :validate => :validate_expiration_path
+          :validate => :validate_expiration_paths
         },
         description: {
           :default => '',
@@ -415,12 +415,12 @@ module D3
 
 
         # Delete
-        delete_scripts: {
+        keep_scripts: {
           :default => nil,
-          :cli => [ '--delete-scripts', GetoptLong::NO_ARGUMENT ],
-          :label => "Delete associated scripts",
+          :cli => [ '--keep-scripts', GetoptLong::NO_ARGUMENT ],
+          :label => "Keep associated scripts in Casper",
           :display_conversion => DISPLAY_TRUE_FALSE,
-          :get => :get_delete_scripts,
+          :get => :get_keep_scripts,
           :validate => :validate_yes_no
         },
         keep_in_jss: {

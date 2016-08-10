@@ -522,14 +522,33 @@ module D3
       ###### Data gathering
 
       ### Reconnect to both the API and DB with a much larger timeout, and
-      ### using an alternate DB server if one is defined.
+      ### using an alternate DB server if one is defined. Also connect with 
+      ### the read-only accts, since rw isn't needed, retrieving the pws
+      ### requires an admin keychain, which makes automated reporting 
+      ### unpleasant.
       ###
       ### @return [Hash<String>] the hostnames of the connected JSS & MySQL servers
       ###
       def connect_for_reports
-        api = D3::Admin::Auth.rw_credentials :jss
-        db = D3::Admin::Auth.rw_credentials :db
-        D3.connect_for_reports  api[:user], api[:password], db[:user], db[:password]
+        if JSS.superuser?
+          jss_user = D3::CONFIG.client_jss_ro_user
+          jss_user ||= JSS::CONFIG.api_username
+          jss_pw =  D3::Client.get_ro_pass(:jss)
+          
+          db_user = D3::CONFIG.client_db_ro_user
+          db_user ||= JSS::CONFIG.db_username
+          db_pw = D3::Client.get_ro_pass(:db)
+          
+        else
+          api = D3::Admin::Auth.rw_credentials :jss          
+          jss_user = api[:user]
+          jss_pw =  api[:password]
+
+          db = D3::Admin::Auth.rw_credentials :db
+          db_user = db[:user]
+          db_pw = db[:password]          
+        end
+        D3.connect_for_reports jss_user, jss_pw, db_user, db_pw
       end # connect for report
 
       ### Get the raw data for a client-install report, from the EA if available
@@ -541,8 +560,6 @@ module D3
       ### @return  [Array<Hash>] The data for doing client install reports
       ###
       def computer_receipts_data
-        puts "Querying Casper for receipt data..."
-
         the_data = computer_receipts_ea_data
         return the_data if the_data
         return computer_receipts_jamf_data

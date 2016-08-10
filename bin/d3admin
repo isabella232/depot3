@@ -57,8 +57,8 @@ class App
     ### parse the commandline
     parse_commandline
 
-    # can't ever be run as root - no keychain, among other things
-    raise "d3admin can't be run as root" if JSS.superuser? and (not @action =~ /^h/)
+    # can't  be run as root other than help, search or report - no keychain, among other things
+    raise "d3admin can't make server changes as root" if JSS.superuser? and (not @action =~ /^[hsr]/)
 
   end #initialize
 
@@ -274,12 +274,12 @@ class App
           @options.oses = arg
         when '--expiration'
           @options.expiration = arg
-        when '--expiration-path'
-          @options.expiration_path = arg
+        when '--expiration-path', '--expiration_paths'
+          @options.expiration_paths = arg
 
       # delete
-        when '--delete-scripts'
-          @options.delete_scripts = 'y'
+        when '--keep-scripts'
+          @options.keep_scripts = 'y'
         when '--keep-in-jss'
           @options.keep_in_jss = 'y'
 
@@ -398,11 +398,20 @@ ENDVERS
 
     # via the commandline
     else
-      # for any options that weren't given on the commandline, use the defaults
-      default_options.each_pair do |opt, val|
-        next if @options[opt]
-        @options[opt] = val
+
+      # if we were given a new version but not a new revision,
+      # set the new revision to 1
+      if @options[:version] and  @options[:version] !=  default_options[:version]
+        @options[:revision] ||= 1
+        @options[:edition] ||=  "#{@options.basename}-#{@options[:version]}-#{@options[:revision]}"
+        @options.package_name ||= @options[:edition]
+        @options.filename ||= "#{@options[:edition]}.#{default_options.package_build_type}"
+
       end
+
+      # for any options that weren't given on the commandline, use the defaults
+      default_options.each_pair { |opt, val| @options[opt] ||= val }
+
 
       new_package_options = D3::Admin::Add.add_pilot_cli(@options)
 
@@ -594,17 +603,21 @@ ENDVERS
 
     got_scripts = (not pkg.script_ids.values.empty?)
 
-    if @options.walkthru
-      @options.delete_scripts = D3::Admin::Interactive.get_value(:get_delete_scripts, default = 'n', check_method = :validate_yes_no)
-      @options.keep_in_jss = D3::Admin::Interactive.get_value(:get_keep_in_jss, default = 'n', check_method = :validate_yes_no)
-    end
-
     if got_scripts
-      if @options.delete_scripts
-        deets = " - Deleting pre- or post- scripts not in use elsewhere"
-      else
+
+      if @options.walkthru
+        @options.keep_scripts =  D3::Admin::Interactive.get_value(:get_keep_scripts, default = 'n', check_method = :validate_yes_no)
+
+        @options.keep_in_jss = D3::Admin::Interactive.get_value(:get_keep_in_jss, default = 'n', check_method = :validate_yes_no)
+      end # if @options.walkthru
+
+
+      if @options.keep_scripts
         deets = " - Keeping pre- or post- scripts in the JSS"
-      end # if @options.delete_scripts
+      else
+        deets = " - Deleting pre- or post- scripts not used elsewhere"
+      end # if @options.keep_scripts
+
     else
       deets = " - No pre- or post- scripts to delete"
     end # if got_scripts
@@ -617,13 +630,13 @@ ENDVERS
 
     confirm "DELETE #{pkg.edition}, JSS id #{pkg.id}\nDist.Point Filename: #{pkg.filename}", deets
 
-    if @options.delete_scripts && got_scripts
+    if @options.keep_scripts && got_scripts
       puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
     end
 
     script_actions = pkg.delete(
         admin: @admin,
-        delete_scripts: @options.delete_scripts,
+        keep_scripts: @options.keep_scripts,
         keep_in_jss: @options.keep_in_jss,
         rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
@@ -646,11 +659,11 @@ ENDVERS
     if script_ids.empty?
       deets = " - No pre- or post- scripts to delete"
     else
-      if @options.delete_scripts
-        deets = " - Deleting pre- or post- scripts not in use elsewhere"
-      else
+      if @options.keep_scripts
         deets = " - Keeping pre- or post- scripts in the JSS"
-      end # if @options.delete_scripts
+      else
+        deets = " - Deleting pre- or post- scripts not in use elsewhere"
+      end # if @options.keep_scripts
     end # if script_ids.empty?
 
     confirm "DELETE #{pkg_data[:edition]}\n** Already missing from the JSS **", deets
@@ -658,7 +671,7 @@ ENDVERS
     JSS::DB_CNX.db.query "DELETE FROM #{D3::Database::PACKAGE_TABLE[:table_name]} WHERE package_id = #{pkgid}"
     puts "Package #{pkg_data[:edition]} deleted."
 
-    if @options.delete_scripts && (not script_ids.empty?)
+    if (not @options.keep_scripts) && (not script_ids.empty?)
       puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
       policy_scripts = D3.policy_scripts
       script_ids.each do |victim_script_id|
@@ -679,7 +692,7 @@ ENDVERS
           puts "Deleted script '#{victim_script_name}'"
         end
       end # do script id
-    end # if @options.delete_scripts && (not script_ids.empty?)
+    end # if @options.keep_scripts && (not script_ids.empty?)
 
   end # delete_missing_package (pkgid)
 
@@ -837,13 +850,6 @@ ENDDEETS
     end # @targets.each do |search_target|
   end # def search
 
-  ### show a list of packges on the server
-  def show_package_list (basename, statuses)
-
-      D3::Admin::Report.show_list basename, @options.status
-
-  end # show_package_list
-
   ### show a report
   ###
   ### @return [void]
@@ -923,6 +929,9 @@ ENDDEETS
         end
 
       end # if reporting puppies
+
+      # blank line between reports, for clarity
+      puts
     end # targets each
   end # show_report
 
@@ -941,73 +950,34 @@ ENDDEETS
     else
       D3::Admin::Prefs.config @targets, @options
     end
-
-#     if @options.walkthru
-#       tgt = D3::Admin::Interactive.get_value :get_config_target, "all"
-#       @targets = [tgt]
-#     end
-#
-#     if @targets.empty? or @targets.include?("all")
-#       @targets = D3::Admin::CONFIG_TARGETS - ["all"]
-#     end
-#
-#     @targets.each do |target|
-#       case target
-#       when"jss"
-#         puts "********  JSS-API LOCATION AND READ-WRITE CREDENTIALS  ********"
-#         D3::Admin::Auth.ask_for_rw_credentials :jss
-#
-#       when "db"
-#         puts "********  JSS MYSQL LOCATION AND READ-WRITE CREDENTIALS  ********"
-#         D3::Admin::Auth.ask_for_rw_credentials :db
-#
-#       when "dist"
-#         puts "********  MASTER DIST-POINT READ-WRITE PASSWORD  ********"
-#        D3::Admin::Auth.ask_for_rw_credentials :dist
-#
-#       when "workspace"
-#         puts "********  LOCAL PKG/DMG BUILD WORKSPACE  ********"
-#         pth = D3::Admin::Interactive.get_value :workspace, D3::Admin::Prefs.prefs[:workspace]
-#         D3::Admin::Prefs.set_pref :workspace, pth
-#         D3::Admin::Prefs.save_prefs
-#         puts "Thank you, the path has been saved in your d3admin prefs"
-#         puts
-#
-#       when "pkg-id-prefix"
-#         puts "********  .PKG IDENTIFIER PREFIX  ********"
-#         pfx = D3::Admin::Interactive.get_value(:get_pkg_identifier_prefix, D3::Admin::Prefs.prefs[:apple_pkg_id_prefix], :validate_package_identifier_prefix)
-#         D3::Admin::Prefs.set_pref :apple_pkg_id_prefix, pfx
-#         D3::Admin::Prefs.save_prefs
-#         puts "Thank you, the prefix has been saved in your d3admin prefs"
-#         puts
-#       else
-#         puts "(skipping unknown config setting: #{target}"
-#       end # case
-#     end # targets.each
   end # config
 
 
 end # class App
 
 
-### Create and run the application
 
-# save terminal state incase user interrupts during readline or less
-stty_save = `stty -g`.chomp
-trap("SIGINT") { puts "\nCancelled! Woot!" ; system('stty', stty_save); exit 0 }
+
+### save terminal state incase user interrupts during readline or less
+if $stdin.tty?
+  stty_save = `stty -g`.chomp
+  trap("SIGINT") do
+    puts "\nCancelled! Woot!"
+    system('stty', stty_save)
+    exit 0
+  end
+end
 
 begin
   app = App.new
   app.run
 rescue
-  # handle exceptions
   puts "An error occurred: #{$!.class}: #{$!}"
   puts $@ if D3::Admin.debug
   exit 1
 ensure
-  # cleanup
-  if JSS::API.connected?
-    JSS::DistributionPoint.master_distribution_point.unmount if JSS::DistributionPoint.master_distribution_point.mounted?
+  if D3::Admin::Auth.connected?
+    # JSS::DistributionPoint.master_distribution_point.unmount if JSS::DistributionPoint.master_distribution_point.mounted?
     D3::Admin::Auth.disconnect
   end
 end # begin

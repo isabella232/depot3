@@ -328,7 +328,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
       #### First the deprecated pkgs
 
       # the id's of the deprecated pkgs for this basename, in numerical order
-      # the last ones are the newest. 
+      # the last ones are the newest.
       deprecated_ids = D3::Package.deprecated_data.values.select{|dp| dp[:basename] == @basename}
       deprecated_ids.map!{|dp| dp[:id] }.sort!
 
@@ -342,14 +342,14 @@ INSERT INTO #{P_TABLE[:table_name]} (
       deprecated_ids_to_keep = []
       number_deprecated_to_keep.times{ deprecated_ids_to_keep << deprecated_ids.pop  }
       deprecated_ids_to_keep.compact!
-      
+
       # delete them if we should
       deprecated_ids.each do |id|
         next if deprecated_ids_to_keep.include? id
         victim = D3::Package.new(:id => id)
         victim.delete(
           admin: admin,
-          delete_scripts: true,
+          keep_scripts: false,
           keep_in_jss: false,
           rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
@@ -381,7 +381,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
         victim = D3::Package.new(:id => id)
         victim.delete(
           admin: admin,
-          delete_scripts: true,
+          keep_scripts: false,
           keep_in_jss: false,
           rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
         )
@@ -395,7 +395,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
     ###
     ### @param keep_in_jss[Boolean] should we keep the JSS package around? defaults to false
     ###
-    ### @param delete_scripts[Boolean] should the related scripts also be deleted?
+    ### @param keep_scripts[Boolean] should the related scripts be kept in the JSS?
     ###
     ### @param admin[String] who's doing this?
     ###
@@ -403,9 +403,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
     ###
     ### @return [Array<String>] a textual list of scripts delted and not
     ###   deleted because they're in use by other d3 pkgs or casper policies
-    ###    (empty if delete_scripts is false)
+    ###    (empty if keep_scripts is true)
     ###
-    def delete (keep_in_jss: false, delete_scripts: false, admin: @admin, rwpw: nil)
+    def delete (keep_in_jss: false, keep_scripts: false, admin: @admin, rwpw: nil)
 
       unless keep_in_jss
         # raise an exception if any polcies are using this pkg.
@@ -419,8 +419,8 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # use @ admin if its defined and needed
       admin ||= @admin
 
-      # if delete_scripts
-      script_actions = delete_scripts ? delete_pkg_scripts : []
+      # delete scripts or not?  the result is an array of what happened.
+      script_actions = keep_scripts ? [] : delete_pkg_scripts
 
       # delete it from the pakcages table
       stmt = JSS::DB_CNX.db.prepare "DELETE FROM #{P_TABLE[:table_name]} WHERE #{P_FIELDS[:id][:field_name]} = '#{@id}'"

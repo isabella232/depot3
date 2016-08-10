@@ -42,8 +42,8 @@ module D3
       db_ro_user = D3::CONFIG.client_db_ro_user
       db_ro_user ||= JSS::CONFIG.db_username
 
-      JSS::DB_CNX.connect :server => JSS::CONFIG.db_server_name, :user => db_ro_user, :pw => D3::Client.get_ro_pass(:db), :connect_timeout => 10
-      JSS::API.connect :server => JSS::CONFIG.api_server_name, :user => jss_ro_user, :pw => D3::Client.get_ro_pass(:jss), :open_timeout => 10
+      JSS::DB_CNX.connect :server => JSS::CONFIG.db_server_name, :user => db_ro_user, :pw => D3::Client.get_ro_pass(:db)
+      JSS::API.connect :server => JSS::CONFIG.api_server_name, :user => jss_ro_user, :pw => D3::Client.get_ro_pass(:jss)
 
       D3::Database.check_schema_version
     end # connect

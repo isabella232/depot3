@@ -50,6 +50,9 @@ module D3
       KEYCHAIN_DIST_SERVICE = KEYCHAIN_SERVICE_BASE + ".distribution"
       KEYCHAIN_DIST_LABEL = KEYCHAIN_LABEL_BASE + ".distribution"
 
+      @@connected = false
+
+
       ### Connect to the JSS API and MySQL DB
       ### with admin credentials from the keychain
       ###
@@ -62,14 +65,30 @@ module D3
         JSS::DB_CNX.connect :user => db[:user], :pw => db[:password], :connect_timeout => 10
         JSS::API.connect :user => api[:user], :pw => api[:password], :open_timeout => 10
         D3::Database.check_schema_version
+
+        @@connected = true
+
         return JSS::API.cnx.options[:server]
       end
 
-      # Disconnect admin credentials from the JSS API and MySQL DB
+      ### Disconnect admin credentials from the JSS API and MySQL DB
+      ###
+      ### @return [void]
+      ###
       def disconnect
         JSS::API.disconnect if JSS::API.connected?
         JSS::DB_CNX.disconnect if JSS::DB_CNX.connected?
+        @@connected = false
       end
+
+      ### Are we currently connected as an admin?
+      ###
+      ### return [Boolean]
+      ###
+      def connected?
+        @@connected
+      end
+
 
       ### Fetch read-write credentials from the login keychain
       ###
@@ -449,8 +468,6 @@ module D3
         raise JSS::AuthenticationError, "Three incorrect attempts to unlock keychain" if tries == 3
         return true
       end # unlock keychain
-
-
     end # module Auth
 
     ### @see D3::Admin::Auth.connect

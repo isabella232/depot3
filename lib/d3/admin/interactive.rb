@@ -830,37 +830,38 @@ Enter the number of days, or 0 for no expiration.
         prompt_for_data(desc: desc, prompt: "Expiration days", default: default, required: true)
       end
 
-      ### Get the path to the application to monitor for expiration
+      ### Get the path to the executable(s) to monitor for expiration
       ###
-      ### @param default[Pathname, String] the default choice when typing return
+      ### @param default[String, Pathname, Array<String,Pathname>] the path(s)
       ###
-      ### @return [Pathname] the path to the application
+      ### @return [Array<Pathname>] the path(s) to the executable
       ###
-      def get_expiration_path (default = 'n')
+      def get_expiration_paths (default = 'n')
         desc = <<-END_DESC
-EXPIRATION PATH
-Enter the path to a the application that must be used
-to prevent expiration.
-E.g. /Applications/Google Chrome.app
+EXPIRATION PATH(S)
+Enter the path(s) to the executable(s) that must be used
+to prevent expiration. Multiple paths should be separated by commas, spaces
+should not be escaped. E.g.
+/Applications/Google Chrome.app/Contents/MacOS/Google Chrome, /Applications/Firefox.app/Contents/MacOS/firefox
 Enter 'n' for none
         END_DESC
-        prompt_for_data(desc: desc, prompt: "Expiration Path", default: default, required: true)
+        prompt_for_data(desc: desc, prompt: "Expiration Path(s)", default: default, required: true)
       end
 
-      ### when deleting a pkg, should its pre- and post- scripts be deleted
+      ### when deleting a pkg, should its pre- and post- scripts be kept?
       ###
       ### @param default[String] the default answer when user hits return
       ###
       ### @return [String] the users response
       ###
-      def get_delete_scripts (default = 'n')
+      def get_keep_scripts (default = 'n')
         desc = <<-END_DESC
-DELETE ASSOCIATED SCRIPTS?
+KEEP ASSOCIATED SCRIPTS IN CASPER?
 When deleting a package, should any associated scripts
-(pre-install, post-install, pre-remove, post-remove) also be deleted?
+(pre-install, post-install, pre-remove, post-remove) be kept in Casper?
 
 NOTE: If any other d3 packages or policies are using the scripts
-they won't be deleted, but the other users will be reported.
+they won't be deleted. The other users of the scripts will be reported.
 Enter 'y' or 'n'
         END_DESC
         prompt_for_data(desc: desc, prompt: "Delete Scripts? (y/n)", default: default, required: true)
@@ -874,8 +875,8 @@ Enter 'y' or 'n'
       ###
       def get_keep_in_jss (default = 'n')
         desc = <<-END_DESC
-KEEP THE PACKAGE IN THE JSS?
-When deleting a package, should it be kept as a JSS package
+KEEP THE PACKAGE IN CASPER?
+When deleting a package, should it be kept as a Casper package
 and only deleted from d3?
 Enter 'y' or 'n'
         END_DESC
@@ -970,4 +971,3 @@ END_DESC
     end # module
   end # module Admin
 end # module D3
-

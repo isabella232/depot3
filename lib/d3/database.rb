@@ -41,8 +41,8 @@ module D3
     # the minimum JSS schema version allower
     MIN_SCHEMA_VERSION = "9.4"
 
-    # the maximum JSS schema version allower
-    MAX_SCHEMA_VERSION = "9.92"
+    # the minimum JSS schema version allower
+    MAX_SCHEMA_VERSION = "9.93"
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql
@@ -59,6 +59,10 @@ module D3
 
     ### Some values are stored as comma-separated strings, but used as Arrays
     COMMA_STRING_TO_ARRAY = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform] }
+    
+    ### Some values are stored as comma-separated strings, but used as Arrays of Pathnames
+    COMMA_STRING_TO_ARRAY_OF_PATHNAMES = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform].map{|p| Pathname.new(p)} }
+    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.join(", ")}
 
     ### Some values are used as Arrays but stored as comma-separated strings
     ARRAY_TO_COMMA_STRING = Proc.new{|v| JSS.to_s_and_a(v)[:stringform] }
@@ -325,12 +329,12 @@ module D3
           :to_ruby => STRING_TO_INT
         },
 
-        :expiration_path => {
+        :expiration_paths => {
           :field_name => "expiration_app_path",
           :sql_type => 'varchar(300)',
           :index => nil,
-          :to_sql => PATHNAME_TO_STRING,
-          :to_ruby => STRING_TO_PATHNAME
+          :to_sql => ARRAY_OF_PATHNAMES_TO_COMMA_STRING,
+          :to_ruby => COMMA_STRING_TO_ARRAY_OF_PATHNAMES
         }
       },
 
@@ -404,7 +408,8 @@ module D3
     ### Raise an exception if JSS schema is to old or too new
     def self.check_schema_version
       raw = JSS::DB_CNX.db.query("SELECT version FROM #{SCHEMA_TABLE}").fetch[0]
-      current = JSS.parse_jss_version(raw)[:version]
+      simmered = raw.split('.')[0..1].join('.')
+      current = JSS.parse_jss_version(simmered)[:version]
       min = JSS.parse_jss_version(MIN_SCHEMA_VERSION)[:version]
       max = JSS.parse_jss_version(MAX_SCHEMA_VERSION)[:version]
       raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if current < min or current > max

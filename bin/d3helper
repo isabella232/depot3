@@ -325,7 +325,7 @@ Watch a parade of cute puppies while these items are installed:
           :installed_at =>  jss_rcpt.mtime,
           :removable =>  d3_pkg.removable,
           :expiration => d3_pkg.expiration,
-          :expiration_path => d3_pkg.expiration_path,
+          :expiration_paths => d3_pkg.expiration_paths,
           :prohibiting_process => d3_pkg.prohibiting_process,
           :pre_remove_script_id => d3_pkg.pre_remove_script_id,
           :post_remove_script_id => d3_pkg.post_remove_script_id
