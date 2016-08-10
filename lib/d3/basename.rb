@@ -213,6 +213,21 @@ module D3
       raise JSS::InvalidDataError, "status must be one of :#{STATUSES.join(', :')}" unless STATUSES.include? new_status
       @status = new_status
     end
+    
+    ### Does a given array of pathnames have the same elements as
+    ### @expiration_paths regardless of order?
+    ###
+    ### This is generally used to compare two @expiration_paths
+    ### arrays for "equality"
+    ###
+    ### @param other_exp_paths[Array]  An array if Pathnames to compare to @expiration_paths
+    ###
+    ### @return [Boolean] Are they the same aside from order?
+    ###
+    def expiration_paths_match?(other_exp_paths)
+      return false unless @expiration_paths.length == other_exp_paths.length
+      (@expiration_paths -  other_exp_paths).empty?
+    end
 
   end # module Basename
 end # module PixD3

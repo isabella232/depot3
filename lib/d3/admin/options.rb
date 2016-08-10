@@ -352,7 +352,7 @@ module D3
           :default => nil,
           :cli => [ '--expiration-path', '--expiration-paths', '-P', GetoptLong::REQUIRED_ARGUMENT ],
           :label=> "Expiration Path(s)",
-          :display_conversion => DISPLAY_DFT_NONE,
+          :display_conversion => D3::Database::ARRAY_OF_PATHNAMES_TO_COMMA_STRING ,
           :get => :get_expiration_paths,
           :unsetable => true,
           :validate => :validate_expiration_paths

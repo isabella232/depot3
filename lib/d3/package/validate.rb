@@ -346,7 +346,7 @@ module D3
       ### @return [Symbol] the valid CPU type
       ###
       def validate_cpu_type (type)
-        type = JSS::Package::DEFAULT_CPU_TYPE if type.to_s.empty?
+        type = JSS::Package::DEFAULT_PROCESSOR if type.to_s.empty?
         type = "None" if type =~ /^n(one)?$/i
         type = "x86" if type.casecmp('intel') == 0
         type = "ppc" if type.casecmp('ppc') == 0
