@@ -9,7 +9,7 @@
 - Change: Client.sync now does "clean_missing_receipts" - after doing updates,to remove rcpts that are missing from d3
 - Change: github issue #25 expiration path is now 'expiration paths' and can take a comma-separated list of paths. Any one of them coming to the foreground counts as 'being used' and will prevent expiration of the package. This is useful for single packages that install multiple apps, such as Microsoft Office.
 
-## v3.0.10 - 2016-07-25
+## v3.0.10 - 2016-07-25 (unreleased)
 
 - Fix: github issue #14 Don't crash when there's no rcpt file.
 - Fix: github issue #21 d3: ArgumentError: Unknown d3 action: list_queue
