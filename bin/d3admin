@@ -71,7 +71,7 @@ class App
     end
 
     # run config if it hasn't ever run
-    unless D3::Admin::Prefs.prefs[:last_config]
+    unless D3::Admin::Prefs.prefs[:last_config] || JSS.superuser?
       puts
       puts "********  INITIAL D3ADMIN CONFIGURATION  ********"
       puts
@@ -89,13 +89,17 @@ class App
     end
 
     # config before connecting
-    if @action =~ /^c/
+    if @action =~ /^c/ and !JSS.superuser?
       config
       return
     end
 
     ### connect to the server, prompting for info as needed
-    D3::Admin::Auth.connect
+    if @admin == 'root'
+      D3::Client.connect
+    else
+      D3::Admin::Auth.connect
+    end
 
     case @action
 
