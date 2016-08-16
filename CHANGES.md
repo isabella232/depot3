@@ -19,7 +19,7 @@
 - Change: remove 2-line log entries
 - Change: d3admin: default to deleting unused scripts whe deleting packages 
 - Fix: d3 & d3admin: don't check the TTY unless there is one
-- 
+
 ## v3.0.9 - 2016-04-11
 
 - d3: better text feedback during manual installs.
