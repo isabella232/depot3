@@ -212,7 +212,7 @@ module D3
     ### @return [Boolean] Are they the same aside from order?
     ###
     def expiration_paths_match?(other_exp_paths)
-      return false unless @expiration_paths.length == other_exp_paths.length
+      return false unless @expiration_paths and @expiration_paths.length == other_exp_paths.length
       (@expiration_paths -  other_exp_paths).empty?
     end
 
