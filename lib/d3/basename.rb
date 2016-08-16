@@ -201,19 +201,6 @@ module D3
       @status == :deleted
     end
 
-    private
-
-    ### set the status
-    ###
-    ### @param new_status[Symnol]  one of the  valid STATUSES
-    ###
-    ### @return [Symbol] the new status
-    ###
-    def status= (new_status)
-      raise JSS::InvalidDataError, "status must be one of :#{STATUSES.join(', :')}" unless STATUSES.include? new_status
-      @status = new_status
-    end
-    
     ### Does a given array of pathnames have the same elements as
     ### @expiration_paths regardless of order?
     ###
@@ -227,6 +214,19 @@ module D3
     def expiration_paths_match?(other_exp_paths)
       return false unless @expiration_paths.length == other_exp_paths.length
       (@expiration_paths -  other_exp_paths).empty?
+    end
+
+    private
+
+    ### set the status
+    ###
+    ### @param new_status[Symbol]  one of the  valid STATUSES
+    ###
+    ### @return [Symbol] the new status
+    ###
+    def status= (new_status)
+      raise JSS::InvalidDataError, "status must be one of :#{STATUSES.join(', :')}" unless STATUSES.include? new_status
+      @status = new_status
     end
 
   end # module Basename
