@@ -62,7 +62,7 @@ module D3
     
     ### Some values are stored as comma-separated strings, but used as Arrays of Pathnames
     COMMA_STRING_TO_ARRAY_OF_PATHNAMES = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform].map{|p| Pathname.new(p)} }
-    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.join(", ")}
+    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.is_a?(Array) ? v.join(", ") : "" }
 
     ### Some values are used as Arrays but stored as comma-separated strings
     ARRAY_TO_COMMA_STRING = Proc.new{|v| JSS.to_s_and_a(v)[:stringform] }
@@ -490,5 +490,3 @@ module D3
 
   end # module Database
 end # module D3
-
-
