@@ -760,10 +760,11 @@ module D3
         begin
           installed_apple_rcpts = `#{JSS::Composer::PKG_UTIL} --pkgs`.split("\n")
           @apple_pkg_ids.each do |pkgid|
-
             unless installed_apple_rcpts.include? pkgid
-              raise D3::UninstallError, "No local Apple receipt for '#{pkgid}'"
+              D3.log "No local Apple receipt for '#{pkgid}', ignoring", :warn
+              next
             end
+
             # this gets them in reverse order, so we can
             # delete files and then test for and delete empty dirs on the way
             to_delete[pkgid] = `#{JSS::Composer::PKG_UTIL} --files '#{pkgid}' 2>/dev/null`.split("\n").reverse
