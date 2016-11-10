@@ -368,12 +368,13 @@ module D3
 
       ### Check the offered prohibiting process
       ###
-      ### @param match_string[String] the data entered by the user
+      ### @param match[String,Array<String>] A comma separated String or an Array of processes to be validated.
       ###
-      ### @return [String, nil] the regexp used to do the match
+      ### @return [Array<String>]
       ###
-      def validate_prohibiting_process (match_string)
-        D3::Package::Validate.validate_prohibiting_process match_string
+      def validate_prohibiting_process (match)
+        match_array = JSS.to_s_and_a(match)[:arrayform]
+        match_array.map { |item| D3::Package::Validate.validate_prohibiting_process(item) }.compact
       end
 
       ### check the validity of a yes/no true/false reply
