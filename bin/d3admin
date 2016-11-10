@@ -234,8 +234,8 @@ class App
           @options.auto_groups = arg
         when '--excluded-groups'
           @options.excluded_groups = arg
-        when '--prohibiting-process'
-          @options.prohibiting_process = arg
+        when '--prohibiting-processes'
+          @options.prohibiting_processes = arg
         when '--cpu_type'
           @options.cpu_type = arg
         when '--category'
