@@ -244,7 +244,7 @@ module D3
     ### - status
     ### - pre- or post-remove scripts
     ### - removability
-    ### - prohibiting process
+    ### - prohibiting processes
     ### - expiration details
     ###
     ### Also update
@@ -316,7 +316,7 @@ module D3
             D3.log "Updating expiration path(s) for #{rcpt.edition}", :info
             need_update = true
           end # if
-          
+
           if (rcpt.expiration != pkgdata[:expiration].to_i) and (not rcpt.custom_expiration)
             rcpt.expiration = pkgdata[:expiration].to_i
             D3.log "Updating expiration for #{rcpt.edition}", :info
@@ -324,17 +324,17 @@ module D3
           end # if
         end # if removable
 
-        # prohibiting_process
-        if rcpt.prohibiting_process.to_s != pkgdata[:prohibiting_process].to_s
-          rcpt.prohibiting_process = pkgdata[:prohibiting_process]
-          D3.log "Updating prohibiting_process for #{rcpt.edition}", :info
+        # prohibiting_processes
+        if rcpt.prohibiting_processes.sort != pkgdata[:prohibiting_processes].sort
+          rcpt.prohibiting_processes = pkgdata[:prohibiting_processes]
+          D3.log "Updating prohibiting_processes for #{rcpt.edition}", :info
           need_update = true
         end # if
 
 
         rcpt.update if need_update
       end # each do basename, rcpt
-    end # update
+    end # update_rcpts
 
     ### remove any invalid puppies from the queue
     ### invalid = id is no longer in d3, or status is missing
@@ -807,4 +807,3 @@ module D3
     end
   end # class
 end # module D3
-
