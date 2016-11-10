@@ -46,7 +46,7 @@ module D3
           reboot
           removable
           remove_first
-          prohibiting_process
+          prohibiting_processes
           auto_groups
           excluded_groups
           pre_install
@@ -461,4 +461,3 @@ END_HEADER
     end # module Add
   end # module Admin
 end # module D3
-
