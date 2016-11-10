@@ -379,6 +379,20 @@ jss_default_pkg_category:
 ###
 jss_default_script_category:
 
+### - notification_image_path
+###   the path to a directory of images that can be randomly selected
+###   for various jamf_helper prompts from d3.
+###
+###   If you leave this blank:
+###
+###   the default is
+###   /Library/Application Support/d3/notification_image_path/
+###
+###   If this folder is empty, do not fret.
+###   jamf_helper prompts will still function without images.
+###
+notification_image_path:
+
 ### - admin_make_live_script
 ###   The id or name of an existing Casper script to execute when
 ###   a package is made live.
