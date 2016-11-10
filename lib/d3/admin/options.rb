@@ -274,14 +274,14 @@ module D3
           :get => :get_remove_first,
           :validate => :validate_yes_no
         },
-        prohibiting_process: {
+        prohibiting_processes: {
           :default => nil,
-          :cli => [ '--prohibiting-process', '-x', GetoptLong::REQUIRED_ARGUMENT ],
+          :cli => [ '--prohibiting-processes', '--prohibiting-process', '-x', GetoptLong::REQUIRED_ARGUMENT ],
           :label => "Installation prohibited by processes matching",
-          :display_conversion => DISPLAY_DFT_NONE,
-          :get => :get_prohibiting_process,
+          :display_conversion => DISPLAY_COMMA_SEP_LIST,
+          :get => :get_prohibiting_processes,
           :unsetable => true,
-          :validate => :validate_prohibiting_process
+          :validate => :validate_prohibiting_processes
         },
         auto_groups: {
           :default => nil,
