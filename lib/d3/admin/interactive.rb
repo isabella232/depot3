@@ -733,30 +733,30 @@ Enter:
         result
       end
 
-      ### Get a pattern to match for the prohibiting process
+      ### Get a pattern to match for the prohibiting processes
       ### If this matches a line of output from `/bin/ps -A -c -o comm`
-      ### at install time, then the install won't happen.
+      ### at install time, then graceful quit will be attempted.
       ### Strings must match a whole line, Regexps will work with
       ### any match.
       ###
-      ### @param default[String,Regexp] the default pattern when hitting return
+      ### @param default[String,Array<String>,Regexp] the default pattern when hitting return
       ###
       ### @return [Regexp,nil] the pattern to match
       ###
-      def get_prohibiting_process (default = 'n')
+      def get_prohibiting_processes (default = 'n')
         desc = <<-END_DESC
-PROHIBITING PROCESS
-Enter the name of a process as it appears on one line
+PROHIBITING PROCESSES
+Enter the name(s) of processes as they appears on one line
 of the output of `/bin/ps -A -c -o comm`
 
-If this process is running at install time,
-the installation will be skipped.
+If a process is running at install time,
+the installer will attempt a graceful quit.
 Matching is case-insensitive
 
 Enter 'n' for none.
         END_DESC
 
-        result = prompt_for_data(desc: desc, prompt: "Prohibiting Process", default: default, required: true)
+        result = prompt_for_data(desc: desc, prompt: "Prohibiting Processes", default: default, required: true)
         return nil if result == 'n'
         result
       end
