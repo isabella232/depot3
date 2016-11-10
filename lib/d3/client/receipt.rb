@@ -106,7 +106,7 @@ module D3
         :post_remove_script_id,
         :expiration,
         :expiration_paths,
-        :prohibiting_process
+        :prohibiting_processes
       ]
 
       ################## Class Variables #################
@@ -575,7 +575,7 @@ module D3
         @installed_at = args[:installed_at]
 
         @removable = args[:removable]
-        @prohibiting_process = args[:prohibiting_process]
+        @prohibiting_processes = args[:prohibiting_processes]
         @frozen = args[:frozen]
         @pre_remove_script_id = args[:pre_remove_script_id]
         @post_remove_script_id = args[:post_remove_script_id]
@@ -622,7 +622,7 @@ module D3
 
         begin # ...ensure...
           if uninstall_prohibited_by_process? and (not force)
-            raise D3::InstallError, "#{edition} cannot be uninstalled now because '#{@prohibiting_process}' is running."
+            raise D3::InstallError, "#{edition} cannot be uninstalled now because one of the following processes is running: '#{D3::Admin::OPTIONS[:prohibiting_processes][:display_conversion].call @prohibiting_processes}'"
           end
           D3::Client.set_env :removing, edition
           D3.log "Uninstalling #{edition}", :warn
@@ -867,9 +867,9 @@ module D3
         @expiration_paths = new_val
       end
 
-      ### Set a new prohibiting process
-      def prohibiting_process=(new_val)
-        @prohibiting_process = new_val
+      ### Set new prohibiting process(es)
+      def prohibiting_processes=(new_val)
+        @prohibiting_processes = new_val
       end
 
       ### Update the current receipt in the receipt store
@@ -1163,7 +1163,7 @@ Last brought to foreground: #{last_usage_display}
       end
 
 
-      ################# Provate Instance Methods #################
+      ################# Private Instance Methods #################
 
       private
 
@@ -1172,8 +1172,7 @@ Last brought to foreground: #{last_usage_display}
       ### @return [Boolean]
       ###
       def uninstall_prohibited_by_process?
-        return false unless @prohibiting_process
-        D3.prohibited_by_process_running? @prohibiting_process
+        D3.prohibited_by_process_running? @prohibiting_processes
       end #
 
     end # class Receipt
