@@ -59,7 +59,7 @@ module D3
 
     ### Some values are stored as comma-separated strings, but used as Arrays
     COMMA_STRING_TO_ARRAY = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform] }
-    
+
     ### Some values are stored as comma-separated strings, but used as Arrays of Pathnames
     COMMA_STRING_TO_ARRAY_OF_PATHNAMES = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform].map{|p| Pathname.new(p)} }
     ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.is_a?(Array) ? v.join(", ") : "" }
@@ -157,7 +157,7 @@ module D3
     ### - :triggers_swu [Boolean] when installed, will this package trigger a GUI software update check,
     ###   either immediately if there's a console user, or at the next console login?
     ###
-    ### - :prohibiting_process [String] a string for matching to the output lines
+    ### - :prohibiting_processes [Array<String>] An array of strings for matching to the output lines
     ###   of '/bin/ps -A -c -o comm'. If there's a matching line, this pkg won't be installed
     ###
     ### - :remove_first [Boolean] should any currently installed versions of this basename
@@ -273,12 +273,12 @@ module D3
           :to_ruby => COMMA_STRING_TO_ARRAY
         },
 
-        :prohibiting_process => {
+        :prohibiting_processes => {
           :field_name => "prohibiting_process",
           :sql_type => 'varchar(100)',
           :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+          :to_sql => ARRAY_TO_COMMA_STRING,
+          :to_ruby => COMMA_STRING_TO_ARRAY
         },
 
         :remove_first => {
