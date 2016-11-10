@@ -112,10 +112,10 @@ module D3
     # @return [Symbol] Is this package a .dmg or .pkg?
     attr_reader :package_type
 
-    ### @return [String] a string for matching to the output lines
+    ### @return [Array<String>] an array of Strings for matching to the output lines
     ###   of '/bin/ps -A -c -o comm'. If there's a match, this pkg won't be
-    ###   installed or uninstalled
-    attr_reader :prohibiting_process
+    ###   installed or uninstalled without a graceful quit
+    attr_reader :prohibiting_processes
 
     # @return [Integer] the days of disuse before an expirable edition expires. 0=never
     attr_reader :expiration
