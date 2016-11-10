@@ -31,11 +31,10 @@ module D3
   ###
   ### @return [Boolean]
   ###
-  def self.prohibited_by_process_running? (xproc)
-    `/bin/ps -A -c -o comm`.lines.each do |ps_line|
-      return true if ps_line.strip.casecmp(xproc) == 0
-    end
-    return false
+  def self.prohibited_by_process_running? (xprocs)
+      processes = `/bin/ps -A -c -o comm`.split("\n")
+      current_prohibiting = processes & xprocs
+      return current_prohibiting.empty?
   end #
 
   ### Try to figure out the login name of the admin running this code
