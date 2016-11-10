@@ -123,8 +123,8 @@ module D3
     ### The paths are those recorded in d3RepoMan's timestamp plists.
     ### @example "/Applications/FileMaker Pro 11/FileMaker Pro.app/Contents/MacOS/Filemaker Pro"
     ###
-    ### @param new_val[String,Pathname,Array<String,Pathname>] The expiration paths. 
-    ###   A Pathname for a single path, a String for single, or multiple 
+    ### @param new_val[String,Pathname,Array<String,Pathname>] The expiration paths.
+    ###   A Pathname for a single path, a String for single, or multiple
     ###   (comma-separated) or an Array of Strings or Pathnames for single paths.
     ###   Each path must be an absolute path starting with a /
     ###
@@ -147,7 +147,7 @@ module D3
       @expiration_paths << path
       @need_to_update_d3 = true unless @initializing
     end # add_expiration_path
-    
+
     ### Remove a path from expiration_paths
     ### @param new_val[String,Pathname]
     ###
@@ -158,29 +158,30 @@ module D3
       @expiration_paths.delete Pathname.new(path)
       @need_to_update_d3 = true unless @initializing
     end # remove_expiration_path
-    
-  
-    ### Set the prohibiting process for this installer.
+
+
+    ### Set the prohibiting processes for this installer.
     ###
     ### The value of this attribute is compared at install time to the lines output
     ### by the command 'ps -A -c -o comm' (case insensitive)
     ###
-    ### If any line matches, an exception will be raised and the package will not be installed.
+    ### If any line matches, d3 will attempt to quit the process (or prompt the user
+    ### to quit the Application) to proceed with installation.
     ###
-    ### @param new_val[String] the process name that will prohibit installation
+    ### @param new_val[Array<String>] the process name(s) that should not be running during installation.
     ###
     ### @return [void]
     ###
-    def prohibiting_process= (new_val = @prohibiting_process)
-      return @prohibiting_process if new_val == @prohibiting_process
-      @prohibiting_process = validate_prohibiting_process (new_val)
+    def prohibiting_processes= (new_val = @prohibiting_processes)
+      return @prohibiting_processes if new_val == @prohibiting_processes
+      @prohibiting_processes = validate_prohibiting_process (new_val)
       @need_to_update_d3 = true unless @initializing
     end
 
     ### Set the automatic-install groups for this package.
     ### See also {#add_auto_group} and {#remove_auto_group}
     ###
-    ### @param new_val [String,Array<String>] The group names as a comma-separated string or an array of strings
+    ### @param new_val[String,Array<String>] The group names as a comma-separated string or an array of strings
     ###
     ### @return [void]
     ###
