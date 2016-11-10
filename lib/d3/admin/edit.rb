@@ -45,7 +45,7 @@ module D3
         reboot
         removable
         remove_first
-        prohibiting_process
+        prohibiting_processes
         auto_groups
         excluded_groups
         pre_install
@@ -295,4 +295,3 @@ Current Settings => New Settings
     end # module edit
   end # module Admin
 end # module D3
-
