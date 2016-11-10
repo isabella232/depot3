@@ -35,8 +35,8 @@ module D3
     ### @return [Boolean]
     ###
     def install_prohibited_by_process?
-      return false unless @prohibiting_process
-        D3.prohibited_by_process_running? @prohibiting_process
+      return false unless @prohibiting_processes
+        D3.prohibited_by_process_running? @prohibiting_processes
     end #
 
     ### If needed, uninstall any previously installed versions of this basename
@@ -79,7 +79,7 @@ module D3
             :expiration => @expiration_to_apply.to_i,
             :expiration_paths => @expiration_paths,
             :custom_expiration => @custom_expiration,
-            :prohibiting_process => @prohibiting_process)
+            :prohibiting_processes => @prohibiting_processes)
 
         D3::Client::Receipt.add_receipt new_rcpt, :replace
 
