@@ -84,7 +84,7 @@ Action add and edit:
   -T, --post-remove <script>         Name, id, or path to post-remove script
   -g, --auto-groups <groups>         Computer groups to get this pkg automatically
   -G, --excluded-groups <groups>     Computer groups that can't see this pkg
-  -x, --prohibiting-process <proc>   Process name that prevents installation
+  -x, --prohibiting-processes <proc> Process name(s) that prevent installation
   -R, --reboot <y/n>                 Reboot required after install, puppies!
   -F, --remove-first <y/n>           Uninstall older versions before installing
   -u, --removable <y/n>              Can this package be uninstalled?
@@ -314,10 +314,10 @@ Action add and edit:
                                        without using force.
                                        Use "n" for 'none'.
 
-  -x, --prohibiting-process <proc>   Specify a name to match with process names
+  -x, --prohibiting-processes <proc>   Specify name(s) to match with process names
                                        as output by `/bin/ps -A -c -o comm`.
                                        If a match is found at install time,
-                                       prevents installation. Use "n" for 'none'
+                                       graceful quit will be attempted. Use "n" for 'none'
 
   -R, --reboot <y/n>                 Reboot is required after install.
                                        (PuppyTime!)
