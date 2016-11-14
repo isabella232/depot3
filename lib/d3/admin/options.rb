@@ -127,6 +127,11 @@ module D3
           :get => nil,
           :validate => nil
         },
+        admin: {
+          :cli => ['--admin', GetoptLong::REQUIRED_ARGUMENT ],
+          :arg => 'admin',
+          :help => "who is doing something with d3?"
+        },
 
         # Package Identification: Add/Edit/Info/Delete
 

@@ -81,7 +81,7 @@ class App
     end
 
     ### our admin is us
-    @admin = ENV['USER']
+    @admin = @options.admin || ENV['USER']
 
     # admin can't be a badmin
     if D3.badmins.include? @admin and D3::Admin::ACTIONS_NEEDING_ADMIN.include? @action
@@ -180,6 +180,9 @@ class App
           @options.walkthru = true
         when '--auto-confirm'
           @options.auto_confirm = true
+
+        when '--admin'
+          @options.admin = arg
 
       # search and report
         when '--status'
