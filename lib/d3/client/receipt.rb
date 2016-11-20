@@ -1135,6 +1135,9 @@ Last brought to foreground: #{last_usage_display}
           # if never been used, last usage is the install date
           @last_usage ||= @installed_at
 
+          # prohibiting_processes should always be an array
+          @prohibiting_processes ||= []
+
           # if the install time is newer than the last usage,
           # use the install time.
           # this basically "resets the timer" when
@@ -1152,7 +1155,7 @@ Last brought to foreground: #{last_usage_display}
 
       ### set the status - for rcpts, this can't be a private method
       ###
-      ### @param new_status[Symnol]  one of the  valid STATUSES
+      ### @param new_status[Symbol]  one of the  valid STATUSES
       ###
       ### @return [Symbol] the new status
       ###

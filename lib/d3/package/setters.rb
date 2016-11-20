@@ -173,8 +173,8 @@ module D3
     ### @return [void]
     ###
     def prohibiting_processes= (new_val = @prohibiting_processes)
+      @prohibiting_processes = new_val.each {|process| validate_prohibiting_process process}
       return @prohibiting_processes if new_val == @prohibiting_processes
-      @prohibiting_processes = validate_prohibiting_process (new_val)
       @need_to_update_d3 = true unless @initializing
     end
 

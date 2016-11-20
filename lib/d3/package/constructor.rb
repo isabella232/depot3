@@ -175,9 +175,12 @@ module D3
       # some nil-values shouldn't be nil
       @auto_groups ||= []
       @excluded_groups ||= []
-      
+
       # expiration_paths should always be an array
       @expiration_paths ||= []
+
+      # prohibiting_processes should always be an array
+      @prohibiting_processes ||= []
 
       # these don't come from the table def.
       @admin = args[:admin]
