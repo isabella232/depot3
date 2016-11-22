@@ -36,7 +36,8 @@ module D3
     ###
     def install_prohibited_by_process?
       return false unless @prohibiting_processes
-        D3.prohibited_by_process_running? @prohibiting_processes
+      return false if @prohibiting_processes.empty?
+      D3.prohibited_by_process_running? @prohibiting_processes
     end #
 
     ### If needed, uninstall any previously installed versions of this basename
