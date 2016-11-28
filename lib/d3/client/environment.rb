@@ -132,4 +132,3 @@ module D3
     end
   end # class Client
 end # module D3
-
