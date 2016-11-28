@@ -158,7 +158,7 @@ module D3
         else
 
           unless forced
-            raise D3::InstallError, "#{edition} cannot be installed now because one or more of the following processes is running: '#{D3::Admin::OPTIONS[:prohibiting_processes][:display_conversion].call @prohibiting_processes}'."  if install_prohibited_by_process?
+            raise D3::InstallError, "#{edition} cannot be installed now because one or more of the following processes is running: #{D3::Admin::OPTIONS[:prohibiting_processes][:display_conversion].call @prohibiting_processes}."  if install_prohibited_by_process?
           end # unless forced
 
           remove_previous_installs_if_needed (args[:verbose])
