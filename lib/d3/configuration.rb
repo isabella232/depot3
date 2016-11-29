@@ -115,7 +115,7 @@ module D3
       :puppy_title => :to_s,
       :puppy_display_secs => :to_i,
 
-      :notification_image_path => :to_s,
+      :notification_image_path => :jss_to_pathname,
 
       :admin_make_live_script => :to_s,
       :admin_auto_clean =>  :jss_to_bool,
