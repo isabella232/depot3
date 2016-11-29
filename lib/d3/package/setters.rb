@@ -173,6 +173,7 @@ module D3
     ### @return [void]
     ###
     def prohibiting_processes= (new_val = @prohibiting_processes)
+      new_val = JSS.to_s_and_a(new_val)[:arrayform]
       @prohibiting_processes = new_val.each {|process| validate_prohibiting_process process}
       return @prohibiting_processes if new_val == @prohibiting_processes
       @need_to_update_d3 = true unless @initializing

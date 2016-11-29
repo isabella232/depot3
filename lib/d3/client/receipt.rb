@@ -622,7 +622,7 @@ module D3
 
         begin # ...ensure...
           if uninstall_prohibited_by_process? and (not force)
-            raise D3::InstallError, "#{edition} cannot be uninstalled now because one of the following processes is running: '#{D3::Admin::OPTIONS[:prohibiting_processes][:display_conversion].call @prohibiting_processes}'"
+            raise D3::InstallError, "#{edition} cannot be uninstalled now because one or more of the following processes is running: #{D3::Admin::OPTIONS[:prohibiting_processes][:display_conversion].call @prohibiting_processes}"
           end
           D3::Client.set_env :removing, edition
           D3.log "Uninstalling #{edition}", :warn

@@ -34,7 +34,7 @@ module D3
   def self.prohibited_by_process_running? (xprocs)
       processes = `/bin/ps -A -c -o comm`.split("\n")
       current_prohibiting = processes & xprocs
-      return current_prohibiting.empty?
+      return true unless current_prohibiting.empty?
   end #
 
   ### Try to figure out the login name of the admin running this code

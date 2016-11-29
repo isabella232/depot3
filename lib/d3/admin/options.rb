@@ -286,7 +286,8 @@ module D3
           :display_conversion => DISPLAY_COMMA_SEP_LIST,
           :get => :get_prohibiting_processes,
           :unsetable => true,
-          :validate => :validate_prohibiting_processes
+          :validate => :validate_prohibiting_processes,
+          :compare => Proc.new{|o,n| o.to_a.sort == n.to_a.sort
         },
         auto_groups: {
           :default => nil,
@@ -360,7 +361,8 @@ module D3
           :display_conversion => D3::Database::ARRAY_OF_PATHNAMES_TO_COMMA_STRING ,
           :get => :get_expiration_paths,
           :unsetable => true,
-          :validate => :validate_expiration_paths
+          :validate => :validate_expiration_paths,
+          :compare => Proc.new{|o,n| o.to_a.sort == n.to_a.sort
         },
         description: {
           :default => '',
