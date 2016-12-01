@@ -386,7 +386,7 @@ jss_default_script_category:
 ###   If you leave this blank:
 ###
 ###   the default is
-###   /Library/Application Support/d3/notification_image_path/
+###   /Library/Application Support/d3/notification_images/
 ###
 ###   If this folder is empty, do not fret.
 ###   jamf_helper prompts will still function without images.
