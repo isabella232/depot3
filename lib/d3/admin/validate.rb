@@ -372,7 +372,7 @@ module D3
       ###
       ### @return [Array<String>]
       ###
-      def validate_prohibiting_process (match)
+      def validate_prohibiting_processes (match)
         match_array = JSS.to_s_and_a(match)[:arrayform]
         match_array.map { |item| D3::Package::Validate.validate_prohibiting_process(item) }.compact
       end
