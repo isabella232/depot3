@@ -145,7 +145,7 @@ module D3
       ###
       ### A Description of the option is displayed, followed by a prompt.
       ### If a default value is provided, the prompt includes the text
-      ###  (Hit return for '#{default_value}')
+      ###  (Hit return for #{default_value})
       ###
       ### If the option is defined in D3::Admin::OPTIONS, the data for
       ### the option is used, if not provided in the args.
@@ -205,9 +205,8 @@ module D3
 
         data_entered = ''
         puts "\n#{desc}" if desc
-        puts unset_line if unset_line
         prompt ||= "Please enter a value"
-        hit_return = default_display.empty? ? "" : " (Hit return for '#{default_display}')"
+        hit_return = default_display.empty? ? "" : " (Hit return for #{default_display} )"
         prompt_line = "#{prompt}#{hit_return}: "
 
         while true do
@@ -751,12 +750,12 @@ of the output of `/bin/ps -A -c -o comm`
 
 If a process is running at install time,
 the installer will attempt a graceful quit.
-Matching is case-insensitive
+Matching is case sensitive.
 
 Enter 'n' for none.
         END_DESC
 
-        result = prompt_for_data(desc: desc, prompt: "Prohibiting Processes", default: default, required: true)
+        result = prompt_for_data(desc: desc, prompt: "Prohibiting Processes", opt: :prohibiting_processes, default: default, required: true)
         return nil if result == 'n'
         result
       end
