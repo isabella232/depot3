@@ -131,7 +131,7 @@ module D3
     ### @return [void]
     ###
     def expiration_paths= (new_val = @expiration_paths)
-      return @expiration_paths if new_val == @expiration_paths
+      return @expiration_paths if D3::Admin::OPTIONS[:expiration_paths][:compare].call(@expiration_paths, new_val)
       @expiration_paths = validate_expiration_paths (new_val)
       @need_to_update_d3 = true unless @initializing
     end # expiration =
@@ -174,8 +174,8 @@ module D3
     ###
     def prohibiting_processes= (new_val = @prohibiting_processes)
       new_val = JSS.to_s_and_a(new_val)[:arrayform]
+      return @prohibiting_processes if D3::Admin::OPTIONS[:prohibiting_processes][:compare].call(@prohibiting_processes, new_val)
       @prohibiting_processes = new_val.each {|process| validate_prohibiting_process process}
-      return @prohibiting_processes if new_val == @prohibiting_processes
       @need_to_update_d3 = true unless @initializing
     end
 
@@ -189,6 +189,7 @@ module D3
     def auto_groups= (new_val = @auto_groups)
       @auto_groups ||= []
       new_val ||= []
+      return @auto_groups if D3::Admin::OPTIONS[:auto_groups][:compare].call(@auto_groups, new_val)
       new_groups = validate_auto_groups (new_val)
       validate_non_overlapping_groups new_groups, @excluded_groups
       @auto_groups =  new_groups
@@ -238,6 +239,7 @@ module D3
       @excluded_groups ||= []
       new_val ||= []
       new_groups = validate_auto_groups (new_val)
+      return @excluded_groups if D3::Admin::OPTIONS[:excluded_groups][:compare].call(@excluded_groups, new_val)
      validate_non_overlapping_groups @auto_groups, new_groups
       @excluded_groups =  new_groups
       @need_to_update_d3 = true unless @initializing

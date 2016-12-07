@@ -371,16 +371,16 @@ module D3
         cat
       end
 
-      ### Check the offered prohibiting process pattern
+      ### Check a single prohibiting process for validity
       ###
-      ### @param match_string[String] the data entered by the user
+      ### @param process_name[String] the process to be validated.
       ###
-      ### @return [String, nil] the regexp used to do the match
+      ### @return [String]
       ###
-      def validate_prohibiting_process (match_string)
-        match_string = nil if match_string.to_s =~ /^n(one)?$/i
-        return nil if match_string.nil? or match_string.empty?
-        match_string.to_s
+      def validate_prohibiting_process (process_name)
+        process_name = nil if process_name.to_s =~ /^n(one)?$/i
+        return nil if process_name.nil? or process_name.empty?
+        process_name.to_s
       end
 
       ### check the validity of a yes/no,true/false,1/0 input value

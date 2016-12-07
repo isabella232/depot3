@@ -32,6 +32,13 @@ module D3
   ###
   class Client < JSS::Client
 
+    ### Default notification_image_path
+    ### Unless otherwise specified in /etc/d3.conf,
+    ### this is the default directory that can be populated
+    ### with image(s) to display randomly alongside user notifications.
+
+    DFT_NOTIFICATION_IMAGE_PATH = D3::SUPPORT_DIR + "notification_images"
+
   end # class Client
 end # module D3
 
@@ -43,4 +50,3 @@ require "d3/client/auth"
 require "d3/client/cli"
 require "d3/client/lists"
 require "d3/client/help"
-

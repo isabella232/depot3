@@ -366,15 +366,16 @@ module D3
         D3::Package::Validate.validate_category cat
       end
 
-      ### Check the offered prohibiting process
+      ### Check multiple prohibiting_processes for validity
       ###
-      ### @param match[String,Array<String>] A comma separated String or an Array of processes to be validated.
+      ### @param process_names[String,Array<String>] A comma-separated String, or an Array of process names to be validated.
       ###
       ### @return [Array<String>]
       ###
-      def validate_prohibiting_process (match)
-        match_array = JSS.to_s_and_a(match)[:arrayform]
-        match_array.map { |item| D3::Package::Validate.validate_prohibiting_process(item) }.compact
+      def validate_prohibiting_processes (process_names)
+        process_names = [] if process_names.to_s =~ /^n(one)?$/i
+        names_as_array = JSS.to_s_and_a(process_names)[:arrayform]
+        names_as_array.map { |procname| D3::Package::Validate.validate_prohibiting_process(procname) }.compact
       end
 
       ### check the validity of a yes/no true/false reply
