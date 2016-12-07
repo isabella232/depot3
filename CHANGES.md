@@ -3,7 +3,7 @@
 ## v3.0.13 - 2016-12-07
 
 - Change: Updated CHANGES.md
-- Chamge: Updated depot3.gemspec to require ruby-jss v0.6.6
+- Change: Updated depot3.gemspec to require ruby-jss v0.6.6
 
 ## v3.0.12 - 2016-12-07
 
