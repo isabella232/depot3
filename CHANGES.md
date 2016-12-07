@@ -2,12 +2,12 @@
 
 ## v3.0.13 - 2016-12-07
 
-- Change: updated CHANGES.md
-- Chamge: updated depot3.gemspec to require ruby-jss v0.6.6
+- Change: Updated CHANGES.md
+- Chamge: Updated depot3.gemspec to require ruby-jss v0.6.6
 
 ## v3.0.12 - 2016-12-07
 
-- Change: d3 packagaes can how have multiple 'prohibiting proceses', which are entered as a comma-separated string of process names. If any one of them is running at install or uninstall, an error is raised. Use --force to override.
+- Change: Packages can how have multiple 'prohibiting proceses', which are entered as a comma-separated string of process names. If any one of them is running at install or uninstall, an error is raised. Use --force to override.
 
 
 ## v3.0.11 - 2016-08-10
