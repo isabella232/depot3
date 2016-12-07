@@ -59,7 +59,7 @@ For details, see http://pixaranimationstudios.github.io/depot3/index.html
 
   # Dependencies
   s.add_runtime_dependency 'ruby-keychain', '~> 0.2', '> 0.2.0'
-  s.add_runtime_dependency 'ruby-jss', '~> 0.6', '>= 0.6.2'
+  s.add_runtime_dependency 'ruby-jss', '~> 0.6', '>= 0.6.6'
 
   # Rdoc
   s.has_rdoc = true
