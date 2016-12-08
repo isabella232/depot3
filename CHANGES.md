@@ -1,5 +1,9 @@
 # Change History
 
+## v3.0.14 - 2016-12-08
+
+- Bugfix: Stored receipts with the singulare 'prohibiting_process' are now handled and updated to the plural 'prohibiting_processes'
+
 ## v3.0.13 - 2016-12-07
 
 - Change: Updated CHANGES.md
