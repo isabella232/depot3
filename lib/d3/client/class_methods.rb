@@ -325,6 +325,11 @@ module D3
         end # if removable
 
         # prohibiting_processes
+        # make sure they are all arrays as of v3.0.12
+        unless rcpt.prohibiting_processes.is_a? Array
+          rcpt.prohibiting_processes = JSS.to_s_and_a(rcpt.prohibiting_processes)[:arrayform]
+          need_update = true
+        end
         if rcpt.prohibiting_processes.sort != pkgdata[:prohibiting_processes].sort
           rcpt.prohibiting_processes = pkgdata[:prohibiting_processes]
           D3.log "Updating prohibiting_processes for #{rcpt.edition}", :info

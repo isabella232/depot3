@@ -32,6 +32,9 @@ module D3
   ### @return [Boolean]
   ###
   def self.prohibited_by_process_running? (xprocs)
+      # this is needed in case saved rcpts have nil or a string instead
+      # of an array, from pre v3.0.12
+      xprocs = JSS.to_s_and_a(xprocs)[:arrayform]
       processes = `/bin/ps -A -c -o comm`.split("\n")
       current_prohibiting = processes & xprocs
       return true unless current_prohibiting.empty?

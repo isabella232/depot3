@@ -576,12 +576,15 @@ module D3
 
         @removable = args[:removable]
         @prohibiting_processes = args[:prohibiting_processes]
+        @prohibiting_processes ||= []
+
         @frozen = args[:frozen]
         @pre_remove_script_id = args[:pre_remove_script_id]
         @post_remove_script_id = args[:post_remove_script_id]
 
         @expiration = args[:expiration].to_i
         @expiration_paths = args[:expiration_paths]
+        @expiration_paths ||= []
         @custom_expiration = args[:custom_expiration]
 
         @manually_installed = (@admin != D3::AUTO_INSTALL_ADMIN)
