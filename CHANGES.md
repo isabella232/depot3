@@ -1,8 +1,11 @@
 # Change History
 
+## v3.0.14 - 2017-02-28
+- Bugfix: now correctly finds the most recent timestamp for an expiration path coming to the foreground
+
 ## v3.0.14 - 2016-12-08
 
-- Bugfix: Stored receipts with the singulare 'prohibiting_process' are now handled and updated to the plural 'prohibiting_processes'
+- Bugfix: Stored receipts with the singular 'prohibiting_process' are now handled and updated to the plural 'prohibiting_processes'
 
 ## v3.0.13 - 2016-12-07
 
