@@ -1,6 +1,9 @@
 # Change History
 
-## v3.0.14 - 2017-02-28
+## v3.0.16 - 2017-04-10
+- Update: Max DB schema version bumped for 9.98 and 9.99
+
+## v3.0.15 - 2017-02-28
 - Bugfix: now correctly finds the most recent timestamp for an expiration path coming to the foreground
 
 ## v3.0.14 - 2016-12-08
