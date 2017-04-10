@@ -38,11 +38,11 @@ module D3
     # This table has info about the JSS schema
     SCHEMA_TABLE = "db_schema_information"
 
-    # the minimum JSS schema version allower
+    # the minimum JSS schema version allowed
     MIN_SCHEMA_VERSION = "9.4"
 
-    # the minimum JSS schema version allower
-    MAX_SCHEMA_VERSION = "9.97"
+    # the minimum JSS schema version allowed
+    MAX_SCHEMA_VERSION = "9.999"
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql
