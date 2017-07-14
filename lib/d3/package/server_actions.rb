@@ -535,10 +535,9 @@ INSERT INTO #{P_TABLE[:table_name]} (
       if local_file_path.to_s =~ PKG_RE
         @apple_receipt_data = D3::Package.receipt_data_from_pkg(local_file_path)
         @need_to_update_d3 = true
-        self.save
       end # if local_file_path.to_s =~ PKG_RE
-
       super
+      update
     end
 
     ### Create, or re-create, the BOM index records for this
