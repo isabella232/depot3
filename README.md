@@ -1,10 +1,10 @@
 # d3 - Command line package and patch management for Casper
 
-d3 is a package deployment and patch management system for OS X that enhances the
-[Casper Suite](http://www.jamfsoftware.com/products/casper-suite/), an enterprise-level management system for Apple devices from [JAMF Software](http://www.jamfsoftware.com/). It was created by [Pixar Animation Studios](http://www.pixar.com/).
+d3 (a.k.a. depot3) is a package deployment and patch management system for OS X that enhances
+[Jamf Pro](https://www.jamf.com/products/jamf-pro/), an enterprise-level management system for Apple devices from [JAMF Software](http://www.jamf.com/). It was created by [Pixar Animation Studios](http://www.pixar.com/).
 
 
-d3 adds these capabilities and more to Casper's package handling:
+d3 adds these capabilities and more to Jamf Pro's package handling:
 
 * Automatic software updates on clients when new versions are released on the server
 * Pre-release piloting of new packages
@@ -14,7 +14,7 @@ d3 adds these capabilities and more to Casper's package handling:
 * Both the client and admin tools are command-line only and fully scriptable
 * Admin command-line options allow integration with developer workflows and package-retrieval tools
 
-d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Casper via its REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Casper's backend MySQL database directly to provide enhanced features.
+d3 is written in Ruby and available as a rubygem called ['depot3'](https://rubygems.org/gems/depot3). It interfaces with Jamf Pro via its REST API using [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), a ruby module that provides simple and powerful access to the API. It also uses Jamf Pro's backend MySQL database directly to provide enhanced features.
 
 ## DOCUMENTATION
 
@@ -22,7 +22,7 @@ Full user/administrator documentation is available at the [GitHub project's wiki
 
 The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3).
 
-Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Casper REST API in any project.
+Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Jamf Pro REST API in any project.
 
 
 ## CONTACT
@@ -33,7 +33,7 @@ Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), wh
 
 ## LICENSE
 
-Copyright 2016 Pixar
+Copyright 2017 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License")
 with the following modification; you may not use d3 except in
