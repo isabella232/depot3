@@ -614,7 +614,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
         system "rm -rf '#{tmp_bom}'"
 
       else
-        raise JSS::InvalidDataError, "#{@filename} is doesn't looks like a .pkg or .dmg. Try Casper Admin to index it."
+        raise JSS::InvalidDataError, "#{@filename} doesn't looks like a .pkg or .dmg. Try Casper Admin to index it."
       end # if filename .pkg
 
       # If there are no bomlines (perhaps a payloadless pkg?) just return
