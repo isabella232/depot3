@@ -1130,7 +1130,7 @@ Last brought to foreground: #{last_usage_display}
             usage_times = D3.parse_plist plist
             my_usage_keys = usage_times.keys.map{|p| Pathname.new(p)}
             exp_paths_with_usage = @expiration_paths & my_usage_keys
-            exp_paths_with_usage.each{|p| all_usages <<  usage_times[p.to_s] }
+            exp_paths_with_usage.each{|p| all_usages <<  usage_times[p.to_s].to_time }
           end # do plist
 
           @last_usage = all_usages.compact.max
