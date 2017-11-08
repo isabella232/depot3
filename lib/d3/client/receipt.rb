@@ -572,7 +572,7 @@ module D3
         end
 
         @apple_pkg_ids = args[:apple_pkg_ids]
-        @installed_at = args[:installed_at]
+        @installed_at = args[:installed_at] ? args[:installed_at].to_time : Time.now
 
         @removable = args[:removable]
         @prohibiting_processes = args[:prohibiting_processes]
