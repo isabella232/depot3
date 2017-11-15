@@ -554,7 +554,10 @@ module D3
     def self.freeze_receipts (basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
-        next unless rcpt
+        if rcpt.nil?
+          D3.log "Can't freeze receipt for #{bn}: there is no such basename.", :error
+          next
+        end
         if rcpt.frozen
           D3.log "Can't freeze receipt for #{rcpt.edition}: already frozen.", :warn
           next
@@ -574,7 +577,10 @@ module D3
     def self.thaw_receipts (basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
-        next unless rcpt
+        if rcpt.nil?
+          D3.log "Can't thaw receipt for #{bn}: there is no such basename.", :error
+          next
+        end
         unless rcpt.frozen
           D3.log "Can't thaw receipt for #{rcpt.edition}: not frozen.", :warn
           next
