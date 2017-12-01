@@ -58,10 +58,25 @@ module D3
           raise D3::InstallError, "The package for #{desired_pkg.edition} is missing from the JSS" if desired_pkg.missing?
 
           if options.custom_expiration
-            raise "Sorry #{desired_pkg.edition} is not expirable. A d3 admin needs to add an expiration path." if desired_pkg.expiration_paths.empty?
+            D3.log "Sorry #{desired_pkg.edition} is not expirable. A d3 admin needs to add an expiration path.", :warn if desired_pkg.expiration_paths.empty?
+            break
           end
 
           curr_rcpt = D3::Client::Receipt.all[desired_pkg.basename]
+
+          # If we were asked to freeze_on_install and the currently installed is
+          # same edition, freeze it anyway.
+          # Use force to freeze if the currently installed is newer.
+          #
+          if curr_rcpt && curr_rcpt.id >= desired_pkg.id && options.freeze_on_install
+            if options.force || curr_rcpt.id == desired_pkg.id
+              freeze_receipts([curr_rcpt.basename]) unless curr_rcpt.frozen?
+              D3.log "Freezing previously installed #{curr_rcpt.edition}", :warn
+              break
+            end # if options.force elsif curr_rcpt.id == desired_pkg.id
+            D3.log "Cannot freeze previously installed #{curr_rcpt.edition} (#{curr_rcpt.status}) It is newer than #{desired_pkg.edition}. Use --force if needed.", :warn
+            break
+          end
 
           # many things can be forced
           # things that are defined in the pkg itself
@@ -76,15 +91,13 @@ module D3
             desired_pkg.check_for_skipped
             # same or newer?
             desired_pkg.check_for_newer_version
-
           end # unless options.force
 
           if curr_rcpt
             D3.log("Un-freezing #{curr_rcpt.edition} by installing #{desired_pkg.edition}", :warn) if curr_rcpt.frozen?
-
-            if  desired_pkg.id == curr_rcpt.id
+            if desired_pkg.id == curr_rcpt.id
               D3.log("Re-installing #{desired_pkg.edition}(#{desired_pkg.status})", :warn)
-            elsif  desired_pkg.id < curr_rcpt.id
+            elsif desired_pkg.id < curr_rcpt.id
               D3.log("Rolling back #{curr_rcpt.edition}(#{curr_rcpt.status}) to #{desired_pkg.edition}(#{desired_pkg.status})", :warn)
             else
               D3.log("Updating #{curr_rcpt.edition}(#{curr_rcpt.status}) to #{desired_pkg.edition}(#{desired_pkg.status})", :warn)
@@ -554,10 +567,7 @@ module D3
     def self.freeze_receipts (basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
-        if rcpt.nil?
-          D3.log "Can't freeze receipt for #{bn}: there is no such basename.", :error
-          next
-        end
+        next unless rcpt
         if rcpt.frozen
           D3.log "Can't freeze receipt for #{rcpt.edition}: already frozen.", :warn
           next
@@ -577,10 +587,7 @@ module D3
     def self.thaw_receipts (basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
-        if rcpt.nil?
-          D3.log "Can't thaw receipt for #{bn}: there is no such basename.", :error
-          next
-        end
+        next unless rcpt
         unless rcpt.frozen
           D3.log "Can't thaw receipt for #{rcpt.edition}: not frozen.", :warn
           next
