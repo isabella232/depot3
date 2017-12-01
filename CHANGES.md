@@ -1,5 +1,11 @@
 # Change History
 
+## v3.0.18 - 2017-12-01
+- Change: D3::Client.install: freeze prev. installed rcpts when 'freeze on install' requested.
+
+## v3.0.17 - 2017-07-14
+- Fix: D3::Package.upload_master_file, call #update after #super
+
 ## v3.0.16 - 2017-04-10
 - Update: Max DB schema version bumped for 9.98 and 9.99
 
