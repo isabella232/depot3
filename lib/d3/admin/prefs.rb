@@ -102,8 +102,8 @@ module D3
           targets = [tgt]
         end
 
-        if targets.empty? or targets.include?("all")
-          targets = D3::Admin::CONFIG_TARGETS - ["all"]
+        if targets.empty? or targets.include?('all')
+          targets = D3::Admin::CONFIG_TARGETS - ['all']
         end
 
         targets.each do |target|

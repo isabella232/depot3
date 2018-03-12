@@ -24,6 +24,7 @@
 
 ###
 module D3
+
   module Admin
 
     ### The Admin::Add modile contains constants and methods related to
@@ -34,29 +35,29 @@ module D3
 
       ### These are the symbols representing all the possible commandline options
       ### used for defining new packages.
-      NEW_PKG_OPTIONS = %i{
-          version
-          revision
-          package_name
-          description
-          filename
-          category
-          oses
-          cpu_type
-          reboot
-          removable
-          remove_first
-          prohibiting_processes
-          auto_groups
-          excluded_groups
-          pre_install
-          post_install
-          pre_remove
-          post_remove
-          expiration
-          expiration_paths
-          source_path
-        }
+      NEW_PKG_OPTIONS = %i(
+        version
+        revision
+        package_name
+        description
+        filename
+        category
+        oses
+        cpu_type
+        reboot
+        removable
+        remove_first
+        prohibiting_processes
+        auto_groups
+        excluded_groups
+        pre_install
+        post_install
+        pre_remove
+        post_remove
+        expiration
+        expiration_paths
+        source_path
+      ).freeze
 
       ### If we need to build the pkg, these options are needed
       BUILD_OPTIONS = [:workspace, :package_build_type].freeze
@@ -190,7 +191,7 @@ END_HEADER
           value_display = converter ? converter.call(value) : value
           display_lines[i] = "#{label}: #{value_display}"
         end
-        return display_lines
+        display_lines
       end # def walkthru_menu_lines
 
       ### Validate commandline options when adding a package without walkthru
@@ -276,7 +277,7 @@ END_HEADER
         if options_from_user[:expiration] > 0
           errors << 'expiration path cannot be empty if expiration is > 0 .' unless options_from_user[:expiration_paths]
         end
-        return [options_from_user, errors]
+        [options_from_user, errors]
       end # validate_all_new_package_options
 
       ### Figure out the default values for all options for creating a new package
@@ -330,7 +331,7 @@ END_HEADER
         dft_opts.pkg_identifier ||= "#{pfx}.#{basename}".gsub(/\.+/, '.')
 
         # We now have our defaults for a new pkg
-        return dft_opts
+        dft_opts
       end # populate_default_options
 
       ### Get default values from an existing d3 package, and use them to
