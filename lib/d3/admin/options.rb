@@ -37,7 +37,7 @@ module D3
       ACTIONS_NEEDING_ADMIN = %w{  add  edit  live  delete }
 
       # the possible targets to config
-      CONFIG_TARGETS = %w{all jss db dist workspace pkg-id-prefix}
+      CONFIG_TARGETS = %w{all jss db dist workspace pkg-id-prefix editor}
 
 
       TRUE_VALUES = [true, /^true$/i, 1, /^y(es)?$/i]
