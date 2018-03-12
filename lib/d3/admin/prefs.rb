@@ -22,7 +22,6 @@
 ###
 ###
 
-
 ###
 module D3
 
@@ -33,26 +32,26 @@ module D3
 
       ################# Module Constants #################
 
-      PREFS_DIR = Pathname.new(ENV['HOME'].to_s).expand_path + "Library/Preferences"
-      PREFS_FILE = PREFS_DIR + "com.pixar.d3.admin.yaml"
+      PREFS_DIR = Pathname.new(ENV['HOME'].to_s).expand_path + 'Library/Preferences'
+      PREFS_FILE = PREFS_DIR + 'com.pixar.d3.admin.yaml'
 
       PREF_KEYS = {
-        :workspace => {
+        workspace: {
           description: "Path to the directory where new pkg and dmg packages are built.\n If unset, defaults to your home folder"
         },
 
-        :editor =>{
-          description: "Preferred shell command for editing package descriptions in --walkthru"
+        editor: {
+          description: 'Preferred shell command for editing package descriptions in --walkthru'
         },
 
-        :apple_pkg_id_prefix => {
+        apple_pkg_id_prefix: {
           description: "The Apple package id prefix, e.g. 'com.mycompany'.\nWhen .pkgs are built, the identifier will be this, plus the basename.\n If unset, the default is '#{D3::Admin::DFT_PKG_ID_PREFIX}'"
         },
 
-        :last_config => {
-          description: "Timestamp of the last configuration for setting servers, credentials and/or prefs"
+        last_config: {
+          description: 'Timestamp of the last configuration for setting servers, credentials and/or prefs'
         }
-      }
+      }.freeze
 
       @@prefs = PREFS_FILE.readable? ? YAML.load(PREFS_FILE.read) : {}
 
@@ -71,8 +70,8 @@ module D3
       ### @param value[Object] the value to save with the pref
       ###
       ### @return [Boolean] true of the pref was set and saved
-      def self.set_pref (pref, value)
-        raise JSS::InvalidDataError, "first argument must be a pref key from D3::Admin::Prefs::PREF_KEYS" unless PREF_KEYS.keys.include? pref
+      def self.set_pref(pref, value)
+        raise JSS::InvalidDataError, 'first argument must be a pref key from D3::Admin::Prefs::PREF_KEYS' unless PREF_KEYS.keys.include? pref
         @@prefs[pref] = value
         save_prefs
       end
@@ -81,10 +80,9 @@ module D3
       ###
       ### @return [void]
       def self.save_prefs
-        @@prefs[:last_config] =  Time.now
+        @@prefs[:last_config] = Time.now
         PREFS_FILE.jss_save YAML.dump(@@prefs)
       end
-
 
       ### Run the Admin config, saving hostnames, usernames and pws
       ### as needed.
@@ -98,10 +96,9 @@ module D3
       ###
       ### @todo  improve this a lot
       ###
-      def self.config (targets, options)
-
+      def self.config(targets, options)
         if options.walkthru
-          tgt = D3::Admin::Interactive.get_value :get_config_target, "all"
+          tgt = D3::Admin::Interactive.get_value :get_config_target, 'all'
           targets = [tgt]
         end
 
@@ -111,40 +108,40 @@ module D3
 
         targets.each do |target|
           case target
-          when"jss"
-            puts "********  JSS-API LOCATION AND READ-WRITE CREDENTIALS  ********"
+          when 'jss'
+            puts '********  JSS-API LOCATION AND READ-WRITE CREDENTIALS  ********'
             D3::Admin::Auth.ask_for_rw_credentials :jss
 
-          when "db"
-            puts "********  JSS MYSQL LOCATION AND READ-WRITE CREDENTIALS  ********"
+          when 'db'
+            puts '********  JSS MYSQL LOCATION AND READ-WRITE CREDENTIALS  ********'
             D3::Admin::Auth.ask_for_rw_credentials :db
 
-          when "dist"
-            puts "********  MASTER DIST-POINT READ-WRITE PASSWORD  ********"
-           D3::Admin::Auth.ask_for_rw_credentials :dist
+          when 'dist'
+            puts '********  MASTER DIST-POINT READ-WRITE PASSWORD  ********'
+            D3::Admin::Auth.ask_for_rw_credentials :dist
 
-          when "workspace"
-            puts "********  LOCAL PKG/DMG BUILD WORKSPACE  ********"
+          when 'workspace'
+            puts '********  LOCAL PKG/DMG BUILD WORKSPACE  ********'
             pth = D3::Admin::Interactive.get_value :workspace, D3::Admin::Prefs.prefs[:workspace]
             D3::Admin::Prefs.set_pref :workspace, pth
             D3::Admin::Prefs.save_prefs
-            puts "Thank you, the path has been saved in your d3admin prefs"
+            puts 'Thank you, the path has been saved in your d3admin prefs'
             puts
 
-          when "editor"
-            puts "********  TEXT EDITOR  ********"
+          when 'editor'
+            puts '********  TEXT EDITOR  ********'
             cmd = D3::Admin::Interactive.get_value :get_editor, D3::Admin::Prefs.prefs[:editor]
             D3::Admin::Prefs.set_pref :editor, cmd
             D3::Admin::Prefs.save_prefs
-            puts "Thank you, the command has been saved in your d3admin prefs"
+            puts 'Thank you, the command has been saved in your d3admin prefs'
             puts
 
-          when "pkg-id-prefix"
-            puts "********  .PKG IDENTIFIER PREFIX  ********"
+          when 'pkg-id-prefix'
+            puts '********  .PKG IDENTIFIER PREFIX  ********'
             pfx = D3::Admin::Interactive.get_value(:get_pkg_identifier_prefix, D3::Admin::Prefs.prefs[:apple_pkg_id_prefix], :validate_package_identifier_prefix)
             D3::Admin::Prefs.set_pref :apple_pkg_id_prefix, pfx
             D3::Admin::Prefs.save_prefs
-            puts "Thank you, the prefix has been saved in your d3admin prefs"
+            puts 'Thank you, the prefix has been saved in your d3admin prefs'
             puts
           else
             puts "(skipping unknown config setting: #{target}"
@@ -176,20 +173,20 @@ module D3
 JSS API
   Hostname: #{jss_server}
   Port: #{jss_port}
-  Read/Write user: #{jss_creds[:user] ? jss_creds[:user] : 'unset' }
-  Read/Write password: #{jss_creds[:password] ? 'stored in keychain' : 'unset' }
+  Read/Write user: #{jss_creds[:user] ? jss_creds[:user] : 'unset'}
+  Read/Write password: #{jss_creds[:password] ? 'stored in keychain' : 'unset'}
 
 JSS MySQL
   Hostname: #{db_server}
   Port: #{db_port}
-  Read/Write user: #{db_creds[:user] ? db_creds[:user] : 'unset' }
-  Read/Write password: #{db_creds[:password] ? 'stored in keychain' : 'unset' }
+  Read/Write user: #{db_creds[:user] ? db_creds[:user] : 'unset'}
+  Read/Write password: #{db_creds[:password] ? 'stored in keychain' : 'unset'}
 
 Master Distribution Point
   Hostname: (stored in JSS)
   Port: (stored in JSS)
   Read/Write user: (stored in JSS)
-  Read/Write password: #{dist_creds[:password] ? 'stored in keychain' : 'unset' }
+  Read/Write password: #{dist_creds[:password] ? 'stored in keychain' : 'unset'}
 
 Adding Packages
   Description Editor: #{editor ? editor : D3::Admin::Interactive::DFT_EDITOR}
@@ -200,6 +197,7 @@ DISPLAY
       end # display config
 
     end # module prefs
-  end # module Admin
-end # module D3
 
+  end # module Admin
+
+end # module D3
