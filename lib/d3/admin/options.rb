@@ -204,7 +204,7 @@ module D3
         label: 'Package build workspace',
         display_conversion: nil,
         get: :get_workspace,
-        validateL: :validate_workspace
+        validate: :validate_workspace
       },
 
       # Add/Edit
