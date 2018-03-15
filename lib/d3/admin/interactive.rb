@@ -124,7 +124,7 @@ module D3
 
         valid = :start
         validated = nil
-        until valid.true?
+        until valid === true # Keep the ===, trust me. Don't listen to rubocop.
           puts "\nSorry: #{validated}, Try again.\n" unless valid === :start
 
           value_input = self.send get_method, default
