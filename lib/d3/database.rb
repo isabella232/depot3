@@ -171,177 +171,176 @@ module D3
     ###
     ### See also the attributes of {D3::Package}, which mostly mirror the
     ###
-    PACKAGE_TABLE = { :table_name => 'd3_packages',
+    PACKAGE_TABLE = {
+      table_name: 'd3_packages',
 
-      :field_definitions => {
+      field_definitions: {
 
-        :id => {
-          :field_name => "package_id",
-          :sql_type => 'int(11) NOT NULL',
-          :index => :unique,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        id: {
+          field_name: 'package_id',
+          sql_type: 'int(11) NOT NULL',
+          index: :unique,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :basename => {
-          :field_name => "basename",
-          :sql_type => 'varchar(60) NOT NULL',
-          :index => true,
-          :to_sql => nil,
-          :to_ruby => nil
+        basename: {
+          field_name: 'basename',
+          sql_type: 'varchar(60) NOT NULL',
+          index: true,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :version => {
-          :field_name => "version",
-          :sql_type => 'varchar(30) NOT NULL',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+        version: {
+          field_name: 'version',
+          sql_type: 'varchar(30) NOT NULL',
+          index: nil,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :revision => {
-          :field_name => "revision",
-          :sql_type => 'int(4) NOT NULL',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        revision: {
+          field_name: 'revision',
+          sql_type: 'int(4) NOT NULL',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :apple_receipt_data => {
-          :field_name => "apple_receipt_data",
-          :sql_type => "text",
-          :index => nil,
-          :to_sql  => RUBY_TO_YAML,
-          :to_ruby => YAML_TO_RUBY
+        apple_receipt_data: {
+          field_name: 'apple_receipt_data',
+          sql_type: 'text',
+          index: nil,
+          to_sql: RUBY_TO_YAML,
+          to_ruby: YAML_TO_RUBY
         },
 
-        :added_date => {
-          :field_name => "added_date_epoch",
-          :sql_type => "bigint(32) DEFAULT NULL",
-          :index => nil,
-          :to_sql => TIME_TO_EPOCH,
-          :to_ruby => EPOCH_TO_TIME
+        added_date: {
+          field_name: 'added_date_epoch',
+          sql_type: 'bigint(32) DEFAULT NULL',
+          index: nil,
+          to_sql: TIME_TO_EPOCH,
+          to_ruby: EPOCH_TO_TIME
         },
 
-        :added_by => {
-          :field_name => "added_by",
-          :sql_type => 'varchar(30)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+        added_by: {
+          field_name: 'added_by',
+          sql_type: 'varchar(30)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :status => {
-          :field_name => "status",
-          :sql_type => "varchar(30) DEFAULT 'pilot'",
-          :index => nil,
-          :to_sql => STATUS_TO_STRING,
-          :to_ruby => STRING_TO_STATUS
+        status: {
+          field_name: 'status',
+          sql_type: "varchar(30) DEFAULT 'pilot'",
+          index: nil,
+          to_sql: STATUS_TO_STRING,
+          to_ruby: STRING_TO_STATUS
         },
 
-        :release_date => {
-          :field_name => "release_date_epoch",
-          :sql_type => "bigint(32)  DEFAULT NULL",
-          :index => nil,
-          :to_sql => TIME_TO_EPOCH,
-          :to_ruby => EPOCH_TO_TIME
+        release_date: {
+          field_name: 'release_date_epoch',
+          sql_type: 'bigint(32)  DEFAULT NULL',
+          index: nil,
+          to_sql: TIME_TO_EPOCH,
+          to_ruby: EPOCH_TO_TIME
         },
 
-        :released_by => {
-          :field_name => "released_by",
-          :sql_type => 'varchar(30)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+        released_by: {
+          field_name: 'released_by',
+          sql_type: 'varchar(30)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :auto_groups => {
-          :field_name => 'auto_install_groups',
-          :sql_type => 'text',
-          :index => nil,
-          :to_sql => ARRAY_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY
+        auto_groups: {
+          field_name: 'auto_install_groups',
+          sql_type: 'text',
+          index: nil,
+          to_sql: ARRAY_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY
         },
 
-        :excluded_groups => {
-          :field_name => 'excluded_groups',
-          :sql_type => 'text',
-          :index => nil,
-          :to_sql =>  ARRAY_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY
+        excluded_groups: {
+          field_name: 'excluded_groups',
+          sql_type: 'text',
+          index: nil,
+          to_sql:  ARRAY_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY
         },
 
-        :prohibiting_processes => {
-          :field_name => "prohibiting_process",
-          :sql_type => 'varchar(100)',
-          :index => nil,
-          :to_sql => ARRAY_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY
+        prohibiting_processes: {
+          field_name: 'prohibiting_process',
+          sql_type: 'varchar(100)',
+          index: nil,
+          to_sql: ARRAY_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY
         },
 
-        :remove_first => {
-          :field_name => "remove_first",
-          :sql_type => "tinyint(1) DEFAULT '0'",
-          :index => nil,
-          :to_sql => BOOL_TO_INT,
-          :to_ruby => INT_TO_BOOL
+        remove_first: {
+          field_name: 'remove_first',
+          sql_type: "tinyint(1) DEFAULT '0'",
+          index: nil,
+          to_sql: BOOL_TO_INT,
+          to_ruby: INT_TO_BOOL
         },
 
-        :pre_install_script_id => {
-          :field_name => "pre_install_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        pre_install_script_id: {
+          field_name: 'pre_install_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :post_install_script_id => {
-          :field_name => "post_install_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        post_install_script_id: {
+          field_name: 'post_install_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :pre_remove_script_id => {
-          :field_name => "pre_remove_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        pre_remove_script_id: {
+          field_name: 'pre_remove_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :post_remove_script_id => {
-          :field_name => "post_remove_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        post_remove_script_id: {
+          field_name: 'post_remove_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :expiration => {
-          :field_name => "expiration",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        expiration: {
+          field_name: 'expiration',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :expiration_paths => {
-          :field_name => "expiration_app_path",
-          :sql_type => 'varchar(300)',
-          :index => nil,
-          :to_sql => ARRAY_OF_PATHNAMES_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY_OF_PATHNAMES
+        expiration_paths: {
+          field_name: 'expiration_app_path',
+          sql_type: 'varchar(300)',
+          index: nil,
+          to_sql: ARRAY_OF_PATHNAMES_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY_OF_PATHNAMES
         }
       },
 
-      :other_indexes => [
-        "UNIQUE KEY `edition` (`basename`,`version`,`revision`)"
+      other_indexes: [
+        'UNIQUE KEY `edition` (`basename`,`version`,`revision`)'
       ]
-    }  # end PACKAGE_TABLE
-
-
+    }.freeze # end PACKAGE_TABLE
 
     ################# Module Methods #################
 
