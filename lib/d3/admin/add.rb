@@ -63,7 +63,7 @@ module D3
       BUILD_OPTIONS = [:workspace, :package_build_type].freeze
 
       ### If we are building a .pkg these options are needed
-      PKG_OPTIONS = [:pkg_identifier, :pkg_preserve_owners].freeze
+      PKG_OPTIONS = [:pkg_identifier, :pkg_preserve_owners, :signing_identity, :signing_options].freeze
 
       ### Continuously loop through displaying the add-package menu, and getting
       ### new values, until the user types 'x'.
@@ -414,13 +414,16 @@ END_HEADER
         unless new_package_options.source_path.extname =~ /\.(m?pkg|dmg)$/
           if new_package_options.package_build_type == :pkg
             puts 'Building .pkg...'
+
             new_pkg_path = JSS::Composer.mk_pkg(
               new_package_options.package_name,
               new_package_options.version,
               new_package_options.source_path,
               pkg_id: new_package_options.pkg_identifier,
               out_dir: new_package_options.workspace,
-              preserve_ownership: new_package_options.pkg_preserve_owners
+              preserve_ownership: new_package_options.pkg_preserve_owners,
+              signing_identity: new_package_options.signing_identity,
+              signing_options: new_package_options.signing_options
             )
 
             new_package_options.source_path = new_pkg_path
