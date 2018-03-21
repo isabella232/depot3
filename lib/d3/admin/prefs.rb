@@ -50,7 +50,16 @@ module D3
 
         last_config: {
           description: 'Timestamp of the last configuration for setting servers, credentials and/or prefs'
+        },
+
+        signing_identity: {
+          description: "Developer ID Installer certificate issued by the Apple Developer ID Certification Authority.\n This identity (certificate and private key) should be stored in the login.keychain of the user operating d3admin unless otherwise specified in signing options. Signing is optional."
+        },
+
+        signing_options: {
+          description: 'If a signing identity is defined, this String of options will be passed to pkgbuild. See man pkgbuild for more information'
         }
+
       }.freeze
 
       @@prefs = PREFS_FILE.readable? ? YAML.load(PREFS_FILE.read) : {}
@@ -143,6 +152,23 @@ module D3
             D3::Admin::Prefs.save_prefs
             puts 'Thank you, the prefix has been saved in your d3admin prefs'
             puts
+
+          when 'signing_identity'
+            puts '********  PACKAGE SIGNING IDENTITY  ********'
+            sid = D3::Admin::Interactive.get_value :get_signing_identity, D3::Admin::Prefs.prefs[:signing_identity]
+            D3::Admin::Prefs.set_pref :signing_identity, sid
+            D3::Admin::Prefs.save_prefs
+            puts 'Thank you, the signing identity has been saved in your d3admin prefs'
+            puts
+
+          when 'signing_options'
+            puts '********  PACKAGE SIGNING OPTIONS  ********'
+            sopts = D3::Admin::Interactive.get_value :get_signing_options, D3::Admin::Prefs.prefs[:signing_options]
+            D3::Admin::Prefs.set_pref :signing_options, sopts
+            D3::Admin::Prefs.save_prefs
+            puts 'Thank you, signing options have been saved in your d3admin prefs'
+            puts
+
           else
             puts "(skipping unknown config setting: #{target}"
           end # case
@@ -168,6 +194,9 @@ module D3
         pkg_id_pfx = D3::Admin::Prefs.prefs[:apple_pkg_id_prefix]
         editor = D3::Admin::Prefs.prefs[:editor]
 
+        signing_id = D3::Admin::Prefs.prefs[:signing_identity]
+        signing_opts = D3::Admin::Prefs.prefs[:signing_options]
+
         puts <<-DISPLAY
 ********  Current d3admin config  ********
 JSS API
@@ -191,7 +220,11 @@ Master Distribution Point
 Adding Packages
   Description Editor: #{editor ? editor : D3::Admin::Interactive::DFT_EDITOR}
   Build Workspace: #{wkspc ? wkspc : D3::Admin::DFT_WORKSPACE}
-  Identifier prefix: #{pkg_id_pfx ? pkg_id_pfx : D3::Admin::DFT_PKG_ID_PREFIX}
+  Identifier Prefix: #{pkg_id_pfx ? pkg_id_pfx : D3::Admin::DFT_PKG_ID_PREFIX}
+
+Package Signing (Optional)
+  Signing Identity: #{signing_id ? signing_id : 'N/A'}
+  Signing Options: #{signing_opts ? signing_opts : 'N/A'}
 
 DISPLAY
       end # display config
