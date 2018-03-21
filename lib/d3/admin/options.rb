@@ -42,6 +42,7 @@ module D3
     FALSE_VALUES = [false, /^false$/i, nil, 0, /^no?$/i].freeze
 
     DFT_REQUIRED = '---Required---'.freeze
+    DFT_OPTIONAL = '---Optional---'.freeze
     DFT_NONE = 'none'.freeze
     DFT_PKG_TYPE = :pkg
     DFT_PKG_ID_PREFIX = 'd3'.freeze
@@ -51,6 +52,7 @@ module D3
 
     DISPLAY_TRUE_FALSE = proc { |v| case v; when *TRUE_VALUES then 'true'; when *FALSE_VALUES then 'false'; else 'unknown'; end }
     DISPLAY_DFT_REQUIRED = proc { |v| v.to_s.empty? ? DFT_REQUIRED : v }
+    DISPLAY_DFT_OPTIONAL = proc { |v| v.to_s.empty? ? DFT_OPTIONAL : v }
     DISPLAY_DFT_NONE = proc { |v| v.to_s.empty? ? DFT_NONE : v }
     DISPLAY_COMMA_SEP_LIST = proc { |v| DISPLAY_DFT_NONE.call JSS.to_s_and_a(v)[:stringform] }
     DISPLAY_PKG_TYPE = proc { |v| v.to_s.start_with?('d') ? 'dmg' : 'pkg' }
@@ -149,7 +151,6 @@ module D3
       },
 
       # Add
-
       import: {
         default: nil,
         cli: ['--import', '-i', GetoptLong::OPTIONAL_ARGUMENT],
@@ -181,6 +182,22 @@ module D3
         display_conversion: DISPLAY_PKG_TYPE,
         get: :get_package_build_type,
         validate: :validate_package_build_type
+      },
+      signing_identity: {
+        default: nil,
+        cli: ['--signing-id', GetoptLong::NO_ARGUMENT],
+        label: 'Package signing identity',
+        display_conversion: DISPLAY_DFT_OPTIONAL,
+        get: :get_signing_identity,
+        validate: :validate_signing_idenitity
+      },
+      signing_options: {
+        default: nil,
+        cli: ['--signing-opts', GetoptLong::NO_ARGUMENT],
+        label: 'Signing arguments and options',
+        display_conversion: DISPLAY_DFT_OPTIONAL,
+        get: :get_signing_options,
+        validate: :validate_signing_options
       },
       pkg_preserve_owners: {
         default: nil,
