@@ -482,6 +482,46 @@ the default .pkg identifier  will be 'com.mycompany.foo'
         prompt_for_data(opt: :pkg_identifier_prefix, desc: desc, default: default, required: true)
       end
 
+      ### Get the optional Apple Developer signing ID
+      ### .pkgs can be codesigned with a certificate from Apple
+      ### The Developer ID Installer certificate must be
+      ### in the login.keychain of the user operating d3admin unless
+      ### otherwise specified in signing_options
+      ###
+      ### This value is saved in the admin prefs for future use.
+      ###
+      ### @param default[String] the default value when hitting return
+      ###
+      ### @return [String] The Apple Developer signing ID to use
+      ###
+      def get_signing_identity(default = D3::Admin::Prefs.prefs[:signing_identity])
+        desc = <<-END_DESC
+SIGNING IDENTITY
+Enter the common name of your Apple Developer signing ID to create signed Apple .pkgs.
+E.g. If you enter 'Developer ID Installer: My Company (A12BC34DE56)', then that string will be passed
+as the option for pkgbuild --sign. D3 will not attempt to sign unless this option is set.'
+        END_DESC
+        prompt_for_data(opt: :signing_identity, desc: desc, default: default, required: false)
+      end
+
+      ### Get any arguments and options to pass to pkgbuild
+      ### A signing identity must be defined for these options to be used.
+      ###
+      ### This value is saved in the admin prefs for future use.
+      ###
+      ### @param default[String] the default value when hitting return
+      ###
+      ### @return [String] The string of arguments and options to pass to pkgbuild
+      ###
+      def get_signing_options(default = D3::Admin::Prefs.prefs[:signing_options])
+        desc = <<-END_DESC
+SIGNING OPTIONS
+Enter optional arguments and options to pass to pkgbuild. These options are ignored unless a signing identity is defined.
+E.g. --keychain '/Users/d3/Library/Keychain' --cert 'My Awesome Authority' --timestamp
+        END_DESC
+        prompt_for_data(opt: :signing_options, desc: desc, default: default, required: false)
+      end
+
       ### Get the desired local workspace for building pkgs
       ### Defaults to ENV['HOME']
       ###
@@ -932,6 +972,8 @@ Which setting would you like to configure?
   workspace - the folder in which to build .pkgs and .dmgs
   editor - the shell command for editing package descriptions
   pkg-id-prefix - the prefix for the .pkg identifier when building .pkgs
+  signing-identity - optional Developer ID Installer certificate issued by Apple
+  signing-options - the string of signing options to pass to pkgbuild. This is ignored unless signing-identity is defined.
   all - all of the above
   display - show current configuration
 
