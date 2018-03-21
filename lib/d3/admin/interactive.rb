@@ -973,7 +973,7 @@ Which setting would you like to configure?
   editor - the shell command for editing package descriptions
   pkg-id-prefix - the prefix for the .pkg identifier when building .pkgs
   signing-identity - optional Developer ID Installer certificate issued by Apple
-  signing-options - the string of signing options to pass to pkgbuild. This is ignored unless signing-identity is defined.
+  signing-options - optional string of signing options to pass to pkgbuild.
   all - all of the above
   display - show current configuration
 
