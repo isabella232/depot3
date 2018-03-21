@@ -24,6 +24,7 @@
 
 ###
 module D3
+
   module Admin
 
     ### The Admin::Add modile contains constants and methods related to
@@ -34,35 +35,35 @@ module D3
 
       ### These are the symbols representing all the possible commandline options
       ### used for defining new packages.
-      NEW_PKG_OPTIONS = %w{
-          version
-          revision
-          package_name
-          description
-          filename
-          category
-          oses
-          cpu_type
-          reboot
-          removable
-          remove_first
-          prohibiting_processes
-          auto_groups
-          excluded_groups
-          pre_install
-          post_install
-          pre_remove
-          post_remove
-          expiration
-          expiration_paths
-          source_path
-        }.map{|i| i.to_sym}
+      NEW_PKG_OPTIONS = %i(
+        version
+        revision
+        package_name
+        description
+        filename
+        category
+        oses
+        cpu_type
+        reboot
+        removable
+        remove_first
+        prohibiting_processes
+        auto_groups
+        excluded_groups
+        pre_install
+        post_install
+        pre_remove
+        post_remove
+        expiration
+        expiration_paths
+        source_path
+      ).freeze
 
       ### If we need to build the pkg, these options are needed
-      BUILD_OPTIONS = [:workspace, :package_build_type]
+      BUILD_OPTIONS = [:workspace, :package_build_type].freeze
 
       ### If we are building a .pkg these options are needed
-      PKG_OPTIONS = [:pkg_identifier, :pkg_preserve_owners]
+      PKG_OPTIONS = [:pkg_identifier, :pkg_preserve_owners, :signing_identity, :signing_options].freeze
 
       ### Continuously loop through displaying the add-package menu, and getting
       ### new values, until the user types 'x'.
@@ -71,39 +72,36 @@ module D3
       ###
       ### @return [OpenStruct] the new_package_options with validated data
       ###
-      def loop_thru_add_walkthru (options)
-
-        inherited_line = options.inherited_from ? "with values inherited from '#{options.inherited_from}'" : "with global default values"
-
-
+      def loop_thru_add_walkthru(options)
+        inherited_line = options.inherited_from ? "with values inherited from '#{options.inherited_from}'" : 'with global default values'
 
         choice = nil
 
         # loop until the user types an x
-        while choice != "x"
+        while choice != 'x'
           walkthru_menu_header = <<-END_HEADER
 ------------------------------------
-Adding pilot d3 package '#{options.edition or options.basename}'
+Adding pilot d3 package '#{options.edition || options.basename}'
 #{inherited_line}
 ------------------------------------
 END_HEADER
           menu_options = NEW_PKG_OPTIONS
-          if options.source_path and get_package_type_from_source(options.source_path) == :root_folder
+          if options.source_path && get_package_type_from_source(options.source_path) == :root_folder
             menu_options += BUILD_OPTIONS
             menu_options += PKG_OPTIONS if options.package_build_type == :pkg
           end
 
-          choice = D3::Admin::Interactive.get_menu_choice( walkthru_menu_header, walkthru_menu_lines(menu_options, options) )
+          choice = D3::Admin::Interactive.get_menu_choice(walkthru_menu_header, walkthru_menu_lines(menu_options, options))
 
           if choice == 'x'
             (options, errors) = validate_all_new_package_options options
             if errors.empty?
               break # while
             else
-              puts "***** ERRORS *****"
+              puts '***** ERRORS *****'
               puts errors.join "\n"
-              puts "*****"
-              puts "Type return to continue, ^c to exit"
+              puts '*****'
+              puts 'Type return to continue, ^c to exit'
               gets
               choice = 'not x'
             end # if errors empty
@@ -115,10 +113,9 @@ END_HEADER
             # Here the value we're actually editing
             current_opt_value = options[chosen_opt]
 
-
             # if we're editing version or revision, and the current pkg or filenames are
             # based on them then make a note to update the names  when we get the new values
-            if chosen_opt == :basename or chosen_opt == :version or chosen_opt == :revision
+            if chosen_opt == :basename || chosen_opt == :version || chosen_opt == :revision
               update_edition = true
               update_pkg_name = options.package_name.start_with? options.edition
               update_filename = options.filename.start_with? options.edition
@@ -130,7 +127,7 @@ END_HEADER
 
             # if editing the source or the buildtype, we might have to update the
             # names as well
-            if chosen_opt == :source_path or chosen_opt == :package_build_type
+            if chosen_opt == :source_path || chosen_opt == :package_build_type
               update_pkg_name = options.package_name =~ /\.(m?pkg|dmg)$/
               update_filename = true
             end
@@ -139,7 +136,7 @@ END_HEADER
             options[chosen_opt] = D3::Admin::Interactive.get_value(chosen_opt, current_opt_value, nil)
 
             # if we changed the version, reset the revision to 1 and update values as needed
-            if chosen_opt == :version and options[chosen_opt] != current_opt_value
+            if chosen_opt == :version && options[chosen_opt] != current_opt_value
               options[:revision] = 1
               update_edition = true
               update_pkg_name = options.package_name.start_with? options.edition
@@ -152,10 +149,10 @@ END_HEADER
             options.filename = "#{options.edition}.#{options.package_build_type}" if update_filename
 
             # if we edited the source path, we might need to update the names and the pkg build type
-            if chosen_opt == :source_path and options.source_path.extname =~  /\.(m?pkg|dmg)$/
+            if chosen_opt == :source_path && options.source_path.extname =~ /\.(m?pkg|dmg)$/
               options.package_name.sub(/\.(m?pkg|dmg)$/, options.source_path.extname)
               options.filename.sub(/\.(m?pkg|dmg)$/, options.source_path.extname)
-              options.package_build_type = options.source_path.extname == ".dmg" ? :dmg : :pkg
+              options.package_build_type = options.source_path.extname == '.dmg' ? :dmg : :pkg
             end
 
             # ditto if we edited the package_build_type
@@ -164,12 +161,11 @@ END_HEADER
               options.filename.sub(/\.(m?pkg|dmg)$/, options.package_build_type.to_s)
             end
 
-          end #if choice == x
+          end # if choice == x
         end # while choice not x
 
         # return the options
         options
-
       end # loop_thru_add_walkthru
 
       ### Regenerate the walkthru menu lines
@@ -181,12 +177,12 @@ END_HEADER
       ###
       ### @return [Array<String>] the lines of the walkthru menu
       ###
-      def walkthru_menu_lines (menu_options, current_options)
+      def walkthru_menu_lines(menu_options, current_options)
         display_lines = []
 
         menu_options.each_index do |i|
           # the option symbol, like :reboot
-          #opt = NEW_PKG_OPTIONS[i]
+          # opt = NEW_PKG_OPTIONS[i]
           opt = menu_options[i]
           opt_def = D3::Admin::OPTIONS[opt]
           label = opt_def[:label]
@@ -195,7 +191,7 @@ END_HEADER
           value_display = converter ? converter.call(value) : value
           display_lines[i] = "#{label}: #{value_display}"
         end
-        return display_lines
+        display_lines
       end # def walkthru_menu_lines
 
       ### Validate commandline options when adding a package without walkthru
@@ -210,17 +206,17 @@ END_HEADER
       ###
       ### @return [OpenStruct] the new_package_options with validated data
       ###
-      def add_pilot_cli (cli_options)
-        (new_package_options, errors) = validate_all_new_package_options (cli_options)
+      def add_pilot_cli(cli_options)
+        (new_package_options, errors) = validate_all_new_package_options(cli_options)
         if errors.empty?
           return new_package_options
         else
-          puts "***** ERRORS *****"
+          puts '***** ERRORS *****'
           puts errors.join "\n"
-          puts "*****"
-          raise ArgumentError, "Errors in commandline options, see above."
+          puts '*****'
+          raise ArgumentError, 'Errors in commandline options, see above.'
         end # if errors empty
-      end #validate_cli_add_pilot
+      end # validate_cli_add_pilot
 
       ### Validate all possible options for making a new pkg.
       ###
@@ -235,11 +231,10 @@ END_HEADER
       ### @return [Array<OpenStruct, Array>] An array with two items: the possibly-validated options
       ###   and an array of error messages, which should be empty if all options are valid.
       ###
-      def validate_all_new_package_options (options_from_user)
-
+      def validate_all_new_package_options(options_from_user)
         # what do we need to check
         opts_to_check = NEW_PKG_OPTIONS
-        if options_from_user.source_path and get_package_type_from_source(options_from_user.source_path) == :root_folder
+        if options_from_user.source_path && get_package_type_from_source(options_from_user.source_path) == :root_folder
           opts_to_check += BUILD_OPTIONS
           opts_to_check += PKG_OPTIONS if options_from_user.package_build_type == :pkg
         end
@@ -273,16 +268,16 @@ END_HEADER
 
         # group overlaps
         begin
-           D3::Package::Validate.validate_non_overlapping_groups options_from_user[:auto_groups], options_from_user[:excluded_groups]
+          D3::Package::Validate.validate_non_overlapping_groups options_from_user[:auto_groups], options_from_user[:excluded_groups]
         rescue JSS::InvalidDataError
-           errors << "Auto and Excluded group-lists can't contain groups in common."
+          errors << "Auto and Excluded group-lists can't contain groups in common."
         end
 
         # expiration path if expiration
         if options_from_user[:expiration] > 0
-            errors << "expiration path cannot be empty if expiration is > 0 ." unless options_from_user[:expiration_paths]
+          errors << 'expiration path cannot be empty if expiration is > 0 .' unless options_from_user[:expiration_paths]
         end
-        return [options_from_user, errors]
+        [options_from_user, errors]
       end # validate_all_new_package_options
 
       ### Figure out the default values for all options for creating a new package
@@ -296,7 +291,7 @@ END_HEADER
         dft_opts = OpenStruct.new
 
         # first populate the opts from the defined defaults for anything that's still nil
-        D3::Admin::OPTIONS.each {|opt, settings| dft_opts[opt] = settings[:default]}
+        D3::Admin::OPTIONS.each { |opt, settings| dft_opts[opt] = settings[:default] }
 
         dft_opts.basename = basename
 
@@ -313,7 +308,7 @@ END_HEADER
         end #  if basename
 
         # edition if available
-        if dft_opts.version and dft_opts.revision
+        if dft_opts.version && dft_opts.revision
           dft_opts.edition = "#{dft_opts.basename}-#{dft_opts.version}-#{dft_opts.revision}"
         else
           dft_opts.edition = nil
@@ -330,15 +325,13 @@ END_HEADER
         dft_opts.workspace = D3::Admin::Prefs.prefs[:workspace]
         dft_opts.workspace ||= D3::Admin::DFT_WORKSPACE
 
-
         # use the pkg_identifier_prefix from the prefs
         pfx = D3::Admin::Prefs.prefs[:apple_pkg_id_prefix]
         pfx ||= D3::Admin::DFT_PKG_ID_PREFIX
         dft_opts.pkg_identifier ||= "#{pfx}.#{basename}".gsub(/\.+/, '.')
 
         # We now have our defaults for a new pkg
-        return dft_opts
-
+        dft_opts
       end # populate_default_options
 
       ### Get default values from an existing d3 package, and use them to
@@ -352,7 +345,6 @@ END_HEADER
       ### @return  [OpenStruct] an ostruct with the default values
       ###
       def default_options_from_package(pkg, dft_opts = OpenStruct.new)
-
         # populate the opts from the pkg, if the pkg has a value
         D3::Admin::OPTIONS.keys.each do |opt|
           next unless pkg.respond_to?(opt)
@@ -370,7 +362,7 @@ END_HEADER
 
         # grab the first pkg-id if it exists
         # we might use it to if making a new pkg
-        if pkg.apple_receipt_data and pkg.apple_receipt_data[0] and pkg.apple_receipt_data[0][:apple_pkg_id]
+        if pkg.apple_receipt_data && pkg.apple_receipt_data[0] && pkg.apple_receipt_data[0][:apple_pkg_id]
           dft_opts.pkg_identifier = pkg.apple_receipt_data[0][:apple_pkg_id]
         end
 
@@ -386,13 +378,13 @@ END_HEADER
       ### @return [Symbol] :dmg, :pkg, or :root_folder
       ###
       def get_package_type_from_source (source_path)
-        if source_path.to_s.end_with? ".dmg"
-          return :dmg
+        if source_path.to_s.end_with? '.dmg'
+          :dmg
         elsif source_path.to_s =~ /\.m?pkg$/
-          return :pkg
+          :pkg
         else
-          return :root_folder
-        end # if .source_path.to_s.end_with? ".dmg"
+          :root_folder
+        end # if .source_path.to_s.end_with? '.dmg'
       end
 
       ### Add the new pkg to d3
@@ -401,16 +393,17 @@ END_HEADER
       ###
       ### @return [Integer] the JSS id of the new package
       ###
-      def add_new_package (new_package_options)
-
+      def add_new_package(new_package_options)
         # new_package_options should now have all the validated data we need to make a new pkg
-        new_pilot = D3::Package.new(:id => :new,
-          :basename => new_package_options.basename,
-          :name => new_package_options.package_name,
-          :version => new_package_options.version,
-          :revision => new_package_options.revision,
-          :filename => new_package_options.filename,
-          :admin => ENV["USER"])
+        new_pilot = D3::Package.new(
+          id: :new,
+          basename: new_package_options.basename,
+          name: new_package_options.package_name,
+          version: new_package_options.version,
+          revision: new_package_options.revision,
+          filename: new_package_options.filename,
+          admin: ENV['USER']
+        )
 
         D3::Admin::Add::NEW_PKG_OPTIONS.each do |opt|
           setter = "#{opt}=".to_sym
@@ -420,21 +413,28 @@ END_HEADER
         # do we need to build the pkg?
         unless new_package_options.source_path.extname =~ /\.(m?pkg|dmg)$/
           if new_package_options.package_build_type == :pkg
-            puts "Building .pkg..."
-            new_pkg_path = JSS::Composer.mk_pkg(new_package_options.package_name,
+            puts 'Building .pkg...'
+
+            new_pkg_path = JSS::Composer.mk_pkg(
+              new_package_options.package_name,
               new_package_options.version,
               new_package_options.source_path,
-              :pkg_id => new_package_options.pkg_identifier,
-              :out_dir => new_package_options.workspace,
-              :preserve_ownership => new_package_options.pkg_preserve_owners )
+              pkg_id: new_package_options.pkg_identifier,
+              out_dir: new_package_options.workspace,
+              preserve_ownership: new_package_options.pkg_preserve_owners,
+              signing_identity: new_package_options.signing_identity,
+              signing_options: new_package_options.signing_options
+            )
 
             new_package_options.source_path = new_pkg_path
 
           elsif new_package_options.package_build_type == :dmg
-            puts "Building .dmg..."
-            new_pkg_path = JSS::Composer.mk_dmg(new_package_options.package_name,
+            puts 'Building .dmg...'
+            new_pkg_path = JSS::Composer.mk_dmg(
+              new_package_options.package_name,
               new_package_options.source_path,
-              new_package_options.workspace)
+              new_package_options.workspace
+            )
 
             new_package_options.source_path = new_pkg_path
           end # if new_package_options.package_build_type
@@ -445,19 +445,20 @@ END_HEADER
 
         new_pkg_id = new_pilot.save
 
-        puts "Indexing..."
+        puts 'Indexing...'
         # make the index - all d3 pkgs are indexed in the JSS
-        new_pilot.mk_index :local_filepath => new_package_options.source_path
+        new_pilot.mk_index local_filepath: new_package_options.source_path
 
         # upload to dist point
         # if its a .pkg, the apple rcpt data is updated during the upload
-        puts "Uploading to the Master Distribution Point..."
+        puts 'Uploading to the Master Distribution Point...'
         new_pilot.upload_master_file new_package_options.source_path, D3::Admin::Auth.rw_credentials(:dist)[:password]
 
-        return new_pkg_id
-
+        new_pkg_id
       end # add_new_package
 
     end # module Add
+
   end # module Admin
+
 end # module D3

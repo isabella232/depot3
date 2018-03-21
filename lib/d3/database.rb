@@ -22,76 +22,74 @@
 ###
 ###
 
-
 ###
 module D3
 
+  ###
   module Database
 
     ################# Module Constants #################
-
 
     ### Booleans are stored as 1's and 0's in the db.
     TRUE_VAL = 1
     FALSE_VAL = 0
 
     # This table has info about the JSS schema
-    SCHEMA_TABLE = "db_schema_information"
+    SCHEMA_TABLE = 'db_schema_information'.freeze
 
     # the minimum JSS schema version allowed
-    MIN_SCHEMA_VERSION = "9.4"
+    MIN_SCHEMA_VERSION = '9.4'.freeze
 
     # the max JSS schema version allowed
-    MAX_SCHEMA_VERSION = "9.999.0"
+    MAX_SCHEMA_VERSION = '10.2'.freeze
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql
     ### representation and the Ruby classses we use internally.
 
     ### Ruby Time objects are stored as JSS epochs (unix epoch plus milliseconds)
-    EPOCH_TO_TIME = Proc.new{|v| (v.nil? or v.to_s.empty?) ? nil : JSS.epoch_to_time(v) }
+    EPOCH_TO_TIME = proc { |v| v.nil? || v.to_s.empty? ? nil : JSS.epoch_to_time(v) }
 
     ### JSS epochs (unix epoch plus milliseconds) as used as Ruby Time objects
-    TIME_TO_EPOCH = Proc.new{|v|(v.nil? or v.to_s.empty?) ? nil :  v.to_jss_epoch }
+    TIME_TO_EPOCH = proc { |v| v.nil? || v.to_s.empty? ? nil : v.to_jss_epoch }
 
     ### Integers come from the database as strings, but empty ones should be nil, not zero, as #to_i would do
-    STRING_TO_INT = Proc.new{|v| (v.nil? or v.to_s.empty?) ? nil : v.to_i}
+    STRING_TO_INT = proc { |v| v.nil? || v.to_s.empty? ? nil : v.to_i }
 
     ### Some values are stored as comma-separated strings, but used as Arrays
-    COMMA_STRING_TO_ARRAY = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform] }
+    COMMA_STRING_TO_ARRAY = proc { |v| JSS.to_s_and_a(v)[:arrayform] }
 
     ### Some values are stored as comma-separated strings, but used as Arrays of Pathnames
-    COMMA_STRING_TO_ARRAY_OF_PATHNAMES = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform].map{|p| Pathname.new(p)} }
-    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.is_a?(Array) ? v.join(", ") : "" }
+    COMMA_STRING_TO_ARRAY_OF_PATHNAMES = proc { |v| JSS.to_s_and_a(v)[:arrayform].map { |p| Pathname.new(p) } }
+    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = proc { |v| v.is_a?(Array) ? v.join(', ') : '' }
 
     ### Some values are used as Arrays but stored as comma-separated strings
-    ARRAY_TO_COMMA_STRING = Proc.new{|v| JSS.to_s_and_a(v)[:stringform] }
+    ARRAY_TO_COMMA_STRING = proc { |v| JSS.to_s_and_a(v)[:stringform] }
 
     ### Some values are stored in the DB as YAML dumps
-    RUBY_TO_YAML = Proc.new{|v| YAML.dump v }
+    RUBY_TO_YAML = proc { |v| YAML.dump v }
 
-    YAML_TO_RUBY = Proc.new{|v| YAML.load v.to_s }
-
-    ### Booleans are stored as zero and one
-    BOOL_TO_INT = Proc.new{|v| v == true ? TRUE_VAL : FALSE_VAL}
+    YAML_TO_RUBY = proc { |v| YAML.load v.to_s }
 
     ### Booleans are stored as zero and one
-    INT_TO_BOOL = Proc.new{|v| v.to_i == FALSE_VAL ? false : true}
+    BOOL_TO_INT = proc { |v| v == true ? TRUE_VAL : FALSE_VAL }
+
+    ### Booleans are stored as zero and one
+    INT_TO_BOOL = proc { |v| v.to_i == FALSE_VAL ? false : true }
 
     ### Regexps are stored as strings
-    STRING_TO_REGEXP = Proc.new{|v| v.to_s.empty? ? nil : Regexp.new(v.to_s) }
+    STRING_TO_REGEXP = proc { |v| v.to_s.empty? ? nil : Regexp.new(v.to_s) }
 
     ### Regexps are stored as strings
-    REGEXP_TO_STRING = Proc.new{|v| v.to_s }
+    REGEXP_TO_STRING = proc { |v| v.to_s }
 
     ### Status values are stored as strings, but used as symbols
-    STATUS_TO_STRING = Proc.new{|v| v.to_s }
-    STRING_TO_STATUS = Proc.new{|v| v.to_sym }
+    STATUS_TO_STRING = proc { |v| v.to_s }
+    STRING_TO_STATUS = proc { |v| v.to_sym }
 
     ### Expiration paths are stored as strings, but used as Pathnames
-    STRING_TO_PATHNAME = Proc.new{|v| Pathname.new v.to_s}
-    PATHNAME_TO_STRING = Proc.new{|v| v.to_s}
-
+    STRING_TO_PATHNAME = proc { |v| Pathname.new v.to_s }
+    PATHNAME_TO_STRING = proc { |v| v.to_s }
 
     ### The MySQL table that defines which JSS Packages are a part of d3
     ###
@@ -173,177 +171,176 @@ module D3
     ###
     ### See also the attributes of {D3::Package}, which mostly mirror the
     ###
-    PACKAGE_TABLE = { :table_name => 'd3_packages',
+    PACKAGE_TABLE = {
+      table_name: 'd3_packages',
 
-      :field_definitions => {
+      field_definitions: {
 
-        :id => {
-          :field_name => "package_id",
-          :sql_type => 'int(11) NOT NULL',
-          :index => :unique,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        id: {
+          field_name: 'package_id',
+          sql_type: 'int(11) NOT NULL',
+          index: :unique,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :basename => {
-          :field_name => "basename",
-          :sql_type => 'varchar(60) NOT NULL',
-          :index => true,
-          :to_sql => nil,
-          :to_ruby => nil
+        basename: {
+          field_name: 'basename',
+          sql_type: 'varchar(60) NOT NULL',
+          index: true,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :version => {
-          :field_name => "version",
-          :sql_type => 'varchar(30) NOT NULL',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+        version: {
+          field_name: 'version',
+          sql_type: 'varchar(30) NOT NULL',
+          index: nil,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :revision => {
-          :field_name => "revision",
-          :sql_type => 'int(4) NOT NULL',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        revision: {
+          field_name: 'revision',
+          sql_type: 'int(4) NOT NULL',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :apple_receipt_data => {
-          :field_name => "apple_receipt_data",
-          :sql_type => "text",
-          :index => nil,
-          :to_sql  => RUBY_TO_YAML,
-          :to_ruby => YAML_TO_RUBY
+        apple_receipt_data: {
+          field_name: 'apple_receipt_data',
+          sql_type: 'text',
+          index: nil,
+          to_sql: RUBY_TO_YAML,
+          to_ruby: YAML_TO_RUBY
         },
 
-        :added_date => {
-          :field_name => "added_date_epoch",
-          :sql_type => "bigint(32) DEFAULT NULL",
-          :index => nil,
-          :to_sql => TIME_TO_EPOCH,
-          :to_ruby => EPOCH_TO_TIME
+        added_date: {
+          field_name: 'added_date_epoch',
+          sql_type: 'bigint(32) DEFAULT NULL',
+          index: nil,
+          to_sql: TIME_TO_EPOCH,
+          to_ruby: EPOCH_TO_TIME
         },
 
-        :added_by => {
-          :field_name => "added_by",
-          :sql_type => 'varchar(30)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+        added_by: {
+          field_name: 'added_by',
+          sql_type: 'varchar(30)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :status => {
-          :field_name => "status",
-          :sql_type => "varchar(30) DEFAULT 'pilot'",
-          :index => nil,
-          :to_sql => STATUS_TO_STRING,
-          :to_ruby => STRING_TO_STATUS
+        status: {
+          field_name: 'status',
+          sql_type: "varchar(30) DEFAULT 'pilot'",
+          index: nil,
+          to_sql: STATUS_TO_STRING,
+          to_ruby: STRING_TO_STATUS
         },
 
-        :release_date => {
-          :field_name => "release_date_epoch",
-          :sql_type => "bigint(32)  DEFAULT NULL",
-          :index => nil,
-          :to_sql => TIME_TO_EPOCH,
-          :to_ruby => EPOCH_TO_TIME
+        release_date: {
+          field_name: 'release_date_epoch',
+          sql_type: 'bigint(32)  DEFAULT NULL',
+          index: nil,
+          to_sql: TIME_TO_EPOCH,
+          to_ruby: EPOCH_TO_TIME
         },
 
-        :released_by => {
-          :field_name => "released_by",
-          :sql_type => 'varchar(30)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => nil
+        released_by: {
+          field_name: 'released_by',
+          sql_type: 'varchar(30)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: nil
         },
 
-        :auto_groups => {
-          :field_name => 'auto_install_groups',
-          :sql_type => 'text',
-          :index => nil,
-          :to_sql => ARRAY_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY
+        auto_groups: {
+          field_name: 'auto_install_groups',
+          sql_type: 'text',
+          index: nil,
+          to_sql: ARRAY_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY
         },
 
-        :excluded_groups => {
-          :field_name => 'excluded_groups',
-          :sql_type => 'text',
-          :index => nil,
-          :to_sql =>  ARRAY_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY
+        excluded_groups: {
+          field_name: 'excluded_groups',
+          sql_type: 'text',
+          index: nil,
+          to_sql:  ARRAY_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY
         },
 
-        :prohibiting_processes => {
-          :field_name => "prohibiting_process",
-          :sql_type => 'varchar(100)',
-          :index => nil,
-          :to_sql => ARRAY_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY
+        prohibiting_processes: {
+          field_name: 'prohibiting_process',
+          sql_type: 'varchar(100)',
+          index: nil,
+          to_sql: ARRAY_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY
         },
 
-        :remove_first => {
-          :field_name => "remove_first",
-          :sql_type => "tinyint(1) DEFAULT '0'",
-          :index => nil,
-          :to_sql => BOOL_TO_INT,
-          :to_ruby => INT_TO_BOOL
+        remove_first: {
+          field_name: 'remove_first',
+          sql_type: "tinyint(1) DEFAULT '0'",
+          index: nil,
+          to_sql: BOOL_TO_INT,
+          to_ruby: INT_TO_BOOL
         },
 
-        :pre_install_script_id => {
-          :field_name => "pre_install_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        pre_install_script_id: {
+          field_name: 'pre_install_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :post_install_script_id => {
-          :field_name => "post_install_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        post_install_script_id: {
+          field_name: 'post_install_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :pre_remove_script_id => {
-          :field_name => "pre_remove_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        pre_remove_script_id: {
+          field_name: 'pre_remove_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :post_remove_script_id => {
-          :field_name => "post_remove_id",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        post_remove_script_id: {
+          field_name: 'post_remove_id',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :expiration => {
-          :field_name => "expiration",
-          :sql_type => 'int(11)',
-          :index => nil,
-          :to_sql => nil,
-          :to_ruby => STRING_TO_INT
+        expiration: {
+          field_name: 'expiration',
+          sql_type: 'int(11)',
+          index: nil,
+          to_sql: nil,
+          to_ruby: STRING_TO_INT
         },
 
-        :expiration_paths => {
-          :field_name => "expiration_app_path",
-          :sql_type => 'varchar(300)',
-          :index => nil,
-          :to_sql => ARRAY_OF_PATHNAMES_TO_COMMA_STRING,
-          :to_ruby => COMMA_STRING_TO_ARRAY_OF_PATHNAMES
+        expiration_paths: {
+          field_name: 'expiration_app_path',
+          sql_type: 'varchar(300)',
+          index: nil,
+          to_sql: ARRAY_OF_PATHNAMES_TO_COMMA_STRING,
+          to_ruby: COMMA_STRING_TO_ARRAY_OF_PATHNAMES
         }
       },
 
-      :other_indexes => [
-        "UNIQUE KEY `edition` (`basename`,`version`,`revision`)"
+      other_indexes: [
+        'UNIQUE KEY `edition` (`basename`,`version`,`revision`)'
       ]
-    }  # end PACKAGE_TABLE
-
-
+    }.freeze # end PACKAGE_TABLE
 
     ################# Module Methods #################
 
@@ -363,20 +360,17 @@ module D3
     ###
     ###
     def self.table_records(table_def)
-
       recs = []
 
       result = JSS.db.query "SELECT * FROM #{table_def[:table_name]}"
 
       # parse each record into a hash
       result.each_hash do |record|
-
         rec = {}
 
         # go through each field in the record, adding it to the hash
         # converting it to its ruby data type if defined in field conversions
-        table_def[:field_definitions].each_pair do |key,field_def|
-
+        table_def[:field_definitions].each_pair do |key, field_def|
           # do we convert the value from the DB to something else in ruby?
           if field_def[:to_ruby]
             rec[key] = field_def[:to_ruby].call record[field_def[:field_name]]
@@ -385,14 +379,12 @@ module D3
           else
             rec[key] = record[field_def[:field_name]]
           end # if
-
         end # do key, field_def
 
         recs << rec
-
       end # do record
 
-      return recs
+      recs
     end # self.table_records(table_def)
 
     ### Print the sql for creating the d3_packages table
@@ -404,7 +396,6 @@ module D3
       puts  self.create_table(:display)
     end
 
-
     ### Raise an exception if JSS schema is to old or too new
     def self.check_schema_version
       raw = JSS::DB_CNX.db.query("SELECT version FROM #{SCHEMA_TABLE}").fetch[0]
@@ -412,8 +403,8 @@ module D3
       current = JSS.parse_jss_version(simmered)[:version]
       min = JSS.parse_jss_version(MIN_SCHEMA_VERSION)[:version]
       max = JSS.parse_jss_version(MAX_SCHEMA_VERSION)[:version]
-      raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if current < min or current > max
-      return true
+      raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if (current < min) || (current > max)
+      true
     end
 
     private
@@ -429,8 +420,7 @@ module D3
     ###
     ### @return [void]
     ###
-    def self.create_table(display=false)
-
+    def self.create_table(display = false)
       # as of now, only one table.
       table_constant = PACKAGE_TABLE
 
@@ -438,22 +428,21 @@ module D3
       indexes = ''
 
       table_constant[:field_definitions].keys.sort.each do |key|
-
         field = table_constant[:field_definitions][key]
 
         sql += "\n  `#{field[:field_name]}` #{field[:sql_type]},"
 
         indexes += case field[:index]
-          when :primary
-            "\n  PRIMARY KEY (`#{field[:field_name]}`),"
-          when :unique
-            "\n  UNIQUE KEY (`#{field[:field_name]}`),"
-          when true
-            "\n  KEY (`#{field[:field_name]}`),"
-          else
-            ''
-        end # indexes +=  case
-      end #each do key
+                   when :primary
+                     "\n  PRIMARY KEY (`#{field[:field_name]}`),"
+                   when :unique
+                     "\n  UNIQUE KEY (`#{field[:field_name]}`),"
+                   when true
+                     "\n  KEY (`#{field[:field_name]}`),"
+                   else
+                     ''
+                   end # indexes +=  case
+      end # each do key
 
       sql += indexes
 
@@ -461,7 +450,7 @@ module D3
         sql += "\n  #{idx},"
       end
 
-      sql.chomp! ","
+      sql.chomp! ','
       sql += "\n) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
 
       if display
@@ -471,15 +460,12 @@ module D3
 
       stmt = JSS::DB_CNX.db.prepare sql
       stmt.execute
-
     end # create d3 table
-
-
 
     ### @return [Array<String>] A list of all d3-related tables in the database
     ###
     def self.tables
-      res = JSS::DB_CNX.db.query "show tables"
+      res = JSS::DB_CNX.db.query 'show tables'
       d3_tables = []
       res.each do |t|
         d3_tables << t[0] if t[0].start_with? 'd3_'
@@ -489,4 +475,5 @@ module D3
     end
 
   end # module Database
+
 end # module D3
