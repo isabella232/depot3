@@ -22,76 +22,74 @@
 ###
 ###
 
-
 ###
 module D3
 
+  ###
   module Database
 
     ################# Module Constants #################
-
 
     ### Booleans are stored as 1's and 0's in the db.
     TRUE_VAL = 1
     FALSE_VAL = 0
 
     # This table has info about the JSS schema
-    SCHEMA_TABLE = "db_schema_information"
+    SCHEMA_TABLE = 'db_schema_information'.freeze
 
     # the minimum JSS schema version allowed
-    MIN_SCHEMA_VERSION = "9.4"
+    MIN_SCHEMA_VERSION = '9.4'.freeze
 
     # the max JSS schema version allowed
-    MAX_SCHEMA_VERSION = "9.999.0"
+    MAX_SCHEMA_VERSION = '10.2'.freeze
 
     ### these Proc objects allow us to encapsulate and pass around various
     ### blocks of code more easily for converting data between their mysql
     ### representation and the Ruby classses we use internally.
 
     ### Ruby Time objects are stored as JSS epochs (unix epoch plus milliseconds)
-    EPOCH_TO_TIME = Proc.new{|v| (v.nil? or v.to_s.empty?) ? nil : JSS.epoch_to_time(v) }
+    EPOCH_TO_TIME = proc { |v| v.nil? || v.to_s.empty? ? nil : JSS.epoch_to_time(v) }
 
     ### JSS epochs (unix epoch plus milliseconds) as used as Ruby Time objects
-    TIME_TO_EPOCH = Proc.new{|v|(v.nil? or v.to_s.empty?) ? nil :  v.to_jss_epoch }
+    TIME_TO_EPOCH = proc { |v| v.nil? || v.to_s.empty? ? nil : v.to_jss_epoch }
 
     ### Integers come from the database as strings, but empty ones should be nil, not zero, as #to_i would do
-    STRING_TO_INT = Proc.new{|v| (v.nil? or v.to_s.empty?) ? nil : v.to_i}
+    STRING_TO_INT = proc { |v| v.nil? || v.to_s.empty? ? nil : v.to_i }
 
     ### Some values are stored as comma-separated strings, but used as Arrays
-    COMMA_STRING_TO_ARRAY = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform] }
+    COMMA_STRING_TO_ARRAY = proc { |v| JSS.to_s_and_a(v)[:arrayform] }
 
     ### Some values are stored as comma-separated strings, but used as Arrays of Pathnames
-    COMMA_STRING_TO_ARRAY_OF_PATHNAMES = Proc.new{|v| JSS.to_s_and_a(v)[:arrayform].map{|p| Pathname.new(p)} }
-    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = Proc.new{|v| v.is_a?(Array) ? v.join(", ") : "" }
+    COMMA_STRING_TO_ARRAY_OF_PATHNAMES = proc { |v| JSS.to_s_and_a(v)[:arrayform].map { |p| Pathname.new(p) } }
+    ARRAY_OF_PATHNAMES_TO_COMMA_STRING = proc { |v| v.is_a?(Array) ? v.join(', ') : '' }
 
     ### Some values are used as Arrays but stored as comma-separated strings
-    ARRAY_TO_COMMA_STRING = Proc.new{|v| JSS.to_s_and_a(v)[:stringform] }
+    ARRAY_TO_COMMA_STRING = proc { |v| JSS.to_s_and_a(v)[:stringform] }
 
     ### Some values are stored in the DB as YAML dumps
-    RUBY_TO_YAML = Proc.new{|v| YAML.dump v }
+    RUBY_TO_YAML = proc { |v| YAML.dump v }
 
-    YAML_TO_RUBY = Proc.new{|v| YAML.load v.to_s }
-
-    ### Booleans are stored as zero and one
-    BOOL_TO_INT = Proc.new{|v| v == true ? TRUE_VAL : FALSE_VAL}
+    YAML_TO_RUBY = proc { |v| YAML.load v.to_s }
 
     ### Booleans are stored as zero and one
-    INT_TO_BOOL = Proc.new{|v| v.to_i == FALSE_VAL ? false : true}
+    BOOL_TO_INT = proc { |v| v == true ? TRUE_VAL : FALSE_VAL }
+
+    ### Booleans are stored as zero and one
+    INT_TO_BOOL = proc { |v| v.to_i == FALSE_VAL ? false : true }
 
     ### Regexps are stored as strings
-    STRING_TO_REGEXP = Proc.new{|v| v.to_s.empty? ? nil : Regexp.new(v.to_s) }
+    STRING_TO_REGEXP = proc { |v| v.to_s.empty? ? nil : Regexp.new(v.to_s) }
 
     ### Regexps are stored as strings
-    REGEXP_TO_STRING = Proc.new{|v| v.to_s }
+    REGEXP_TO_STRING = proc { |v| v.to_s }
 
     ### Status values are stored as strings, but used as symbols
-    STATUS_TO_STRING = Proc.new{|v| v.to_s }
-    STRING_TO_STATUS = Proc.new{|v| v.to_sym }
+    STATUS_TO_STRING = proc { |v| v.to_s }
+    STRING_TO_STATUS = proc { |v| v.to_sym }
 
     ### Expiration paths are stored as strings, but used as Pathnames
-    STRING_TO_PATHNAME = Proc.new{|v| Pathname.new v.to_s}
-    PATHNAME_TO_STRING = Proc.new{|v| v.to_s}
-
+    STRING_TO_PATHNAME = proc { |v| Pathname.new v.to_s }
+    PATHNAME_TO_STRING = proc { |v| v.to_s }
 
     ### The MySQL table that defines which JSS Packages are a part of d3
     ###
