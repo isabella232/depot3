@@ -222,6 +222,16 @@ module D3
         pfx
       end
 
+      ### Validate Signing Identity ?
+      def validate_signing_idenitity(id)
+        id.is_a?(String) && id
+      end
+
+      ### Validate Signing Options
+      def validate_signing_options(options)
+        options.is_a?(String) && options
+      end
+
       ### Check the path given as a workspace for building pkgs
       ###
       ### @return [Pathname] the valid, full path to the workspace folder
