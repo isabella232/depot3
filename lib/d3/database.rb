@@ -360,20 +360,17 @@ module D3
     ###
     ###
     def self.table_records(table_def)
-
       recs = []
 
       result = JSS.db.query "SELECT * FROM #{table_def[:table_name]}"
 
       # parse each record into a hash
       result.each_hash do |record|
-
         rec = {}
 
         # go through each field in the record, adding it to the hash
         # converting it to its ruby data type if defined in field conversions
-        table_def[:field_definitions].each_pair do |key,field_def|
-
+        table_def[:field_definitions].each_pair do |key, field_def|
           # do we convert the value from the DB to something else in ruby?
           if field_def[:to_ruby]
             rec[key] = field_def[:to_ruby].call record[field_def[:field_name]]
@@ -382,14 +379,12 @@ module D3
           else
             rec[key] = record[field_def[:field_name]]
           end # if
-
         end # do key, field_def
 
         recs << rec
-
       end # do record
 
-      return recs
+      recs
     end # self.table_records(table_def)
 
     ### Print the sql for creating the d3_packages table
@@ -401,7 +396,6 @@ module D3
       puts  self.create_table(:display)
     end
 
-
     ### Raise an exception if JSS schema is to old or too new
     def self.check_schema_version
       raw = JSS::DB_CNX.db.query("SELECT version FROM #{SCHEMA_TABLE}").fetch[0]
@@ -409,8 +403,8 @@ module D3
       current = JSS.parse_jss_version(simmered)[:version]
       min = JSS.parse_jss_version(MIN_SCHEMA_VERSION)[:version]
       max = JSS.parse_jss_version(MAX_SCHEMA_VERSION)[:version]
-      raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if current < min or current > max
-      return true
+      raise JSS::InvalidConnectionError, "Invalid JSS database schema version: #{raw}, min: #{MIN_SCHEMA_VERSION}, max: #{MAX_SCHEMA_VERSION}" if (current < min) || (current > max)
+      true
     end
 
     private
@@ -426,8 +420,7 @@ module D3
     ###
     ### @return [void]
     ###
-    def self.create_table(display=false)
-
+    def self.create_table(display = false)
       # as of now, only one table.
       table_constant = PACKAGE_TABLE
 
@@ -435,22 +428,21 @@ module D3
       indexes = ''
 
       table_constant[:field_definitions].keys.sort.each do |key|
-
         field = table_constant[:field_definitions][key]
 
         sql += "\n  `#{field[:field_name]}` #{field[:sql_type]},"
 
         indexes += case field[:index]
-          when :primary
-            "\n  PRIMARY KEY (`#{field[:field_name]}`),"
-          when :unique
-            "\n  UNIQUE KEY (`#{field[:field_name]}`),"
-          when true
-            "\n  KEY (`#{field[:field_name]}`),"
-          else
-            ''
-        end # indexes +=  case
-      end #each do key
+                   when :primary
+                     "\n  PRIMARY KEY (`#{field[:field_name]}`),"
+                   when :unique
+                     "\n  UNIQUE KEY (`#{field[:field_name]}`),"
+                   when true
+                     "\n  KEY (`#{field[:field_name]}`),"
+                   else
+                     ''
+                   end # indexes +=  case
+      end # each do key
 
       sql += indexes
 
@@ -458,7 +450,7 @@ module D3
         sql += "\n  #{idx},"
       end
 
-      sql.chomp! ","
+      sql.chomp! ','
       sql += "\n) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
 
       if display
@@ -468,15 +460,12 @@ module D3
 
       stmt = JSS::DB_CNX.db.prepare sql
       stmt.execute
-
     end # create d3 table
-
-
 
     ### @return [Array<String>] A list of all d3-related tables in the database
     ###
     def self.tables
-      res = JSS::DB_CNX.db.query "show tables"
+      res = JSS::DB_CNX.db.query 'show tables'
       d3_tables = []
       res.each do |t|
         d3_tables << t[0] if t[0].start_with? 'd3_'
@@ -486,4 +475,5 @@ module D3
     end
 
   end # module Database
+
 end # module D3
