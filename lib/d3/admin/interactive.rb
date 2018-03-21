@@ -195,6 +195,7 @@ module D3
         default_display = case default_display
                           when :no_default then ''
                           when D3::Admin::DFT_REQUIRED then '' # the '---Required---' should only be visible in the menu, not the prompt
+                          when D3::Admin::DFT_OPTIONAL then '' # the '---Optional---' should only be visible in the menu, not the prompt
                           when D3::Admin::DFT_NONE then UNSET
                           else default_display.to_s
                           end
