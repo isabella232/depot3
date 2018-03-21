@@ -357,7 +357,7 @@ an existing version of a given basename.
           current_desc_review = "\n----- Current Description -----\n#{current_desc}\n-------------------------------\n\n"
         end
 
-        if prefd_editor == D3::Admin::Prefs.prefs[:editor]
+        if prefd_editor = D3::Admin::Prefs.prefs[:editor]
           prefd_editor_choice = "\n   - 'e' to edit using '#{prefd_editor}' "
         else
           prefd_editor_choice = ''
