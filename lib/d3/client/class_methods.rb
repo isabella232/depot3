@@ -813,15 +813,20 @@ module D3
     ### have fast user switching on, or multi-user screensharing,
     ### this only gets the one currenly using the physical console
     ###
-    ### @return [Pathname] the path to the executable of the current foreground app
+    ### @return [Pathname, nil] the path to the executable of the current foreground app, nil if none
     ###
     def self.foreground_executable_path
       lsai = "/usr/bin/lsappinfo"
       ls_app_id =  `#{lsai} front`.chomp
+      return nil if ls_app_id == "[ NULL ] "
 
       raw = `#{lsai} info -only executablepath '#{ls_app_id}'`.chomp
-      path = raw.split(/=\s*"/).last.chomp('"')
-      return Pathname.new path
+      return nil if raw.empty?
+
+      path = raw.split(/=\s*"/).last
+      return nil unless path
+      path.chomp!('"')
+      return path.empty? ? nil : Pathname.new(path)
     end
   end # class
 end # module D3
