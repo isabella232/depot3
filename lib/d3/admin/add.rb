@@ -331,6 +331,9 @@ END_HEADER
         dft_opts.pkg_identifier ||= "#{pfx}.#{basename}".gsub(/\.+/, '.')
 
         # We now have our defaults for a new pkg
+        dft_opts.signing_identity = D3::Admin::Prefs.prefs[:signing_identity] || ''
+        dft_opts.signing_options = D3::Admin::Prefs.prefs[:signing_options] || ''
+
         dft_opts
       end # populate_default_options
 
