@@ -56,7 +56,7 @@ module D3
       ###   The second item is the validated input, if the check was good,
       ###   or the error message if not.
       ###
-      def validate (value, validate_method)
+      def validate(value, validate_method)
         return [true, value] unless validate_method
         begin
           valid_value = self.send(validate_method, value)
@@ -66,7 +66,6 @@ module D3
         end # begin
       end
 
-
       ### check that a given pkg id or display name exists in the JSS but not
       ### in d3, and if so, return the valid name or id
       ###
@@ -74,20 +73,18 @@ module D3
       ###
       ### @return [D3::Package] the unsaved, imported package
       ###
-      def validate_package_for_import (pkg_to_check)
-
+      def validate_package_for_import(pkg_to_check)
         # an id, or a name?
         if pkg_to_check.to_s =~ /^\d+$/
           raise JSS::NoSuchItemError, "No package in the JSS with id #{pkg_to_check}" unless JSS::Package.all_ids.include? pkg_to_check.to_i
           raise JSS::AlreadyExistsError, "JSS Package id #{pkg_to_check} is already in d3" if D3::Package.all_ids.include? pkg_to_check.to_i
-          return pkg_to_check.to_i
+          pkg_to_check.to_i
 
         else
           raise JSS::NoSuchItemError, "No package in the JSS with display-name #{pkg_to_check}" unless JSS::Package.all_names.include? pkg_to_check
           raise JSS::AlreadyExistsError, "JSS Package named #{pkg_to_check} is already in d3" if D3::Package.all_names.include? pkg_to_check
-          return pkg_to_check
+          pkg_to_check
         end
-
       end
 
       ### Check that a given basename or edition exists in d3, and if
@@ -99,14 +96,13 @@ module D3
       ###
       ### @return [D3::Package] the matching package
       ###
-      def validate_existing_package (pkg_to_check)
+      def validate_existing_package(pkg_to_check)
         # were we given an edition?
         pkgid = D3::Package.ids_to_editions.invert[pkg_to_check]
         # if not, were we given a basename?
         pkgid ||= D3::Package.basenames_to_live_ids[pkg_to_check]
         raise JSS::NoSuchItemError, "No edition or live-basename in d3 match '#{pkg_to_check}'" if pkgid.nil?
-
-        return pkgid
+        pkgid
       end
 
       ### check that the given package name doesn't already exist
@@ -133,7 +129,7 @@ module D3
       ### @param basename[String]
       ###
       ### @return [String] the valid basename
-      def validate_basename (basename)
+      def validate_basename(basename)
         raise JSS::NoSuchItemError, "There's no package in d3 with the basename '#{basename}'" unless D3::Package::Validate.basename_exist? basename.to_s
         basename.to_s
       end
@@ -145,7 +141,7 @@ module D3
       ###
       ### @return [String] the valid, unique edition
       ###
-      def validate_edition (edition)
+      def validate_edition(edition)
         D3::Package::Validate.validate_edition edition
       end
 
@@ -155,7 +151,7 @@ module D3
       ###
       ### @return [String] An error message, or true if the value is ok
       ###
-      def validate_version (vers)
+      def validate_version(vers)
         D3::Package::Validate.validate_version vers
       end
 
@@ -166,7 +162,7 @@ module D3
       ###
       ### @return [Integer] the valid revision
       ###
-      def validate_revision (rev)
+      def validate_revision(rev)
         D3::Package::Validate.validate_revision rev
       end
 
@@ -177,14 +173,14 @@ module D3
       ###
       ### @return [Pathname] the valid, fully-expanded path
       ###
-      def validate_source_path (src)
-        raise JSS::InvalidDataError, "Source path cannot be empty" if src.to_s.empty?
+      def validate_source_path(src)
+        raise JSS::InvalidDataError, 'Source path cannot be empty' if src.to_s.empty?
         src = Pathname.new(src.to_s).expand_path
         raise JSS::NoSuchItemError, "'#{src}' doesn't exist" unless src.exist?
-        return src if src.to_s.end_with?(".dmg") or src.to_s =~ /\.m?pkg$/
+        return src if src.to_s.end_with?('.dmg') || src.to_s =~ /\.m?pkg$/
 
         # isn't a dmg or pkg, check that its a directory to use as a pkg root
-        raise JSS::InvalidDataError, "#{src} isn't a .dmg or .pkg, but isn't a folder,\ncan't use it for building packages."  unless  src.directory?
+        raise JSS::InvalidDataError, "#{src} isn't a .dmg or .pkg, but isn't a folder,\ncan't use it for building packages." unless src.directory?
         src
       end
 
@@ -208,10 +204,10 @@ module D3
       ###
       ### @return [String] the valid identifier
       ###
-      def validate_package_identifier (pkgid)
-        raise JSS::InvalidDataError, "Package Identifier must be a String" unless pkgid.is_a? String
-        raise JSS::InvalidDataError, "Package Identifier cannot be empty" if pkgid.empty?
-        return pkgid
+      def validate_package_identifier(pkgid)
+        raise JSS::InvalidDataError, 'Package Identifier must be a String' unless pkgid.is_a? String
+        raise JSS::InvalidDataError, 'Package Identifier cannot be empty' if pkgid.empty?
+        pkgid
       end
 
       ### Check the pkg identifier prefix
@@ -220,17 +216,27 @@ module D3
       ###
       ### @return [String] the cleaned-up identifier
       ###
-      def validate_package_identifier_prefix (pfx)
+      def validate_package_identifier_prefix(pfx)
         return nil if pfx.to_s.empty?
-        raise JSS::InvalidDataError, "Package Identifier Prefix must be a String" unless pfx.is_a? String
-        return pfx
+        raise JSS::InvalidDataError, 'Package Identifier Prefix must be a String' unless pfx.is_a? String
+        pfx
+      end
+
+      ### Validate Signing Identity ?
+      def validate_signing_idenitity(id)
+        id.is_a?(String) && id
+      end
+
+      ### Validate Signing Options
+      def validate_signing_options(options)
+        options.is_a?(String) && options
       end
 
       ### Check the path given as a workspace for building pkgs
       ###
       ### @return [Pathname] the valid, full path to the workspace folder
       ###
-      def validate_workspace (wkspc)
+      def validate_workspace(wkspc)
         wkspc = Pathname.new(wkspc).expand_path
         raise JSS::NoSuchItemError, "Workspace folder '#{wkspc}' doesn't exist" unless wkspc.exist?
         raise JSS::InvalidDataError, "Workspace folder '#{wkspc}' isn't a folder" unless wkspc.directory?
@@ -257,7 +263,7 @@ module D3
       end
 
       ### @see D3::Package::Validate.validate_groups
-      def validate_scoped_groups (groups)
+      def validate_scoped_groups(groups)
         D3::Package::Validate.validate_groups groups
       end
 
@@ -282,7 +288,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_pre_install_script (script)
+      def validate_pre_install_script(script)
         D3::Package::Validate.validate_script script
       end
 
@@ -290,7 +296,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_post_install_script (script)
+      def validate_post_install_script(script)
         D3::Package::Validate.validate_script script
       end
 
@@ -298,7 +304,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_pre_remove_script (script)
+      def validate_pre_remove_script(script)
         D3::Package::Validate.validate_script script
       end
 
@@ -306,17 +312,17 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_post_remove_script (script)
+      def validate_post_remove_script(script)
         D3::Package::Validate.validate_script script
       end
 
       ### @see #validate_groups
-      def validate_auto_groups (groups)
+      def validate_auto_groups(groups)
         D3::Package::Validate.validate_auto_groups groups
       end
 
       ### @see #validate_groups
-      def validate_excluded_groups (groups)
+      def validate_excluded_groups(groups)
         D3::Package::Validate.validate_groups groups
       end
 
@@ -329,7 +335,7 @@ module D3
       ###
       ### @return [True] true if there are no groups in common
       ###
-      def validate_non_overlapping_groups (auto, excl)
+      def validate_non_overlapping_groups(auto, excl)
         D3::Package::Validate.validate_non_overlapping_groups auto, excl
       end
 
@@ -340,7 +346,7 @@ module D3
       ###
       ### @return [Array] the valid OS list
       ###
-      def validate_oses (os_list)
+      def validate_oses(os_list)
         D3::Package::Validate.validate_oses os_list
       end
 
@@ -351,7 +357,7 @@ module D3
       ###
       ### @return [Symbol] the valid CPU type
       ###
-      def validate_cpu_type (type)
+      def validate_cpu_type(type)
         D3::Package::Validate.validate_cpu_type type
       end
 
@@ -362,7 +368,7 @@ module D3
       ###
       ### @return [String] the valid category
       ###
-      def validate_category (cat)
+      def validate_category(cat)
         D3::Package::Validate.validate_category cat
       end
 
@@ -372,7 +378,7 @@ module D3
       ###
       ### @return [Array<String>]
       ###
-      def validate_prohibiting_processes (process_names)
+      def validate_prohibiting_processes(process_names)
         process_names = [] if process_names.to_s =~ /^n(one)?$/i
         names_as_array = JSS.to_s_and_a(process_names)[:arrayform]
         names_as_array.map { |procname| D3::Package::Validate.validate_prohibiting_process(procname) }.compact
@@ -384,7 +390,7 @@ module D3
       ###
       ### @return [Boolean]
       ###
-      def validate_yes_no (yn)
+      def validate_yes_no(yn)
         D3::Package::Validate.validate_yes_no yn
       end
 
@@ -395,7 +401,7 @@ module D3
       ###
       ### @return [Integer] the valid expiration
       ###
-      def validate_expiration (exp)
+      def validate_expiration(exp)
         D3::Package::Validate.validate_expiration exp
       end
 
@@ -407,7 +413,7 @@ module D3
       ###
       ### @return [Array<Pathname>] the valid path
       ###
-      def validate_expiration_paths (paths)
+      def validate_expiration_paths(paths)
         D3::Package::Validate.validate_expiration_paths paths
       end
 
@@ -418,11 +424,12 @@ module D3
       ###
       ### @return [Pathname, nil] the valid path
       ###
-      def validate_expiration_path (path)
+      def validate_expiration_path(path)
         D3::Package::Validate.validate_expiration_path path
       end
 
-
     end # module Validate
+
   end # module Admin
+
 end # module D3

@@ -44,8 +44,6 @@
 # Load libraries
 require 'd3'
 
-
-
 ######################
 # The Script Object
 ######################
@@ -53,19 +51,16 @@ class App
 
   ### Setup
   def initialize
-
     ### parse the commandline
     parse_commandline
 
     # can't  be run as root other than help, search or report - no keychain, among other things
-    raise "d3admin can't make server changes as root" if JSS.superuser? and (not @action =~ /^[hsr]/)
-
-  end #initialize
+    raise "d3admin can't make server changes as root" if JSS.superuser? && (!@action =~ /^[hsr]/)
+  end # initialize
 
   ### Run
   def run
-
-    if @action == "help"
+    if @action == 'help'
       show_help @options.helptype
       return
     end
@@ -73,7 +68,7 @@ class App
     # run config if it hasn't ever run
     unless D3::Admin::Prefs.prefs[:last_config] || JSS.superuser?
       puts
-      puts "********  INITIAL D3ADMIN CONFIGURATION  ********"
+      puts '********  INITIAL D3ADMIN CONFIGURATION  ********'
       puts
       config
       # but dont run it again if that's the action chosen
@@ -84,12 +79,12 @@ class App
     @admin = @options.admin || ENV['USER']
 
     # admin can't be a badmin
-    if D3.badmins.include? @admin and D3::Admin::ACTIONS_NEEDING_ADMIN.include? @action
+    if (D3.badmins.include? @admin) && (D3::Admin::ACTIONS_NEEDING_ADMIN.include? @action)
       raise D3::PermissionError, "d3admin cannot do '#{@action}' as #{@admin}."
     end
 
     # config before connecting
-    if @action =~ /^c/ and !JSS.superuser?
+    if @action =~ /^c/ && !JSS.superuser?
       config
       return
     end
@@ -103,43 +98,40 @@ class App
 
     case @action
 
-      when /^a/ then
-        add_pilot_package
+    when /^a/ then
+      add_pilot_package
 
-      when /^e/ then
-        edit_package
+    when /^e/ then
+      edit_package
 
-      when /^l/ then
-        make_package_live
+    when /^l/ then
+      make_package_live
 
-      when /^d/ then
-        delete_package
+    when /^d/ then
+      delete_package
 
-      when /^i/ then
-        show_package_info
+    when /^i/ then
+      show_package_info
 
-      when /^s/ then
-        search
+    when /^s/ then
+      search
 
-      when /^r/ then
-        show_report
+    when /^r/ then
+      show_report
 
-      else
-        raise ArgumentError, "#{D3::Admin::Help::USAGE}\nUnknown action, must be one of #{D3::Admin::ACTIONS.join(', ')}"
+    else
+      raise ArgumentError, "#{D3::Admin::Help::USAGE}\nUnknown action, must be one of #{D3::Admin::ACTIONS.join(', ')}"
 
     end # case
-
-
-  end #run
+  end # run
 
   ### Parse the command line
   ###
   ### @return [void]
   ###
   def parse_commandline
-
     # Debugging file? if so, always set debug.
-    ARGV << "--debug" if D3::DEBUG_FILE.exist?
+    ARGV << '--debug' if D3::DEBUG_FILE.exist?
 
     # this holds everything that comes from the commandline
     # or from prompting the user
@@ -153,145 +145,144 @@ class App
     @options.status = []
 
     ### see Admin::CLIOpts
-    opt_arry = D3::Admin::OPTIONS.values.map{|o| o[:cli] }
-    opts = GetoptLong.new *opt_arry
+    opt_arry = D3::Admin::OPTIONS.values.map { |o| o[:cli] }
+    opts = GetoptLong.new(*opt_arry)
 
     opts.each do |opt, arg|
       case opt
 
-      #general
-        when '--help'
-          @action = "help"
-          @options.helptype = :help
-          return
-        when '--extended-help'
-          @action = "help"
-          @options.helptype = :extended_help
-          return
-        when '--debug'
-          D3::Admin.debug = true
+      # General
+      when '--help'
+        @action = 'help'
+        @options.helptype = :help
+        break
+      when '--extended-help'
+        @action = 'help'
+        @options.helptype = :extended_help
+        break
+      when '--debug'
+        D3::Admin.debug = true
+      when '--d3-version'
+        @action = 'help'
+        @options.helptype = :show_d3_version
+        break
+      when '--walkthru'
+        @options.walkthru = true
+      when '--auto-confirm'
+        @options.auto_confirm = true
+      when '--admin'
+        @options.admin = arg
 
-        when '--d3-version'
-          @action = "help"
-          @options.helptype = :show_d3_version
-          return
+      # Search and Report
+      when '--status'
+        @options.status +=  arg.split(/,\s*/)
+      when '--queue'
+        @options.report_q = true
+      when '--frozen'
+        @options.report_frozen = true
+      when '--computers'
+        @options.report_computers = true
+      when '--groups'
+        @options.search_groups = true
 
-        when '--walkthru'
-          @options.walkthru = true
-        when '--auto-confirm'
-          @options.auto_confirm = true
+      # Add/Edit
+      when '--import'
+        @options.import = true
+        @options.import_from = arg.empty? ? nil : arg
+      when '--no-inherit'
+        @options.no_inherit = true
+      when '--basename'
+        @options.basename = arg
+      when '--version'
+        @options.version = arg
+      when '--revision'
+        @options.revision = arg
+      when '--description'
+        @options.description = arg
+      when '--package-name'
+        @options.package_name = arg
+      when '--filename'
+        @options.filename = arg
+      when '--edition'
+        @options.edition = arg
+      when '--source-path'
+        @options.source_path = arg
+      when '--dmg'
+        @options.package_build_type = 'd'
+      when '--preserve-owners'
+        @options.pkg_preserve_owners = 'y'
+      when '--pkg-id'
+        @options.pkg_identifier = arg
+      when '--workspace'
+        @options.workspace = arg
+      when '--pre-install'
+        @options.pre_install = arg
+      when '--post-install'
+        @options.post_install = arg
+      when '--pre-remove'
+        @options.pre_remove = arg
+      when '--post-remove'
+        @options.post_remove = arg
+      when '--auto-groups'
+        @options.auto_groups = arg
+      when '--excluded-groups'
+        @options.excluded_groups = arg
+      when '--prohibiting-processes'
+        @options.prohibiting_processes = arg
+      when '--cpu_type'
+        @options.cpu_type = arg
+      when '--category'
+        @options.category = arg
 
-        when '--admin'
-          @options.admin = arg
+      when '--reboot'
+        # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
+        # otherwise must be /^y(es)$/i
+        if arg.empty? || arg =~ /^no?$/i
+          @options.reboot =  'n'
+        elsif arg =~ /^y(es)?$/i
+          @options.reboot =  'y'
+        else
+          raise ArgumentError, "--reboot must be 'y' or 'n'"
+        end
 
-      # search and report
-        when '--status'
-          @options.status +=  arg.split(/,\s*/)
-        when '--queue'
-          @options.report_q = true
-        when '--frozen'
-          @options.report_frozen = true
-        when  '--computers'
-          @options.report_computers = true
-        when '--groups'
-          @options.search_groups = true
-      # add/edit
-        when '--import'
-          @options.import = true
-          @options.import_from = arg.empty? ? nil : arg
-        when '--no-inherit'
-          @options.no_inherit = true
-        when '--basename'
-          @options.basename = arg
-        when '--version'
-          @options.version = arg
-        when '--revision'
-          @options.revision = arg
-        when '--description'
-          @options.description = arg
-        when '--package-name'
-          @options.package_name = arg
-        when '--filename'
-          @options.filename = arg
-        when '--edition'
-          @options.edition = arg
-        when '--source-path'
-          @options.source_path = arg
-        when '--dmg'
-          @options.package_build_type = 'd'
-        when '--preserve-owners'
-          @options.pkg_preserve_owners = 'y'
-        when '--pkg-id'
-          @options.pkg_identifier = arg
-        when '--workspace'
-          @options.workspace = arg
-        when '--pre-install'
-          @options.pre_install = arg
-        when '--post-install'
-          @options.post_install = arg
-        when '--pre-remove'
-          @options.pre_remove = arg
-        when '--post-remove'
-          @options.post_remove = arg
-        when '--auto-groups'
-          @options.auto_groups = arg
-        when '--excluded-groups'
-          @options.excluded_groups = arg
-        when '--prohibiting-processes'
-          @options.prohibiting_processes = arg
-        when '--cpu_type'
-          @options.cpu_type = arg
-        when '--category'
-          @options.category = arg
+      when '--remove-first'
+        # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
+        # otherwise must be /^y(es)$/i
+        if arg.empty? || arg =~ /^no?$/i
+          @options.remove_first =  'n'
+        elsif arg =~ /^y(es)?$/i
+          @options.remove_first =  'y'
+        else
+          raise ArgumentError, "--remove-first must be 'y' or 'n'"
+        end
 
-        when '--reboot'
-          # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
-          # otherwise must be /^y(es)$/i
-          if arg.empty? or arg =~ /^no?$/i
-            @options.reboot =  "n"
-          elsif arg =~ /^y(es)?$/i
-            @options.reboot =  "y"
-          else
-            raise ArgumentError, "--reboot must be 'y' or 'n'"
-          end
+      when '--removable'
+        # dft is yes, so if arg is empty or /^y(es)$/i, it should be nil,
+        # otherwise must be  /^n(o)$/i
+        if arg.empty? || arg =~ /^y(es)?$/i
+          @options.removable =  'y'
+        elsif arg =~ /^no?$/i
+          @options.removable =  'n'
+        else
+          raise ArgumentError, "--removable must be 'y' or 'n'"
+        end
 
-        when '--remove-first'
-          # dft is no, so if arg is empty or /^n(o)$/i, it should be nil,
-          # otherwise must be /^y(es)$/i
-          if arg.empty? or arg =~ /^no?$/i
-            @options.remove_first =  "n"
-          elsif arg =~ /^y(es)?$/i
-            @options.remove_first =  "y"
-          else
-            raise ArgumentError, "--remove-first must be 'y' or 'n'"
-          end
+      when '--oses'
+        @options.oses = arg
+      when '--expiration'
+        @options.expiration = arg
+      when '--expiration-path', '--expiration_paths'
+        @options.expiration_paths = arg
 
-        when '--removable'
-          # dft is yes, so if arg is empty or /^y(es)$/i, it should be nil,
-          # otherwise must be  /^n(o)$/i
-          if arg.empty? or arg =~ /^y(es)?$/i
-            @options.removable =  "y"
-          elsif arg =~ /^no?$/i
-            @options.removable =  "n"
-          else
-            raise ArgumentError, "--removable must be 'y' or 'n'"
-          end
-
-        when '--oses'
-          @options.oses = arg
-        when '--expiration'
-          @options.expiration = arg
-        when '--expiration-path', '--expiration_paths'
-          @options.expiration_paths = arg
-
-      # delete
-        when '--keep-scripts'
-          @options.keep_scripts = 'y'
-        when '--keep-in-jss'
-          @options.keep_in_jss = 'y'
+      # Delete
+      when '--keep-scripts'
+        @options.keep_scripts = 'y'
+      when '--keep-in-jss'
+        @options.keep_in_jss = 'y'
 
       end # case
     end # opts.each
+    return if @action == 'help'
 
     # the action is always the first thing in ARGV
     # after the options have been removed
@@ -302,40 +293,39 @@ class App
     end
 
     # one or more letters is all we need to specify the action...
-    @action = D3::Admin::ACTIONS.select{|a| a.start_with? action_arg}.first
+    @action = D3::Admin::ACTIONS.select { |a| a.start_with? action_arg }.first
 
-    unless @action and D3::Admin::ACTIONS.include? @action
+    unless @action && (D3::Admin::ACTIONS.include? @action)
       raise ArgumentError, "#{D3::Admin::Help::USAGE}\nAction, must be one of #{D3::Admin::ACTIONS.join(', ')}"
     end
 
     # anything remaining in ARGV is one or more targets
     # to work on.
     @targets = ARGV
-
   end # parse_commandline
 
   ### Show the help message
   ###
   ### @return [void]
   ###
-  def show_help (type)
+  def show_help(type)
     text = case type
            when :help
-            D3::Admin::Help.help_text
+             D3::Admin::Help.help_text
            when :extended_help
              D3::Admin::Help.extended_help_text
            when :show_d3_version
              d3_version_text
            end
     D3.less_text text
-    return true
-  end #show help
+    true
+  end # show help
 
   ### the d3 version text to spew
   ###
   ### @return [String] the text
   def d3_version_text
-  <<-ENDVERS
+    <<-ENDVERS
 D3 module version: #{D3::VERSION}
 JSS module version: #{JSS::VERSION}
 ENDVERS
@@ -344,22 +334,20 @@ ENDVERS
   ### Add a new pilot package from an existing
   ### JSS package
   def import_pilot_pkg_from_jss
-
     if @options.walkthru
       @options.import_from = D3::Admin::Interactive.get_value :import unless @options.import_from
       @options.version = D3::Admin::Interactive.get_value :version
       @options.revision = D3::Admin::Interactive.get_value :revision
     else
-      raise JSS::MissingDataError, "A version must be provided with --version" unless @options.version
-      raise JSS::MissingDataError, "A revision must be provided with --revision" unless @options.revision
+      raise JSS::MissingDataError, 'A version must be provided with --version' unless @options.version
+      raise JSS::MissingDataError, 'A revision must be provided with --revision' unless @options.revision
     end # if walk thru
 
-    imported_pkg = D3::Package.import( @options.import_from,
-      basename: @options.basename,
-      version: @options.version,
-      revision: @options.revision,
-      dist_pw: D3::Admin::Auth.rw_credentials(:dist)[:password]
-      )
+    imported_pkg = D3::Package.import(@options.import_from,
+                                      basename: @options.basename,
+                                      version: @options.version,
+                                      revision: @options.revision,
+                                      dist_pw: D3::Admin::Auth.rw_credentials(:dist)[:password])
     imported_pkg.admin = @admin
     edit_package imported_pkg
   end
@@ -376,13 +364,12 @@ ENDVERS
   ### @return [void]
   ###
   def add_pilot_package
-
     ## we must have a basename before going farther
     @options.basename = @targets.first
     if @options.walkthru
       @options.basename ||= D3::Admin::Interactive.get_basename
     else
-      raise ArgumentError, "A basename must be provided as a target. Use -H for help" unless @options.basename
+      raise ArgumentError, 'A basename must be provided as a target. Use -H for help' unless @options.basename
     end
 
     if @options.import
@@ -390,7 +377,7 @@ ENDVERS
       return
     end
 
-    puts "Adding a new pilot package to d3..."
+    puts 'Adding a new pilot package to d3...'
 
     # this holds the validated data used for making the new pkg
     new_package_options = OpenStruct.new
@@ -408,7 +395,7 @@ ENDVERS
 
       # if we were given a new version but not a new revision,
       # set the new revision to 1
-      if @options[:version] and  @options[:version] !=  default_options[:version]
+      if @options[:version] && @options[:version] !=  default_options[:version]
         @options[:revision] ||= 1
         @options[:edition] ||=  "#{@options.basename}-#{@options[:version]}-#{@options[:revision]}"
         @options.package_name ||= @options[:edition]
@@ -418,7 +405,6 @@ ENDVERS
 
       # for any options that weren't given on the commandline, use the defaults
       default_options.each_pair { |opt, val| @options[opt] ||= val }
-
 
       new_package_options = D3::Admin::Add.add_pilot_cli(@options)
 
@@ -436,7 +422,7 @@ ENDVERS
       opts_to_confirm += D3::Admin::Add::BUILD_OPTIONS if new_package_options.package_build_type
       opts_to_confirm += D3::Admin::Add::PKG_OPTIONS if new_package_options.package_build_type == :pkg
 
-      #D3::Admin::Add::NEW_PKG_OPTIONS.each do |opt|
+      # D3::Admin::Add::NEW_PKG_OPTIONS.each do |opt|
       opts_to_confirm.each do |opt|
         lbl = D3::Admin::OPTIONS[opt][:label]
         if D3::Admin::OPTIONS[opt][:display_conversion]
@@ -444,11 +430,11 @@ ENDVERS
         else
           disp = new_package_options[opt]
         end
-        lines <<  "#{lbl}: #{disp}"
+        lines << "#{lbl}: #{disp}"
       end
       settings_conf_disp = "\n******* New d3 Package Settings *******\n"
-      settings_conf_disp += "Edition: #{ new_package_options.edition}\n"
-      settings_conf_disp += "Basename: #{ new_package_options.basename}\n"
+      settings_conf_disp += "Edition: #{new_package_options.edition}\n"
+      settings_conf_disp += "Basename: #{new_package_options.basename}\n"
       settings_conf_disp +=  lines.join "\n"
       settings_conf_disp +=  "\n"
       puts settings_conf_disp
@@ -459,10 +445,9 @@ ENDVERS
 
     D3::Admin::Add.add_new_package new_package_options
 
-    puts "Done!"
+    puts 'Done!'
     puts "To pilot it, run 'sudo d3 install #{new_package_options.edition}' on a test machine."
     puts "To make it live, run 'd3admin live #{new_package_options.edition}' on your machine."
-
   end # add pilot
 
   ### Make a package live.
@@ -470,11 +455,10 @@ ENDVERS
   ### @return [void]
   ###
   def make_package_live
-
     pkg_id = get_pkg_from_cli_or_prompt
 
     if pkg_id.nil?
-      puts "No edition given to make live or no matching package found"
+      puts 'No edition given to make live or no matching package found'
       return
     end
     pkg = D3::Package.new id: pkg_id
@@ -485,33 +469,33 @@ ENDVERS
     end
 
     # is this a rollback?
-    rollback_warning = ""
-    if pkg.skipped? or pkg.deprecated?
+    rollback_warning = ''
+    if pkg.skipped? || pkg.deprecated?
       rollback_warning = "\n\nWARNING: You're rolling back to an older edition!\n"
       rollback_warning += "ALL non-frozen installs of '#{pkg.basename}' will be downgraded to this edition! \n"
     end
 
     # is the prev. live pkg in use in any policies?
-    policy_warning = ""
+    policy_warning = ''
     pkg_id_being_deprecated = D3::Package.basenames_to_live_ids[pkg.basename]
     if pkg_id_being_deprecated
       outgoing_pkg = D3::Package.new(id: pkg_id_being_deprecated)
-      pols_used_by_old_pkg  = outgoing_pkg.policy_ids
+      pols_used_by_old_pkg = outgoing_pkg.policy_ids
       unless pols_used_by_old_pkg.empty?
-        names = pols_used_by_old_pkg.map{|pid| JSS::Policy.map_all_ids_to(:name)[pid]}.join(', ')
+        names = pols_used_by_old_pkg.map { |pid| JSS::Policy.map_all_ids_to(:name)[pid] }.join(', ')
         policy_warning = "\n\nWARNING: the current live package is in use by these Casper Policies:\n"
         policy_warning += " #{names}\n"
-        policy_warning += "You might want to update them to use the new live package."
+        policy_warning += 'You might want to update them to use the new live package.'
       end # unless empty
     end # if pkg_id_being_deprecated
 
-    confirm "Make #{pkg.edition} live for basename '#{pkg.basename}'#{rollback_warning}#{policy_warning}" , ""
+    confirm "Make #{pkg.edition} live for basename '#{pkg.basename}'#{rollback_warning}#{policy_warning}", ''
 
     pkg.make_live @admin
 
-    puts "Done!"
+    puts 'Done!'
     puts "New installs of basename '#{pkg.basename}' will get #{pkg.version}-#{pkg.revision}"
-    puts "Existing installs will be updated at the next d3 sync."
+    puts 'Existing installs will be updated at the next d3 sync.'
   end
 
   ### Edit an existing or importing package
@@ -521,23 +505,20 @@ ENDVERS
   ###
   ### @return [void]
   ###
-  def edit_package (pkg=nil)
-
+  def edit_package(pkg = nil)
     unless pkg
       pkg_id = get_pkg_from_cli_or_prompt
       pkg = pkg_id ? D3::Package.new(id: pkg_id) : nil
     end
     if pkg.nil?
-      puts "No targets given to edit or no matching package found"
+      puts 'No targets given to edit or no matching package found'
       return
     end
-
 
     if @options.walkthru
       changes_to_make = D3::Admin::Edit.loop_thru_editing_walkthru pkg
     else
-
-      changes_to_make = D3::Admin::Edit.validate_cli_edits (@options)
+      changes_to_make = D3::Admin::Edit.validate_cli_edits(@options)
     end # if @options.walkthru
 
     # Confirm the edition is still good if vers or rev changed
@@ -546,20 +527,19 @@ ENDVERS
     # Confirm the auto and excl groups don't conflict with each other
     D3::Admin::Edit.check_for_new_group_overlaps pkg, changes_to_make
 
-
     # exit if no changes on edit
-    if changes_to_make.empty? and not @options.import
-        puts "No changes to make!"
-        return
+    if changes_to_make.empty? && !@options.import
+      puts 'No changes to make!'
+      return
     end
 
     # confirm
     if @options.import
       confirm_heading = "Import #{pkg.edition}, JSS id #{pkg.id}, into d3"
-      conf_deets = "with these non-default settings..."
+      conf_deets = 'with these non-default settings...'
     else
       confirm_heading = "Make changes to #{pkg.edition}, JSS id #{pkg.id}"
-      conf_deets = "Here are the changes..."
+      conf_deets = 'Here are the changes...'
     end
 
     D3::Admin::Edit::EDITING_OPTIONS.each do |opt|
@@ -583,8 +563,7 @@ ENDVERS
     # make the changes
     D3::Admin::Edit.process_edits pkg, changes_to_make
 
-    puts @options.import ? "Done: the package has been imported to d3." : "Done! Your changes have been saved."
-
+    puts @options.import ? 'Done: the package has been imported to d3.' : 'Done! Your changes have been saved.'
   end # edit_pkg
 
   ### delete a pkg, optionallay archiving it
@@ -592,41 +571,39 @@ ENDVERS
   ### @return [void]
   ###
   def delete_package
-
     pkg_id = get_pkg_from_cli_or_prompt
 
     if pkg_id.nil?
-      puts "No targets given to delete or no matching package found"
+      puts 'No targets given to delete or no matching package found'
       return
     end
 
     # check to see if the pkg is missing
-    if D3::Package.package_data[pkg_id][:status] == :missing || (not JSS::Package.all_ids.include? pkg_id)
+    if D3::Package.package_data[pkg_id][:status] == :missing || (!JSS::Package.all_ids.include? pkg_id)
       delete_missing_package pkg_id
       return
     else
       pkg = D3::Package.new id: pkg_id
     end
 
-    got_scripts = (not pkg.script_ids.values.empty?)
+    got_scripts = !pkg.script_ids.values.empty?
 
     if got_scripts
 
       if @options.walkthru
-        @options.keep_scripts =  D3::Admin::Interactive.get_value(:get_keep_scripts, default = 'n', check_method = :validate_yes_no)
+        @options.keep_scripts = D3::Admin::Interactive.get_value(:get_keep_scripts, default = 'n', check_method = :validate_yes_no)
 
         @options.keep_in_jss = D3::Admin::Interactive.get_value(:get_keep_in_jss, default = 'n', check_method = :validate_yes_no)
       end # if @options.walkthru
 
-
       if @options.keep_scripts
-        deets = " - Keeping pre- or post- scripts in the JSS"
+        deets = ' - Keeping pre- or post- scripts in the JSS'
       else
-        deets = " - Deleting pre- or post- scripts not used elsewhere"
+        deets = ' - Deleting pre- or post- scripts not used elsewhere'
       end # if @options.keep_scripts
 
     else
-      deets = " - No pre- or post- scripts to delete"
+      deets = ' - No pre- or post- scripts to delete'
     end # if got_scripts
 
     if @options.keep_in_jss
@@ -638,22 +615,21 @@ ENDVERS
     confirm "DELETE #{pkg.edition}, JSS id #{pkg.id}\nDist.Point Filename: #{pkg.filename}", deets
 
     if @options.keep_scripts && got_scripts
-      puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
+      puts 'Scanning for other packages or policies using  pre- or post- scripts before deleting...'
     end
 
     script_actions = pkg.delete(
-        admin: @admin,
-        keep_scripts: @options.keep_scripts,
-        keep_in_jss: @options.keep_in_jss,
-        rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
-        )
+      admin: @admin,
+      keep_scripts: @options.keep_scripts,
+      keep_in_jss: @options.keep_in_jss,
+      rwpw: D3::Admin::Auth.rw_credentials(:dist)[:password]
+    )
 
     unless script_actions.empty?
-      puts "Here' what happened to the scripts:"
+      puts "Here's what happened to the scripts:"
       puts script_actions.join "\n"
     end
     puts "Done! #{pkg.edition} has been deleted"
-
   end # delete package
 
   ### Delete a package that's missing from the JSS
@@ -661,15 +637,15 @@ ENDVERS
   ###
   def delete_missing_package (pkgid)
     pkg_data = D3::Package.package_data[pkgid]
-    script_ids = [pkg_data[:pre_install_script_id], pkg_data[:post_install_script_id], pkg_data[:pre_remove_script_id], pkg_data[:post_remove_script_id] ].compact
+    script_ids = [pkg_data[:pre_install_script_id], pkg_data[:post_install_script_id], pkg_data[:pre_remove_script_id], pkg_data[:post_remove_script_id]].compact
 
     if script_ids.empty?
-      deets = " - No pre- or post- scripts to delete"
+      deets = ' - No pre- or post- scripts to delete'
     else
       if @options.keep_scripts
-        deets = " - Keeping pre- or post- scripts in the JSS"
+        deets = ' - Keeping pre- or post- scripts in the JSS'
       else
-        deets = " - Deleting pre- or post- scripts not in use elsewhere"
+        deets = ' - Deleting pre- or post- scripts not in use elsewhere'
       end # if @options.keep_scripts
     end # if script_ids.empty?
 
@@ -678,8 +654,8 @@ ENDVERS
     JSS::DB_CNX.db.query "DELETE FROM #{D3::Database::PACKAGE_TABLE[:table_name]} WHERE package_id = #{pkgid}"
     puts "Package #{pkg_data[:edition]} deleted."
 
-    if (not @options.keep_scripts) && (not script_ids.empty?)
-      puts "Scanning for other packages or policies using  pre- or post- scripts before deleting..."
+    if !@options.keep_scripts && !script_ids.empty?
+      puts 'Scanning for other packages or policies using  pre- or post- scripts before deleting...'
       policy_scripts = D3.policy_scripts
       script_ids.each do |victim_script_id|
         next unless JSS::Script.all_ids.include? victim_script_id
@@ -693,15 +669,14 @@ ENDVERS
           end
         end # policy scripts.each
         d3_users = (D3::Package.packages_for_script(victim_script_id) - [pkgid])
-        d3_users.each{|pkgid| puts "Script '#{victim_script_name}' in use by d3 edition '#{D3::Package.ids_to_editions[pkgid]}'" }
-        if pol_users.empty? and d3_users.empty?
+        d3_users.each { |pid| puts "Script '#{victim_script_name}' in use by d3 edition '#{D3::Package.ids_to_editions[pid]}'" }
+        if pol_users.empty? && d3_users.empty?
           JSS::Script.new(id: victim_script_id).delete
           puts "Deleted script '#{victim_script_name}'"
         end
       end # do script id
     end # if @options.keep_scripts && (not script_ids.empty?)
-
-  end # delete_missing_package (pkgid)
+  end # delete_missing_package(pkgid)
 
   ### Get an existing pkg id from the user via prompt (if walkthru) or the
   ### first thing listed in @targets. We don't instantiate the pkg here
@@ -710,11 +685,11 @@ ENDVERS
   ### @return [Ingeter, nil] an existing d3 pkg id if one was chosen
   ###
   def get_pkg_from_cli_or_prompt
-    if @options.walkthru and @targets.first.nil?
+    if @options.walkthru && @targets.first.nil?
       D3::Admin::Interactive.get_value :get_existing_package, nil, :validate_existing_package
     else
       pkg_data = D3::Package.find_package(@targets.first, :hash)
-      return pkg_data ? pkg_data[:id] : nil
+      pkg_data ? pkg_data[:id] : nil
     end
   end
 
@@ -729,21 +704,20 @@ ENDVERS
   ### @param details[String] The details requireing confirmation
   ###
   ###
-  def confirm (action, details = nil)
-
+  def confirm(action, details = nil)
     puts
-    puts "*****************************************"
+    puts '*****************************************'
     puts "Ahoy there! You are about to:\n#{action}"
-    puts "*****************************************"
+    puts '*****************************************'
     puts details if details
 
     if @options.auto_confirm
-      puts "auto-confirmed! Here we go....."
+      puts 'auto-confirmed! Here we go.....'
     else
       puts
-      reply = Readline.readline("Are you SURE? (y/n): ", false)
+      reply = Readline.readline('Are you SURE? (y/n): ', false)
       return true if reply =~ /^y/i
-      puts "Cancelled - wise choice!"
+      puts 'Cancelled - wise choice!'
       exit 0
     end # if autoconfirm
   end # confirm
@@ -753,11 +727,10 @@ ENDVERS
   ### @return [void]
   ###
   def show_package_info
-
     pkg_id = get_pkg_from_cli_or_prompt
 
     if pkg_id.nil?
-      puts "No targets given or no matching package found"
+      puts 'No targets given or no matching package found'
       return
     end
 
@@ -772,10 +745,10 @@ ENDDEETS
     pkg_deets += "Basename: #{pkg.basename}\n"
     pkg_deets += "Version: #{pkg.version}\n"
     pkg_deets += "Revision: #{pkg.revision}\n"
-    pkg_deets += "Added to on: #{pkg.added_date.strftime "%Y-%m-%d"}\n"
+    pkg_deets += "Added to on: #{pkg.added_date.strftime '%Y-%m-%d'}\n"
     pkg_deets += "Added by: #{pkg.added_by}\n"
     if pkg.release_date
-      pkg_deets += "Released on: #{pkg.release_date.strftime "%Y-%m-%d"}\n"
+      pkg_deets += "Released on: #{pkg.release_date.strftime '%Y-%m-%d'}\n"
       pkg_deets += "Released by: #{pkg.released_by}\n"
     end
 
@@ -784,14 +757,13 @@ ENDDEETS
       next if done.include? opt
       label = D3::Admin::OPTIONS[opt][:label]
       if D3::Admin::OPTIONS[opt][:display_conversion]
-        val_display = D3::Admin::OPTIONS[opt][:display_conversion].call(pkg.send opt)
+        val_display = D3::Admin::OPTIONS[opt][:display_conversion].call(pkg.send(opt))
       else
-        val_display =  pkg.send opt
+        val_display = pkg.send opt
       end
-      val_display = val_display.to_s.empty? ? "none" : val_display
+      val_display = val_display.to_s.empty? ? 'none' : val_display
       pkg_deets += "#{label}: #{val_display}\n"
     end
-
 
     puts pkg_deets
     puts
@@ -806,22 +778,22 @@ ENDDEETS
 
     if @options.walkthru
       # prompt for search type?
-        search_for = D3::Admin::Interactive.prompt_for_data(
-          desc: "SEARCH PACKAGES BY?\nAre you searching for packages by basename, or by scoped groups?\nEnter 'b' or 'g'",
-          prompt: "Basenames or Groups",
-          default: 'b',
-          required: false
-        )
+      search_for = D3::Admin::Interactive.prompt_for_data(
+        desc: "SEARCH PACKAGES BY?\nAre you searching for packages by basename, or by scoped groups?\nEnter 'b' or 'g'",
+        prompt: 'Basenames or Groups',
+        default: 'b',
+        required: false
+      )
       @options.search_groups = true if search_for =~ /^g/i
 
       @targets = [D3::Admin::Interactive.get_search_target] if @targets.empty?
       @options.status = D3::Admin::Interactive.get_status_for_filter.split(/,\s*/) if @options.status.empty?
-    end #if @options.walkthru
+    end # if @options.walkthru
 
-    @options.status = [] if @options.status.include? "all"
+    @options.status = [] if @options.status.include? 'all'
 
     # show all pkgs or group scope
-    if @targets.empty? or @targets.include? "all"
+    if @targets.empty? || @targets.include?('all')
       if @options.search_groups
         D3::Admin::Report.list_all_pkgs_with_scope @options.status
       else
@@ -832,14 +804,13 @@ ENDDEETS
 
     # show specific basenames or group scopes
     @targets.each do |search_target|
-
-      # groups?
+      # Groups?
       if @options.search_groups
-        found_groups = JSS::ComputerGroup.all_names.select{|gn| gn =~ /#{search_target}/}
+        found_groups = JSS::ComputerGroup.all_names.select { |gn| gn =~ /#{search_target}/ }
         if found_groups.empty?
           puts "No computer groups in Casper match '#{search_target}'"
         else
-          found_groups.each {|fgn|
+          found_groups.each { |fgn|
             D3::Admin::Report.list_scoped_installs fgn, @options.status, :auto
             D3::Admin::Report.list_scoped_installs fgn, @options.status, :excluded
           } # found_groups.each
@@ -847,11 +818,11 @@ ENDDEETS
 
       # basenames
       else
-        found_basenames = D3::Package.all_basenames.select{|bn| bn =~ /#{search_target}/}
+        found_basenames = D3::Package.all_basenames.select { |bn| bn =~ /#{search_target}/ }
         if found_basenames.empty?
           puts "No basenames in d3 match '#{search_target}'"
         else
-          found_basenames.each {|fbn| D3::Admin::Report.list_packages fbn, @options.status }
+          found_basenames.each { |fbn| D3::Admin::Report.list_packages fbn, @options.status }
         end # if found_basenames.empty?
       end # if @options.search_groups
     end # @targets.each do |search_target|
@@ -872,13 +843,13 @@ ENDDEETS
       if @targets.empty?
         one_or_all = D3::Admin::Interactive.prompt_for_data(
           desc: "ALL COMPUTERS?\nAre you reporting for a single computer or all computers?\nEnter 'all' for all computers, '1' for one",
-          prompt: "All or 1",
+          prompt: 'All or 1',
           default: 'all',
           required: false
         )
 
         # basename report across computers
-        if one_or_all == "all"
+        if one_or_all == 'all'
           @targets = [(D3::Admin::Interactive.get_value :get_basename, nil, :validate_basename)]
 
         # reporting single computers
@@ -891,34 +862,32 @@ ENDDEETS
 
       # prompt for rcpts or puppies
       rcpts_or_pups = D3::Admin::Interactive.prompt_for_data(
-          desc: "RECEIPTS OR PUPPIES?\nShould the report list receipts or pending puppytime installs?\nEnter 'r' for receipts, 'p' for puppies",
-          prompt: "Receipts or puppies",
-          required: false,
-          default: 'r'
+        desc: "RECEIPTS OR PUPPIES?\nShould the report list receipts or pending puppytime installs?\nEnter 'r' for receipts, 'p' for puppies",
+        prompt: 'Receipts or puppies',
+        required: false,
+        default: 'r'
       )
-      @options.report_q  =  rcpts_or_pups =~ /^p/i ?  true : false
+      @options.report_q = rcpts_or_pups =~ /^p/i ?  true : false
 
       # prompt for status or frozen
       @options.status = D3::Admin::Interactive.get_status_for_filter(:with_frozen).split(/,\s*/) if @options.status.empty?
 
-    end #if @options.walkthru
+    end # if @options.walkthru
 
-    @options.status = [] if @options.status.include? "all"
+    @options.status = [] if @options.status.include? 'all'
 
     # pass the --frozen option with the --status options, since
     # its treated like a pseudo-status, and thats where walkthru puts it too
-    @options.status << "frozen" if @options.report_frozen
+    @options.status << 'frozen' if @options.report_frozen
 
     reporting = @options.report_q ? :puppies : :receipts
 
-
     if @targets.empty?
-      puts "No basename or computer name given for report"
+      puts 'No basename or computer name given for report'
       return
     end
 
     @targets.each do |target|
-
       # report puppies
       if reporting == :puppies
         if @options.report_computers
@@ -951,7 +920,6 @@ ENDDEETS
   ### @return [void]
   ###
   def config
-
     if @targets.include? 'display'
       D3::Admin::Prefs.display_config
     else
@@ -959,16 +927,12 @@ ENDDEETS
     end
   end # config
 
-
 end # class App
-
-
-
 
 ### save terminal state incase user interrupts during readline or less
 if $stdin.tty?
   stty_save = `stty -g`.chomp
-  trap("SIGINT") do
+  trap('SIGINT') do
     puts "\nCancelled! Woot!"
     system('stty', stty_save)
     exit 0
@@ -979,8 +943,8 @@ begin
   app = App.new
   app.run
 rescue
-  puts "An error occurred: #{$!.class}: #{$!}"
-  puts $@ if D3::Admin.debug
+  puts "An error occurred: #{$ERROR_INFO.class}: #{$ERROR_INFO}!"
+  puts $ERROR_POSITION if D3::Admin.debug
   exit 1
 ensure
   if D3::Admin::Auth.connected?

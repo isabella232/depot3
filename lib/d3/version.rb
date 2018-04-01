@@ -22,7 +22,6 @@
 ###
 ###
 
-
 ###
 module D3
   VERSION = '3.0.19'.freeze

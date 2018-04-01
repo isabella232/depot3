@@ -22,7 +22,6 @@
 ###
 ###
 
-
 ###
 module D3
   class Package < JSS::Package
@@ -37,10 +36,8 @@ module D3
     ### return [void]
     ###
     def check_for_newer_version
-      if D3::Client::Receipt.basenames.include? @basename
-          rcpt = D3::Client::Receipt.all[@basename]
-          raise D3::InstallError, "The installed #{rcpt.edition} (#{rcpt.status}) is the same or newer. Use --force if needed." if rcpt.id >= @id
-      end
+      rcpt = D3::Client::Receipt.all[@basename] if D3::Client::Receipt.basenames.include? @basename
+      raise D3::InstallError, "The installed #{rcpt.edition} (#{rcpt.status}) is the same or newer. Use --force if needed." if rcpt.id >= @id
     end # check for newer version
 
     ### Check that we're not installing a deprecated pkg, and raise an exception if we are.
@@ -66,8 +63,8 @@ module D3
     ###
     def check_for_exclusions
       excl_grps = D3::Client.computer_groups & @excluded_groups
-      raise D3::InstallError,  "This machine is excluded for #{edition}. Use --force if needed." unless excl_grps.empty?
-      return true
+      raise D3::InstallError, "This machine is excluded for #{edition}. Use --force if needed." unless excl_grps.empty?
+      true
     end # check for exclusions
 
     ### Check if this machine is OK wrt to the os limitations
@@ -76,9 +73,9 @@ module D3
     ### return [void]
     ###
     def check_oses
-       my_os = `/usr/bin/sw_vers -productVersion`.chomp
-       raise D3::InstallError,  "This machine doesn't have the correct OS to install #{self.edition}." unless JSS.os_ok?  @os_requirements, my_os
-       return true
+      my_os = `/usr/bin/sw_vers -productVersion`.chomp
+      raise D3::InstallError, "This machine doesn't have the correct OS to install #{self.edition}." unless JSS.os_ok? @os_requirements, my_os
+      true
     end
 
     ### Check if this machine is OK wrt to the processor limitations
@@ -87,10 +84,9 @@ module D3
     ### return [void]
     ###
     def check_cpu
-       my_cpu = `/usr/bin/uname -p`.chomp
-       raise D3::InstallError,  "This machine doesn't have the correct OS to install #{self.edition}." unless  JSS.processor_ok?  @required_processor, my_cpu
+      my_cpu = `/usr/bin/uname -p`.chomp
+      raise D3::InstallError, "This machine doesn't have the correct OS to install #{self.edition}." unless JSS.processor_ok? @required_processor, my_cpu
     end
-
 
     ### This module contains methods for validating attribute
     ### values in d3 Packages
@@ -113,7 +109,7 @@ module D3
       ###
       ### @return [Boolean] does that basename exist in d3?
       ###
-      def basename_exist? (name)
+      def basename_exist?(name)
         D3::Package.all_basenames.include? name
       end
 
@@ -123,7 +119,7 @@ module D3
       ###
       ### @return [Boolean] does that edition exist in d3?
       ###
-      def edition_exist? (edition)
+      def edition_exist?(edition)
         D3::Package.all_editions.include? edition
       end
 
@@ -133,10 +129,9 @@ module D3
       ###
       ### @return [Boolean] does that package filename exist in d3?
       ###
-      def filename_exist? (name)
+      def filename_exist?(name)
         D3::Package.all_filenames.values.include? name
       end
-
 
       ### check that the given package name doesn't already exist
       ###
@@ -165,13 +160,11 @@ module D3
       ###
       ### @return [String] the valid, unique edition
       ###
-      def validate_edition (edition)
+      def validate_edition(edition)
         raise JSS::AlreadyExistsError, "There's already a package in the JSS with the edition '#{edition}'" if edition_exist? edition
-        raise JSS::InvalidDataError, "'#{edition}' doesn't seem like a valid edition" unless edition.count("-") >= 2
+        raise JSS::InvalidDataError, "'#{edition}' doesn't seem like a valid edition" unless edition.count('-') >= 2
         edition
       end
-
-
 
       ### Confirm the validity of a version. Raise an exception if invalid.
       ###
@@ -179,10 +172,10 @@ module D3
       ###
       ### @return [String] An error message, or true if the value is ok
       ###
-      def validate_version (vers)
-        raise JSS::InvalidDataError, "Version must be a String." unless vers.is_a? String
+      def validate_version(vers)
+        raise JSS::InvalidDataError, 'Version must be a String.' unless vers.is_a? String
         raise JSS::InvalidDataError, "Version can't be empty." if vers.empty?
-        return vers.gsub(" ", "_")
+        vers.gsub(' ', '_')
       end
 
       ### Confirm the validity of a revision.
@@ -192,8 +185,8 @@ module D3
       ###
       ### @return [Integer] the valid revision
       ###
-      def validate_revision (rev)
-        raise JSS::InvalidDataError, "Revision must be an Integer." unless rev.to_s =~ /^\d+$/
+      def validate_revision(rev)
+        raise JSS::InvalidDataError, 'Revision must be an Integer.' unless rev.to_s =~ /^\d+$/
         rev.to_i
       end
 
@@ -201,7 +194,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_pre_install_script (script)
+      def validate_pre_install_script(script)
         validate_script script
       end
 
@@ -209,7 +202,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_post_install_script (script)
+      def validate_post_install_script(script)
         validate_script script
       end
 
@@ -217,7 +210,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_pre_remove_script (script)
+      def validate_pre_remove_script(script)
         validate_script script
       end
 
@@ -225,7 +218,7 @@ module D3
       ###
       ### @see #validate_script
       ###
-      def validate_post_remove_script (script)
+      def validate_post_remove_script(script)
         validate_script script
       end
 
@@ -236,7 +229,7 @@ module D3
       ###
       ### @return [Pathname, String] the valid local path or JSS name of the script
       ###
-      def validate_script (script)
+      def validate_script(script)
         script = nil if script.to_s =~ /^n(one)?$/i
         return nil if script.to_s.empty?
         script = script.to_s.strip
@@ -252,21 +245,19 @@ module D3
           return path.expand_path if path.file?
 
           # otherwise, its a JSS Script name,return its id
-          if JSS::Script.all_names.include? script.to_s
-            return script
-          end
+          return script if JSS::Script.all_names.include? script.to_s
 
           raise JSS::NoSuchItemError, "No local file or JSS script named '#{script}'"
         end # if a fixnum
       end
 
       ### @see #validate_groups
-      def validate_auto_groups (groups)
+      def validate_auto_groups(groups)
         validate_groups groups, :check_for_std
       end
 
       ### @see #validate_groups
-      def validate_excluded_groups (groups)
+      def validate_excluded_groups(groups)
         validate_groups groups
       end
 
@@ -283,12 +274,12 @@ module D3
       ###
       ### @return [Array] The valid groups as an array
       ###
-      def validate_groups (groups, check_for_std = false)
+      def validate_groups(groups, check_for_std = false)
         groups = [] if groups.to_s =~ /^n(one)?$/i
         group_array = JSS.to_s_and_a(groups)[:arrayform].compact
         return [] if group_array.empty?
-        return [] if group_array.reject{|g| g =~ /^n(one)$/i }.empty? # ['n'], ['None'], case-free
-        return [D3::STANDARD_AUTO_GROUP] if check_for_std and group_array.include?(D3::STANDARD_AUTO_GROUP)
+        return [] if group_array.reject { |g| g =~ /^n(one)$/i }.empty? # ['n'], ['None'], case-free
+        return [D3::STANDARD_AUTO_GROUP] if check_for_std && group_array.include?(D3::STANDARD_AUTO_GROUP)
 
         group_array.each do |group|
           raise JSS::NoSuchItemError, "No ComputerGroup named '#{group}' in the JSS" unless JSS::ComputerGroup.all_names.include? group
@@ -305,8 +296,8 @@ module D3
       ###
       ### @return [True] true if there are no groups in common
       ###
-      def validate_non_overlapping_groups (auto, excl)
-        return nil unless auto and excl
+      def validate_non_overlapping_groups(auto, excl)
+        return nil unless auto && excl
         auto = JSS.to_s_and_a(auto)[:arrayform]
         excl = JSS.to_s_and_a(excl)[:arrayform]
         raise JSS::InvalidDataError, "Auto and Excluded group-lists can't contain groups in common." unless (auto & excl).empty?
@@ -320,19 +311,19 @@ module D3
       ###
       ### @return [Array] the valid OS list
       ###
-      def validate_oses (os_list)
+      def validate_oses(os_list)
         os_list = nil if os_list.to_s =~ /^n(one)?$/i
         return [] if os_list.to_s.empty?
-         ### if any value starts with >=, expand it
+        ### if any value starts with >=, expand it
         case os_list
-          when String
-            os_list = JSS.expand_min_os(os_list) if os_list =~ /^>=/
-          when Array
-            os_list.map!{|a|  a =~ /^>=/ ? JSS.expand_min_os(a) : a }
-            os_list.flatten!
-            os_list.uniq!
-          else
-            raise JSS::InvalidDataError, "os_list must be a String or an Array of strings"
+        when String
+          os_list = JSS.expand_min_os(os_list) if os_list =~ /^>=/
+        when Array
+          os_list.map! { |a| a =~ /^>=/ ? JSS.expand_min_os(a) : a }
+          os_list.flatten!
+          os_list.uniq!
+        else
+          raise JSS::InvalidDataError, 'os_list must be a String or an Array of strings'
         end
         ### return the array version
         JSS.to_s_and_a(os_list)[:arrayform]
@@ -345,11 +336,11 @@ module D3
       ###
       ### @return [Symbol] the valid CPU type
       ###
-      def validate_cpu_type (type)
+      def validate_cpu_type(type)
         type = JSS::Package::DEFAULT_PROCESSOR if type.to_s.empty?
-        type = "None" if type =~ /^n(one)?$/i
-        type = "x86" if type.casecmp('intel') == 0
-        type = "ppc" if type.casecmp('ppc') == 0
+        type = 'None' if type =~ /^n(one)?$/i
+        type = 'x86' if type.casecmp('intel').zero?
+        type = 'ppc' if type.casecmp('ppc').zero?
         unless JSS::Package::CPU_TYPES.include? type
           raise JSS::InvalidDataError, "CPU type must be one of: #{JSS::Package::CPU_TYPES.join ', '}"
         end
@@ -364,9 +355,9 @@ module D3
       ###
       ### @return [String] the valid category name
       ###
-      def validate_category (cat)
+      def validate_category(cat)
         cat = nil if cat.to_s =~ /^n(one)?$/i
-        return "" if  cat.to_s.empty?
+        return '' if cat.to_s.empty?
         raise JSS::NoSuchItemError, "No category '#{cat}' in the JSS" unless JSS::Category.all_names.include? cat
         cat
       end
@@ -377,9 +368,9 @@ module D3
       ###
       ### @return [String]
       ###
-      def validate_prohibiting_process (process_name)
+      def validate_prohibiting_process(process_name)
         process_name = nil if process_name.to_s =~ /^n(one)?$/i
-        return nil if process_name.nil? or process_name.empty?
+        return nil if process_name.nil? || process_name.empty?
         process_name.to_s
       end
 
@@ -396,11 +387,11 @@ module D3
       ###
       ### @return [Boolean]
       ###
-      def validate_yes_no (yn)
+      def validate_yes_no(yn)
         case yn
-        when Fixnum
+        when Integer
           return true if yn == 1
-          return false if yn == 0
+          return false if yn.zero?
         when String
           return true if yn.strip =~ /^y(es)?$/i
           return false if yn.strip =~ /^no?$/i
@@ -421,9 +412,9 @@ module D3
       ###
       ### @return [Integer] the valid expiration
       ###
-      def validate_expiration (exp)
+      def validate_expiration(exp)
         exp ||= '0'
-        raise JSS::InvalidDataError, "Expiration must be a non-negative Integer." unless exp.to_s =~ /^\d+$/
+        raise JSS::InvalidDataError, 'Expiration must be a non-negative Integer.' unless exp.to_s =~ /^\d+$/
         exp = 0 if exp.to_i < 0
         exp.to_i
       end
@@ -436,13 +427,13 @@ module D3
       ###
       ### @return [Array<Pathname>] the valid path
       ###
-      def validate_expiration_paths (paths)
-        return [] if paths.to_s.empty? or paths.to_s =~ /^n(one)?$/i
+      def validate_expiration_paths(paths)
+        return [] if paths.to_s.empty? || paths.to_s =~ /^n(one)?$/i
 
         paths = paths.chomp.split(/\s*,\s*/) if paths.is_a? String
 
         if paths.is_a? Array
-          return paths.map!{|p| validate_expiration_path p}
+          return paths.map! { |p| validate_expiration_path p }
         else
           return [validate_expiration_path(paths)]
         end
@@ -456,13 +447,14 @@ module D3
       ###
       ### @return [Pathname] the valid path
       ###
-      def validate_expiration_path (path)
+      def validate_expiration_path(path)
         path = path.to_s
-        raise JSS::InvalidDataError, "Expiration Path must be a full path starting with /." unless path.start_with? "/"
+        raise JSS::InvalidDataError, 'Expiration Path must be a full path starting with /.' unless path.start_with? '/'
         Pathname.new path
       end
 
     end # module Validate
 
-  end # class package
+  end # class Package
+
 end # module D3
