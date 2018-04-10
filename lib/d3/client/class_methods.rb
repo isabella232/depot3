@@ -104,13 +104,15 @@ module D3
             end
           end # if curr rcpt
 
+cloud = cloud_dist_point_to_use desired_pkg
+
           desired_pkg.install(
             :force => options.force,
             :admin => self.get_admin(desired_pkg, options),
             :puppywalk => options.puppies,
             :expiration => options.custom_expiration,
             :verbose => options.verbose,
-            :alt_download_url => self.cloud_dist_point_to_use
+            :alt_download_url => cloud
           )
 
           self.freeze_receipts([desired_pkg.basename]) if options.freeze_on_install
@@ -756,29 +758,55 @@ module D3
     ### @return [String, nil] The download url for the cloud dist point,
     ###   if we should use one, or nil.
     ###
-    def self.cloud_dist_point_to_use(refresh = false)
+    def self.cloud_dist_point_to_use(refresh = false, pkg: nil )
+      raise 'You must provide a pkg' unless pkg.is_a? D3::Package
+
       @@cloud_dist_url == :unknown if refresh
       return @@cloud_dist_url unless @@cloud_dist_url == :unknown
 
       mdp = JSS::DistributionPoint.my_distribution_point
 
+      # test if configured for trying cloud
       unless D3::CONFIG.client_try_cloud_distpoint
         D3.log "Config is not to try cloud, using only Distribution Point '#{mdp.name}'", :info
         return @@cloud_dist_url =  nil
       end
 
+      # test if dist pnt is reachable return nil if true
       if mdp.reachable_for_download?(self.get_ro_pass :http) or mdp.reachable_for_download?(self.get_ro_pass :dist)
         D3.log "Distribution Point '#{mdp.name}' is reachable, no need for cloud", :info
         return @@cloud_dist_url =  nil
       end
+
+      # test if the JSS has a cloud dist point defined
       cloud_url = self.cloud_distribution_point_url
-      if cloud_url
-        D3.log "Cloud distribution URL found '#{cloud_url}', will use for pkg installs", :info
-      else
+      unless cloud_url
         D3.log "No cloud distribution URL found.", :info
+        return @@cloud_dist_url =  nil
+      end
+
+      # test if this pkg is available in the cloud
+      pkg_available = validate_pkg_in_cloud url, pkg
+      unless pkg_available
+        D3.log "#{pkg.edition} is not available in the cloud", :info
+        return @@cloud_dist_url =  nil
       end
       @@cloud_dist_url = cloud_url
-    end
+    end # self.cloud_dist_point_to_use
+
+    # given a cloud url and a D3::Package
+    # is the pkg available at that url?
+    #
+    # @return [Boolean]
+    #
+    def self.validate_pkg_in_cloud(url, pkg)
+      full_url = "#{url}/#{pkg.filename}"
+      fake_target =
+      jamf_cmd =  "#{JSS::Client::JAMF_BINARY} install -package #{Shellwords.escape pkg.filename} -path #{Shellwords.escape full_url}  -target /dev/null -showProgress -verbose"
+
+
+    end # def self.validate_pkg_in_cloud pkg
+
 
     ### Is a Cloud Distribution Point available for pkg downloads?
     ### If so, return the url for downloading pkg files
