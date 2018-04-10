@@ -801,10 +801,20 @@ cloud = cloud_dist_point_to_use desired_pkg
     #
     def self.validate_pkg_in_cloud(url, pkg)
       full_url = "#{url}/#{pkg.filename}"
-      fake_target =
       jamf_cmd =  "#{JSS::Client::JAMF_BINARY} install -package #{Shellwords.escape pkg.filename} -path #{Shellwords.escape full_url}  -target /dev/null -showProgress -verbose"
 
+      Open3.popen2e(cmd) do |stdin, stdout_err, wait_thr|
+          while line = stdout_err.gets
+            # as soon as we see a line that looks like
+            #  /^\d+\.\d+%$/  we know the pkg is available
+            # so kill this process and return true
+          end
 
+          exit_status = wait_thr.value
+          unless exit_status.success?
+            #{ here we know the pkg isn't in that cloud}
+          end
+        end
     end # def self.validate_pkg_in_cloud pkg
 
 
