@@ -199,7 +199,7 @@ cloud = cloud_dist_point_to_use desired_pkg
       puppies = [puppies] if puppies.is_a? String
       puppies = D3::PUPPY_Q.pups if puppies.include? "all"
       puppies.each do |pup|
-        unless the_puppy = D3::PUPPY_Q.q[pup]
+        unless the_puppy == D3::PUPPY_Q.q[pup]
           D3.log "No pkg for basename '#{pup}' in the puppy queue.", :warn
           next
         end # unless
