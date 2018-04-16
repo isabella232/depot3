@@ -71,9 +71,9 @@ module D3
 
   ### Log the lines of backtrace from the most recent exception
   ### but only if the current severity is :debug
-  def self.log_backtrace
+  def self.log_backtrace( e = $@ )
     return unless D3::LOG.level == :debug
-    $@.each{|line| D3.log "   #{line}", :debug }
+    e.backtrace.each{|line| D3.log "   #{line}", :debug }
   end
 
 
@@ -265,4 +265,3 @@ module D3
   # the singleton instance of our logger
   LOG = D3::Log.instance
 end # module D3
-

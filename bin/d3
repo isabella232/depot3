@@ -332,10 +332,10 @@ begin
   app = App.new(ARGV)
   app.run
 
-rescue
+rescue => e
   # handle exceptions not handled elsewhere
-  D3.log "An error occurred: #{$!.class}: #{$!}", :fatal
-  D3.log_backtrace
+  D3.log "An error occurred: #{e.class}: #{e}", :fatal
+  D3.log_backtrace e
   exit 1
 ensure
   if JSS::API.connected?
