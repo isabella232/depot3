@@ -36,7 +36,8 @@ module D3
     ### return [void]
     ###
     def check_for_newer_version
-      rcpt = D3::Client::Receipt.all[@basename] if D3::Client::Receipt.basenames.include? @basename
+      rcpt = D3::Client::Receipt.all[@basename] # if D3::Client::Receipt.basenames.include? @basename
+      return unless rcpt
       raise D3::InstallError, "The installed #{rcpt.edition} (#{rcpt.status}) is the same or newer. Use --force if needed." if rcpt.id >= @id
     end # check for newer version
 
