@@ -22,9 +22,10 @@
 ###
 ###
 
-
 ###
 module D3
+
+  # Client
   class Client < JSS::Client
 
     ################# Class Methods #################
@@ -45,8 +46,7 @@ module D3
     ###
     ### @return [void]
     ###
-    def self.install(pkgs, options )
-
+    def self.install(pkgs, options)
       pkgs = [pkgs] if pkgs.is_a? String
 
       pkgs.each do |pkg_to_search|
@@ -104,29 +104,29 @@ module D3
             end
           end # if curr rcpt
 
-cloud = cloud_dist_point_to_use desired_pkg
+          cloud = cloud_dist_point_to_use(pkg: desired_pkg)
 
           desired_pkg.install(
-            :force => options.force,
-            :admin => self.get_admin(desired_pkg, options),
-            :puppywalk => options.puppies,
-            :expiration => options.custom_expiration,
-            :verbose => options.verbose,
-            :alt_download_url => cloud
+            force: options.force,
+            admin: get_admin(desired_pkg, options),
+            puppywalk: options.puppies,
+            expiration: options.custom_expiration,
+            verbose: options.verbose,
+            alt_download_url: cloud
           )
 
-          self.freeze_receipts([desired_pkg.basename]) if options.freeze_on_install
+          freeze_receipts([desired_pkg.basename]) if options.freeze_on_install
 
           D3.log "Finished installing #{desired_pkg.edition}(#{desired_pkg.status})", :info
 
         rescue JSS::MissingDataError, JSS::NoSuchItemError, JSS::InvalidDataError, D3::InstallError
-          D3.log "Skipping installation of #{pkg_to_search}: #{$!}", :error
+          D3.log "Skipping installation of #{pkg_to_search}: #{$ERROR_INFO}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
-          D3.log "There was an error with the pre-install script for #{desired_pkg.edition}: #{$!}", :error
+          D3.log "There was an error with the pre-install script for #{desired_pkg.edition}: #{$ERROR_INFO}", :error
           D3.log_backtrace
         rescue D3::PostInstallError
-          D3.log "There was an error with the post-install script for #{desired_pkg.edition}: #{$!} NOTE: it was installed, but may have problems.", :error
+          D3.log "There was an error with the post-install script for #{desired_pkg.edition}: #{$ERROR_INFO} NOTE: it was installed, but may have problems.", :error
           D3.log_backtrace
         end # begin
       end # args.each
@@ -151,13 +151,12 @@ cloud = cloud_dist_point_to_use desired_pkg
           D3.log "Finished uninstalling #{rcpt.edition}.", :info
 
         rescue JSS::MissingDataError, D3::UninstallError, JSS::InvalidDataError
-          D3.log "Skipping uninstall of #{rcpt_to_remove}: #{$!}", :error
+          D3.log "Skipping uninstall of #{rcpt_to_remove}: #{$ERROR_INFO}", :error
           D3.log_backtrace
           next
         end # begin
       end # rcpts.each
-
-    end #uninstall_manual
+    end # uninstall_manual
 
     ### Return a valid, possibly-default, admin name for
     ### installing a package. Since the admin name is stored in
@@ -169,10 +168,9 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### @return [String] a valid admin name to use for the install
     ###
     def self.get_admin(pkg_to_install, options)
-
       # is this puppy already in the queue? If so,
       # the queue has our admin_name
-      if options.puppies and D3::PUPPY_Q.q[pkg_to_install.basename] then
+      if options.puppies && D3::PUPPY_Q.q[pkg_to_install.basename]
 
         admin = D3::PUPPY_Q.q[pkg_to_install.basename].admin
         admin ||= D3::DFT_PUPPY_ADMIN
@@ -186,7 +184,7 @@ cloud = cloud_dist_point_to_use desired_pkg
 
       end # if @options.puppies
 
-      return admin
+      admin
     end # get admin name
 
     ### Remove one or more puppies from the puppy queue
@@ -195,11 +193,11 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.dequeue_puppies (puppies)
+    def self.dequeue_puppies(puppies)
       puppies = [puppies] if puppies.is_a? String
-      puppies = D3::PUPPY_Q.pups if puppies.include? "all"
+      puppies = D3::PUPPY_Q.pups if puppies.include? 'all'
       puppies.each do |pup|
-        unless the_puppy == D3::PUPPY_Q.q[pup]
+        unless the_puppy = D3::PUPPY_Q.q[pup]
           D3.log "No pkg for basename '#{pup}' in the puppy queue.", :warn
           next
         end # unless
@@ -207,7 +205,7 @@ cloud = cloud_dist_point_to_use desired_pkg
           D3.log "Removing '#{the_puppy.edition}' from the puppy queue.", :warn
           D3::PUPPY_Q - the_puppy
         rescue
-          D3.log  "Couldn't remove #{the_puppy.edition} from the puppy queue: #{$!}", :error
+          D3.log "Couldn't remove #{the_puppy.edition} from the puppy queue: #{$ERROR_INFO}", :error
         end # begin
       end
     end
@@ -218,9 +216,9 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.sync (options = OpenStruct.new)
+    def self.sync(options = OpenStruct.new)
       D3::Client.set_env :sync
-      D3.log "Starting sync", :warn
+      D3.log 'Starting sync', :warn
 
       begin
         # update rcpts
@@ -248,7 +246,7 @@ cloud = cloud_dist_point_to_use desired_pkg
         # updates)
         clean_missing_receipts
 
-        D3.log "Finished sync", :warn
+        D3.log 'Finished sync', :warn
       ensure
         D3::Client.unset_env :sync
       end
@@ -268,8 +266,7 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### @return [void]
     ###
     def self.update_rcpts
-      D3.log "Updating receipts", :warn
-      need_saving = false
+      D3.log 'Updating receipts', :warn
 
       D3::Client::Receipt.all.each do |basename, rcpt|
         pkgdata = D3::Package.find_package rcpt.edition, :hash
@@ -332,7 +329,7 @@ cloud = cloud_dist_point_to_use desired_pkg
             need_update = true
           end # if
 
-          if (rcpt.expiration != pkgdata[:expiration].to_i) and (not rcpt.custom_expiration)
+          if (rcpt.expiration != pkgdata[:expiration].to_i) && !rcpt.custom_expiration
             rcpt.expiration = pkgdata[:expiration].to_i
             D3.log "Updating expiration for #{rcpt.edition}", :info
             need_update = true
@@ -351,7 +348,6 @@ cloud = cloud_dist_point_to_use desired_pkg
           need_update = true
         end # if
 
-
         rcpt.update if need_update
       end # each do basename, rcpt
     end # update_rcpts
@@ -362,7 +358,7 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### @return [void]
     ###
     def self.clean_doghouse
-      D3.log "Checking for invalid puppies in the queue", :warn
+      D3.log 'Checking for invalid puppies in the queue', :warn
       D3::PUPPY_Q.pending_puppies.each do |basename, pup|
         unless D3::Package.all_ids.include? pup.id
           D3.log "Removing #{pup.edition} from puppy queue: no longer in d3", :info
@@ -371,7 +367,7 @@ cloud = cloud_dist_point_to_use desired_pkg
         end
         if D3::Package.missing_data.keys.include? pup.id
           D3.log "Removing #{pup.edition} from puppy queue: status is 'missing'", :info
-          D3::PUPPY_Q -pup
+          D3::PUPPY_Q - pup
         end
       end
     end
@@ -382,13 +378,13 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.do_auto_installs (options)
+    def self.do_auto_installs(options)
       verbose = options.verbose
-      force =  options.force or D3.forced?
-      D3.log "Checking for new packages to auto-install", :warn
+      force = options.force || D3.forced?
+      D3.log 'Checking for new packages to auto-install', :warn
       D3::Client.set_env :auto_install
       begin # for ensure below
-        installed_basenames = D3::Client::Receipt.basenames :refresh
+        D3::Client::Receipt.basenames :refresh
 
         # loop through the groups for this machine
         auto_groups = D3::Client.computer_groups.dup
@@ -397,12 +393,11 @@ cloud = cloud_dist_point_to_use desired_pkg
           # this is the intersection of all pkg ids that get auto-installed
           # for the group, and all live pkg ids...
           # meaning this machine should have these pkg ids.
-          live_ids_for_group = ( D3::Package.live_data.keys &  D3::Package.auto_install_ids_for_group(group))
+          live_ids_for_group = (D3::Package.live_data.keys & D3::Package.auto_install_ids_for_group(group))
 
           live_ids_for_group.each do |live_id|
-
             # skip those not available
-            next unless self.available_pkg_ids.include? live_id
+            next unless available_pkg_ids.include? live_id
 
             auto_install_basename = D3::Package.live_data[live_id][:basename]
 
@@ -410,7 +405,7 @@ cloud = cloud_dist_point_to_use desired_pkg
             # the update_installed_pkgs method during sync.
             next if D3::Client::Receipt.all.keys.include? auto_install_basename
 
-            new_pkg = D3::Package.new :id => live_id
+            new_pkg = D3::Package.new id: live_id
 
             if new_pkg.reboot?
               queued_id = puppy_in_queue new_pkg.basename
@@ -422,24 +417,25 @@ cloud = cloud_dist_point_to_use desired_pkg
 
             begin
               D3.log "Auto-installing #{new_pkg.basename} for group '#{group}'", :info
+              cloud = cloud_dist_point_to_use(pkg: new_pkg)
               new_pkg.install(
-                :admin => D3::AUTO_INSTALL_ADMIN,
-                :verbose => verbose,
-                :force => force,
-                :puppywalk => options.puppies,
-                :alt_download_url => self.cloud_dist_point_to_use
+                admin: D3::AUTO_INSTALL_ADMIN,
+                verbose: verbose,
+                force: force,
+                puppywalk: options.puppies,
+                alt_download_url: cloud
               )
               D3.log "Auto-installed #{new_pkg.basename}", :warn
             rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-              D3.log "Skipping auto-install of #{new_pkg.edition}: #{$!}", :error
+              D3.log "Skipping auto-install of #{new_pkg.edition}: #{$ERROR_INFO}", :error
               D3.log_backtrace
             rescue D3::PreInstallError
-              D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$!}", :error
+              D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$ERROR_INFO}", :error
               D3.log_backtrace
             rescue D3::PostInstallError
-              D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$!} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+              D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$ERROR_INFO} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
               D3.log_backtrace
-            end #begin
+            end # begin
           end # live_ids_for_group.each do |live_id|
         end # each group
       ensure
@@ -451,8 +447,8 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ###
     def self.clean_missing_receipts
-      D3.log "Checking for receipts no longer in d3", :warn
-      D3::Client::Receipt.all.values.select{|r| r.status == :missing}.each do |mrcpt|
+      D3.log 'Checking for receipts no longer in d3', :warn
+      D3::Client::Receipt.all.values.select { |r| r.status == :missing }.each do |mrcpt|
         D3.log "Removing receipt for missing edition #{mrcpt.edition}", :info
         D3::Client::Receipt.remove_receipt mrcpt.basename
         D3.log "Removed receipt for missing edition #{mrcpt.edition}", :info
@@ -466,10 +462,10 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.update_installed_pkgs (options)
+    def self.update_installed_pkgs(options)
       verbose = options.verbose
-      force =  options.force or D3.forced?
-      D3.log "Checking for updates to installed packages", :warn
+      force = options.force || D3.forced?
+      D3.log 'Checking for updates to installed packages', :warn
       D3::Client.set_env :auto_update
       begin # see ensure below
 
@@ -478,7 +474,6 @@ cloud = cloud_dist_point_to_use desired_pkg
 
         # loop through the install pkgs
         D3::Client::Receipt.all.values.each do |rcpt|
-
           # is there a live pkg for this basename?
           if live_basenames_to_ids[rcpt.basename]
             live_id = live_basenames_to_ids[rcpt.basename]
@@ -516,7 +511,7 @@ cloud = cloud_dist_point_to_use desired_pkg
           if live_pkg_data[:reboot]
             queued_id = puppy_in_queue(live_pkg_data[:basename])
             if queued_id && queued_id >= live_pkg_data[:id]
-              D3.log "Skipping auto-update of puppy-queue item #{ live_pkg_data[:edition]}, there's a newer one in the queue already", :info
+              D3.log "Skipping auto-update of puppy-queue item #{live_pkg_data[:edition]}, there's a newer one in the queue already", :info
               next
             end # if queued_id && queued_id >= live_pkg.id
           end #  if live_pkg.reboot?
@@ -532,26 +527,27 @@ cloud = cloud_dist_point_to_use desired_pkg
           expiration = rcpt.custom_expiration ? rcpt.expiration : nil
 
           # heres the pkg
-          live_pkg = D3::Package.new :id => live_basenames_to_ids[rcpt.basename]
+          live_pkg = D3::Package.new id: live_basenames_to_ids[rcpt.basename]
 
           begin
+            cloud = cloud_dist_point_to_use(pkg: live_pkg)
             live_pkg.install(
-              :admin => rcpt.admin,
-              :expiration => expiration,
-              :verbose => verbose,
-              :force => force,
-              :puppywalk => options.puppies,
-              :alt_download_url => self.cloud_dist_point_to_use
-              )
+              admin: rcpt.admin,
+              expiration: expiration,
+              verbose: verbose,
+              force: force,
+              puppywalk: options.puppies,
+              alt_download_url: cloud
+            )
             D3.log "Done updating #{rcpt.edition} (#{rcpt.status}) to #{live_pkg.edition} (#{live_pkg.status})", :info
           rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}: #{$!}", :error
+            D3.log "Skipping update of #{rcpt.edition} to #{live_pkg.edition}: #{$ERROR_INFO}", :error
             D3.log_backtrace
           rescue D3::PreInstallError
-            D3.log "There was an error with the pre-install script for #{live_pkg.edition}: #{$!}", :error
+            D3.log "There was an error with the pre-install script for #{live_pkg.edition}: #{$ERROR_INFO}", :error
             D3.log_backtrace
           rescue D3::PostInstallError
-            D3.log "There was an error with the post-install script for #{live_pkg.edition}: #{$!} NOTE: #{live_pkg.edition} was installed, but may not work.", :error
+            D3.log "There was an error with the post-install script for #{live_pkg.edition}: #{$ERROR_INFO} NOTE: #{live_pkg.edition} was installed, but may not work.", :error
             D3.log_backtrace
           end # begin
         end # D3::Client::Receipt.all.values.each
@@ -566,7 +562,7 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.freeze_receipts (basenames)
+    def self.freeze_receipts(basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
         next unless rcpt
@@ -586,7 +582,7 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.thaw_receipts (basenames)
+    def self.thaw_receipts(basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
         next unless rcpt
@@ -606,11 +602,11 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [void]
     ###
-    def self.forget_receipts (basenames)
+    def self.forget_receipts(basenames)
       basenames.each do |bn|
         rcpt = D3::Client::Receipt.all[bn]
         next unless rcpt
-        rcpt.apple_pkg_ids.each{|ar| system "/usr/sbin/pkgutil --forget '#{ar}'" }
+        rcpt.apple_pkg_ids.each { |ar| system "/usr/sbin/pkgutil --forget '#{ar}'" }
         D3::Client::Receipt.remove_receipt bn
         D3.log "Receipt for #{rcpt.edition} has been forgotten", :warn
       end
@@ -619,22 +615,23 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### Do any pending puppy installs right now, because we're
     ### syncing and --puppies option was given
     ###
-    def self.do_puppy_queue_installs_from_sync (options)
+    def self.do_puppy_queue_installs_from_sync(options)
       return unless options.puppies
-      return if  D3::PUPPY_Q.q.empty?
-      D3.log "Installing all pkgs from puppy-queue during sync with --puppies", :info
+      return if D3::PUPPY_Q.q.empty?
+      D3.log 'Installing all pkgs from puppy-queue during sync with --puppies', :info
       D3::PUPPY_Q.q.each do |basename, puppy|
         begin
           D3.log "Installing #{puppy.edition} from puppy-queue during sync with --puppies", :debug
-          new_pkg = D3::Package.new :id => puppy.id
+          new_pkg = D3::Package.new id: puppy.id
+          cloud = cloud_dist_point_to_use(pkg: new_pkg)
           new_pkg.install(
-            :admin => puppy.admin,
-            :verbose => options.verbose,
-            :force => puppy.force,
-            :puppywalk => true,
-            :expiration => puppy.expiration,
-            :alt_download_url => self.cloud_dist_point_to_use
-            )
+            admin: puppy.admin,
+            verbose: options.verbose,
+            force: puppy.force,
+            puppywalk: true,
+            expiration: puppy.expiration,
+            alt_download_url: cloud
+          )
 
           D3::PUPPY_Q - puppy
         rescue JSS::NoSuchItemError
@@ -642,13 +639,13 @@ cloud = cloud_dist_point_to_use desired_pkg
           D3.log_backtrace
           D3::PUPPY_Q - puppy
         rescue JSS::MissingDataError, JSS::InvalidDataError, D3::InstallError
-          D3.log "Skipping install of #{new_pkg.edition} from queue: #{$!}", :error
+          D3.log "Skipping install of #{new_pkg.edition} from queue: #{$ERROR_INFO}", :error
           D3.log_backtrace
         rescue D3::PreInstallError
-          D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$!}", :error
+          D3.log "There was an error with the pre-install script for #{new_pkg.edition}: #{$ERROR_INFO}", :error
           D3.log_backtrace
         rescue D3::PostInstallError
-          D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$!} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
+          D3.log "There was an error with the post-install script for #{new_pkg.edition}: #{$ERROR_INFO} NOTE: #{new_pkg.edition} was installed, but may not work.", :error
           D3.log_backtrace
           D3::PUPPY_Q - puppy
         end # begin
@@ -684,7 +681,7 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     def self.do_expirations (verbose = false, force = D3.forced?)
       @@editions_expired = []
-      D3.log "Starting expiration check", :warn
+      D3.log 'Starting expiration check', :warn
 
       D3::Client::Receipt.all.values.each do |rcpt|
         begin
@@ -692,14 +689,14 @@ cloud = cloud_dist_point_to_use desired_pkg
           expired_edition = rcpt.expire verbose, force
           @@editions_expired << expired_edition if expired_edition
         rescue
-          D3.log "There was an error expiring #{rcpt.edition}: #{$!}", :error
+          D3.log "There was an error expiring #{rcpt.edition}: #{$ERROR_INFO}", :error
           D3.log_backtrace
         end
       end
 
       return true if @@editions_expired.empty?
 
-      D3::Client.set_env :finished_expirations, @@editions_expired.join(" ")
+      D3::Client.set_env :finished_expirations, @@editions_expired.join(' ')
 
       if policy = D3::CONFIG.client_expiration_policy
         D3.run_policy policy, :expiration, verbose
@@ -716,11 +713,11 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [Array<Integer>]
     ###
-    def self.available_pkg_ids (refresh = false)
+    def self.available_pkg_ids(refresh = false)
       @@available_pkg_ids = nil if refresh
       return @@available_pkg_ids if @@available_pkg_ids
 
-      self.computer_groups(:refresh) if refresh
+      computer_groups(:refresh) if refresh
 
       my_cpu = `/usr/bin/uname -p`
       my_os = `/usr/bin/sw_vers -productVersion`.chomp
@@ -730,7 +727,7 @@ cloud = cloud_dist_point_to_use desired_pkg
       D3::Package.package_data.values.each do |pkg|
         next unless JSS.os_ok? pkg[:oses], my_os
         next unless JSS.processor_ok? pkg[:required_processor], my_cpu
-        @@available_pkg_ids << pkg[:id] if (pkg[:excluded_groups] & self.computer_groups).empty?
+        @@available_pkg_ids << pkg[:id] if (pkg[:excluded_groups] & computer_groups).empty?
       end # do pkg
       @@available_pkg_ids
     end
@@ -741,10 +738,10 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [Array<String>] the JSS groups to which this machine belongs
     ###
-    def self.computer_groups (refresh = false)
+    def self.computer_groups(refresh = false)
       @@computer_groups = nil if refresh
       return @@computer_groups if @@computer_groups
-      @@computer_groups = JSS::Computer.new(:udid => JSS::Client.udid).computer_groups
+      @@computer_groups = JSS::Computer.new(udid: JSS::Client.udid).computer_groups
     end
 
     ### The cloud dist point to use for installs
@@ -758,39 +755,39 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### @return [String, nil] The download url for the cloud dist point,
     ###   if we should use one, or nil.
     ###
-    def self.cloud_dist_point_to_use(refresh = false, pkg: nil )
+    def self.cloud_dist_point_to_use(refresh = false, pkg: nil)
+      byebug
       raise 'You must provide a pkg' unless pkg.is_a? D3::Package
 
       @@cloud_dist_url == :unknown if refresh
-      return @@cloud_dist_url unless @@cloud_dist_url == :unknown
 
       mdp = JSS::DistributionPoint.my_distribution_point
 
-      # test if configured for trying cloud
+      # Should we try a cloud distribution point if the primary is unavailable ?
       unless D3::CONFIG.client_try_cloud_distpoint
         D3.log "Config is not to try cloud, using only Distribution Point '#{mdp.name}'", :info
-        return @@cloud_dist_url =  nil
+        return @@cloud_dist_url = nil
       end
 
-      # test if dist pnt is reachable return nil if true
-      if mdp.reachable_for_download?(self.get_ro_pass :http) or mdp.reachable_for_download?(self.get_ro_pass :dist)
+      # Can we reach the primary distribution point? Return nil if true.
+      if mdp.reachable_for_download?(get_ro_pass(:http)) || mdp.reachable_for_download?(get_ro_pass(:dist))
         D3.log "Distribution Point '#{mdp.name}' is reachable, no need for cloud", :info
-        return @@cloud_dist_url =  nil
+        return @@cloud_dist_url = nil
       end
 
-      # test if the JSS has a cloud dist point defined
-      cloud_url = self.cloud_distribution_point_url
+      # Get the cloud distribution point defined in the JSS
+      cloud_url = cloud_distribution_point_url
       unless cloud_url
-        D3.log "No cloud distribution URL found.", :info
-        return @@cloud_dist_url =  nil
+        D3.log 'No cloud distribution URL found.', :info
+        return @@cloud_dist_url = nil
       end
-
-      # test if this pkg is available in the cloud
-      pkg_available = validate_pkg_in_cloud url, pkg
+      # Make sure the package is available on the cloud distribution point
+      pkg_available = validate_pkg_in_cloud(cloud_url, pkg) if cloud_url
       unless pkg_available
         D3.log "#{pkg.edition} is not available in the cloud", :info
-        return @@cloud_dist_url =  nil
+        return @@cloud_dist_url = nil
       end
+
       @@cloud_dist_url = cloud_url
     end # self.cloud_dist_point_to_use
 
@@ -801,22 +798,18 @@ cloud = cloud_dist_point_to_use desired_pkg
     #
     def self.validate_pkg_in_cloud(url, pkg)
       full_url = "#{url}/#{pkg.filename}"
-      jamf_cmd =  "#{JSS::Client::JAMF_BINARY} install -package #{Shellwords.escape pkg.filename} -path #{Shellwords.escape full_url}  -target /dev/null -showProgress -verbose"
-
-      Open3.popen2e(cmd) do |stdin, stdout_err, wait_thr|
-          while line = stdout_err.gets
-            # as soon as we see a line that looks like
-            #  /^\d+\.\d+%$/  we know the pkg is available
-            # so kill this process and return true
-          end
-
-          exit_status = wait_thr.value
-          unless exit_status.success?
-            #{ here we know the pkg isn't in that cloud}
-          end
-        end
+      dummy_install_target = Pathname.new('/Volumes/' + Time.now.asctime)
+      jamf_cmd = "#{JSS::Client::JAMF_BINARY} install -package #{Shellwords.escape pkg.filename} -path #{Shellwords.escape full_url} -target #{Shellwords.escape dummy_install_target}/ -showProgress -verbose"
+      Open3.popen2e(jamf_cmd) do |_stdin, stdout_err, wait_thr|
+        stdout_err.each do |line|
+          if /^\d*+\.\d*+% / =~ line
+            Process.kill('KILL', wait_thr.pid)
+            return true
+          end # end if /^\d*+\.\d*+% / =~ line
+        end # end stdout_err.each do |line|
+        return false
+      end # end Open3.popen2e(jamf_cmd) do |_stdin, stdout_err, wait_thr|
     end # def self.validate_pkg_in_cloud pkg
-
 
     ### Is a Cloud Distribution Point available for pkg downloads?
     ### If so, return the url for downloading pkg files
@@ -825,12 +818,12 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### @return [String, nil]
     ###
     def self.cloud_distribution_point_url
-      result = JSS::DB_CNX.db.query "SELECT download_url, cdn_url FROM cloud_distribution_point"
+      result = JSS::DB_CNX.db.query 'SELECT download_url, cdn_url FROM cloud_distribution_point'
       urls = result.fetch
       result.free
       return nil if urls.nil?
-      return nil if urls[0].empty? and urls[1].empty?
-      return urls[0].empty? ? urls[1] : urls[0]
+      return nil if urls[0].empty? || urls[1].empty?
+      urls[0].empty? ? urls[1] : urls[0]
     end
 
     ### Given a basename, is any edition of it in the puppy queue?
@@ -840,12 +833,11 @@ cloud = cloud_dist_point_to_use desired_pkg
     ###
     ### @return [Integer, nil] The id of the queued package for the basename, if any
     ###
-    def self.puppy_in_queue (basename)
+    def self.puppy_in_queue(basename)
       pup = D3::PUPPY_Q.queue[basename]
       return nil unless pup
-      return pup.id
+      pup.id
     end # basename in puppy queue
-
 
     ### get the executable path of the current foreground GUI app. NOTE, if you
     ### have fast user switching on, or multi-user screensharing,
@@ -854,9 +846,9 @@ cloud = cloud_dist_point_to_use desired_pkg
     ### @return [Pathname, nil] the path to the executable of the current foreground app, nil if none
     ###
     def self.foreground_executable_path
-      lsai = "/usr/bin/lsappinfo"
-      ls_app_id =  `#{lsai} front`.chomp
-      return nil if ls_app_id == "[ NULL ] "
+      lsai = '/usr/bin/lsappinfo'
+      ls_app_id = `#{lsai} front`.chomp
+      return nil if ls_app_id == '[ NULL ] '
 
       raw = `#{lsai} info -only executablepath '#{ls_app_id}'`.chomp
       return nil if raw.empty?
@@ -864,7 +856,9 @@ cloud = cloud_dist_point_to_use desired_pkg
       path = raw.split(/=\s*"/).last
       return nil unless path
       path.chomp!('"')
-      return path.empty? ? nil : Pathname.new(path)
+      path.empty? ? nil : Pathname.new(path)
     end
+
   end # class
+
 end # module D3
