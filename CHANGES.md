@@ -1,5 +1,16 @@
 # Change History
 
+## v3.0.20 - 2018-06-27
+- Added: validate that a pkg is available via cloud before trying to install it that way
+- Change: better backtrace logging
+- Change: better error reporting when client passwd retrieval fails
+- Fix: bug preventing puppies to install from the puppy queue
+
+## v3.0.19 - 2018-03-31
+- Added: signing identity and signing prefs to d3admin add, when building .pkgs
+- Added: A default description editer (e.g. vi, emacs, pico) can be saved in admin prefs
+- Fix: return nil when asked for current foreground application on client, and there is none.
+
 ## v3.0.18 - 2017-12-01
 - Change: D3::Client.install: freeze prev. installed rcpts when 'freeze on install' requested.
 
