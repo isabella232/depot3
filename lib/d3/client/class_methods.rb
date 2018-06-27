@@ -756,7 +756,6 @@ module D3
     ###   if we should use one, or nil.
     ###
     def self.cloud_dist_point_to_use(refresh = false, pkg: nil)
-      byebug
       raise 'You must provide a pkg' unless pkg.is_a? D3::Package
 
       @@cloud_dist_url == :unknown if refresh
