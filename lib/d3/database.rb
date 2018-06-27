@@ -132,7 +132,7 @@ module D3
     ###     - :installed_kb  The disk spaced used by this pkg when installed
     ###   When .[m]pkgs are installed, the identifiers and metadata for each are recorded in the OS's receipts database
     ###   and are accessible via the pkgutil command. (e.g. pkgutil --pkg-info com.company.application). Storing the apple rcpt
-    ###   data in the DB allows us to do uninstalls and other client tasks without needing to index the pkg in casper. This is
+    ###   data in the DB allows us to do uninstalls and other client tasks without needing to index the pkg in jamf. This is
     ###   stored in the DB as a YAML string
     ###
     ### - :added_date [Time] when was this package was added to d3

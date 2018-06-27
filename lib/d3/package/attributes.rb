@@ -45,7 +45,7 @@ module D3
     ### @return [Array<Hash>] the apple receipt data for the items installed by this pkg.
     ###   When .[m]pkgs are installed, their identifiers and metadata are recorded in the OS's receipts database
     ###   and are accessible via the pkgutil command. (e.g. pkgutil --pkg-info com.company.application). Storing it
-    ###   in the DB allows us to do uninstalls and other client tasks without needing to index the pkg in Casper.
+    ###   in the DB allows us to do uninstalls and other client tasks without needing to index the pkg in Jamf Pro.
     ###   Each hash has these keys:
     ###   - :apple_pkg_id => String
     ###   - :version => String

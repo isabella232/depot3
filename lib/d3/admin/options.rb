@@ -435,7 +435,7 @@ module D3
       keep_scripts: {
         default: nil,
         cli: ['--keep-scripts', GetoptLong::NO_ARGUMENT],
-        label: 'Keep associated scripts in Casper',
+        label: 'Keep associated scripts in Jamf Pro',
         display_conversion: DISPLAY_TRUE_FALSE,
         get: :get_keep_scripts,
         validate: :validate_yes_no
@@ -443,7 +443,7 @@ module D3
       keep_in_jss: {
         default: nil,
         cli: ['--keep-in-jss', GetoptLong::NO_ARGUMENT],
-        label: 'Keep the Casper package',
+        label: 'Keep the Jamf Pro package',
         display_conversion: DISPLAY_TRUE_FALSE,
         get: :get_keep_in_jss,
         validate: :validate_yes_no

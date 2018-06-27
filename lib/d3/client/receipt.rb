@@ -370,7 +370,7 @@ module D3
 
       ### Return an array of the
       ### basenames of all installed d3 pkgs. This doesn't
-      ### include those items installed by other casper methods
+      ### include those items installed by other jamf methods
       ###
       def self.basenames(refresh = false)
         self.all(refresh).keys
@@ -456,7 +456,7 @@ module D3
           # someone installed a d3 pkg via non-d3 means) then
           # which one wins? I say the last one, but log it.
           if new_rcpts.keys.include? d3_pkg.basename
-            D3.log "Rebuilding local receipt database: multiple Casper installs of basename '#{d3_pkg.basename}'", :warn
+            D3.log "Rebuilding local receipt database: multiple Jamf Pro installs of basename '#{d3_pkg.basename}'", :warn
             new_rcpts.delete d3_pkg.basename
           end # new_rcpts.keys.include? d3_pkg.basename
 
@@ -913,7 +913,7 @@ Install date: #{@installed_at.strftime "%Y-%m-%d %H:%M:%S"}
 Installed by: #{@admin}
 Manually installed: #{manual?}
 JAMF receipt file: #{@jamf_rcpt_file.basename}
-Casper Pkg ID: #{@id}
+Jamf Pro Pkg ID: #{@id}
 Un-installable: #{removable? ? "yes" : "no"}
         END_DEETS
 

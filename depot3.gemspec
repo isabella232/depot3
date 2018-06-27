@@ -36,10 +36,10 @@ Gem::Specification.new do |s|
   s.homepage    = 'http://pixaranimationstudios.github.io/depot3/'
   s.license     = 'Apache-2.0 WITH Modifications'
   s.date        = Time.now.utc.strftime("%Y-%m-%d")
-  s.summary     = "A package/patch management system for OS X which extends the capabilites of the Casper Suite."
+  s.summary     = "A package/patch management system for OS X which extends the capabilites of Jamf Pro."
   s.description = <<-EOD
-d3 extends the package-deployment capabilities of the Casper Suite, an enterprise/education
-tool for managing Apple devices, from JAMF Software LLC.
+d3 extends the package-deployment capabilities of Jamf Pro, an enterprise/education
+tool for managing Apple devices.
 For details, see http://pixaranimationstudios.github.io/depot3/index.html
   EOD
 

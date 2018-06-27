@@ -402,7 +402,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
     ### @param rwpw[String] the read-write for the master distr. point
     ###
     ### @return [Array<String>] a textual list of scripts delted and not
-    ###   deleted because they're in use by other d3 pkgs or casper policies
+    ###   deleted because they're in use by other d3 pkgs or jamf policies
     ###    (empty if keep_scripts is true)
     ###
     def delete (keep_in_jss: false, keep_scripts: false, admin: @admin, rwpw: nil)
@@ -544,7 +544,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
     ### Package in the JSS Database.
     ###
     ### This is the equivalent of clicking the "index" button
-    ### in Casper Admin.app, and is necessary for Casper to
+    ### in Jamf Admin.app, and is necessary for Jamf Pro to
     ### be able to uninstall items. It can only happen after the
     ### item has already been saved to the JSS and has an
     ### id in the database.
@@ -614,7 +614,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
         system "rm -rf '#{tmp_bom}'"
 
       else
-        raise JSS::InvalidDataError, "#{@filename} doesn't looks like a .pkg or .dmg. Try Casper Admin to index it."
+        raise JSS::InvalidDataError, "#{@filename} doesn't looks like a .pkg or .dmg. Try Jamf Admin to index it."
       end # if filename .pkg
 
       # If there are no bomlines (perhaps a payloadless pkg?) just return

@@ -267,7 +267,7 @@ module D3
         D3::Package::Validate.validate_groups groups
       end
 
-      ### check that a computer name  or id exists in casper
+      ### check that a computer name  or id exists in jamf
       ###
       ### @param [String,Integer] the name, id, serialnumber, macaaddress, or udid
       ###   of a computer in the JSS

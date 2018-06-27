@@ -45,7 +45,7 @@ module D3
         helptxt = <<-ENDHELP
 
 d3: package/patch management & deployment tool to enhance the package-
-handling capabilities of the Casper Suite from JAMF Software, LLC.
+handling capabilities of Jamf Pro.
 
 #{USAGE}
 
@@ -109,4 +109,3 @@ ENDHELP
     end # module help
   end # class
 end # module D3
-

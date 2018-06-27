@@ -280,7 +280,7 @@ module D3
           end # while
 
           # did we get it in 3 tries?
-          raise JSS::InvalidDataError, "Three wrong attempts, please contact a Casper administrator." if 3 == tries
+          raise JSS::InvalidDataError, "Three wrong attempts, please contact a Jamf Pro administrator." if 3 == tries
 
           save_credentials(kind, user, pw)
           puts "\nThank you, the credentials have been saved in your OS X login keychain"
