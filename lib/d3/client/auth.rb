@@ -88,7 +88,10 @@ module D3
       # return the desired password, so remove the pipe,
       # execute it, and return stdout from it.
       if path.end_with? "|"
-        return `#{path.chomp "|"}`.chomp
+        cmd = path.chomp '|'
+        output = `#{cmd} 2>&1`.chomp
+        return output if $CHILD_STATUS.exitstatus.zero?
+        raise D3::PermissionError, "can't get client password for #{pw}: #{output}"
       end
 
       file = Pathname.new path
@@ -106,4 +109,3 @@ module D3
 
   end # class Client
 end # module D3
-
