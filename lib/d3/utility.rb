@@ -75,7 +75,7 @@ module D3
     return D3::DISALLOWED_ADMINS + D3::CONFIG.client_prohibited_admin_names
   end
 
-  ### Run a Casper policy on the local machine
+  ### Run a Jamf Pro policy on the local machine
   ###
   ### @param policy[String,Integer] the custom-trigger, name, or id of the policy
   ###

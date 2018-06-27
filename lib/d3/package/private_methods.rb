@@ -172,7 +172,7 @@ module D3
     end
 
     ### Delete any scripts associated with this pkg
-    ### but only if they aren't associated with other d3 pkgs or casper policies
+    ### but only if they aren't associated with other d3 pkgs or jamf policies
     ###
     ### @return [Array<String>] a textual list of scripts and whether they were
     ###   deleted or not (and why not)

@@ -121,7 +121,7 @@ client_db_ropw_path:
 ###
 ###   *** REQUIRED ***
 ###
-###   Access to this machine's Casper distribution point's
+###   Access to this machine's Jamf Pro distribution point's
 ###   filesharing service
 ###
 ###   See client_jss_ropw_path, above
@@ -138,7 +138,7 @@ client_distpoint_ropw_path:
 ###   *** REQUIRED ***
 ###
 ###   Access to the password for http downloads from this
-###   machines Casper Distribution point.
+###   machines Jamf Pro Distribution point.
 ###
 ###   See client_jss_ropw_path, above
 ###
@@ -394,7 +394,7 @@ jss_default_script_category:
 notification_image_path:
 
 ### - admin_make_live_script
-###   The id or name of an existing Casper script to execute when
+###   The id or name of an existing Jamf Pro script to execute when
 ###   a package is made live.
 ###
 ###   The original use-case is for the script to send an email announcement
@@ -432,7 +432,7 @@ admin_make_live_script:
 ###
 ###   - Associated pre- and post- scripts for the deleted packages WILL
 ###   also be deleted, but ONLY if they aren't in use by some other package,
-###   or Casper policy.
+###   or Jamf Pro policy.
 ###
 ###   - The package will NOT be kept in the JSS.
 ###
@@ -479,8 +479,8 @@ admin_auto_clean_keep_latest_pilots:
 ###   on each client computer. It is used by the d3admin utility for generating
 ###   reports about what's installed on clients.
 ###
-###   If the Ext Attr is not used, then Caspers inventory data about installed
-###   casper receipts is used, but the report detail is limited.
+###   If the Ext Attr is not used, then Jamf Pro's inventory data about installed
+###   jamf receipts is used, but the report detail is limited.
 ###
 ###   If you leave this blank:
 ###      The reports from  `d3admin report` will not contain data about

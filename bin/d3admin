@@ -24,7 +24,7 @@
 ###
 
 # == Synopsis
-#  d3admin - a commandline tool for creating and maintaining d3 pkgs in Casper
+#  d3admin - a commandline tool for creating and maintaining d3 pkgs in Jamf Pro
 #
 # == Usage
 #   d3admin [options] action target....
@@ -483,7 +483,7 @@ ENDVERS
       pols_used_by_old_pkg = outgoing_pkg.policy_ids
       unless pols_used_by_old_pkg.empty?
         names = pols_used_by_old_pkg.map { |pid| JSS::Policy.map_all_ids_to(:name)[pid] }.join(', ')
-        policy_warning = "\n\nWARNING: the current live package is in use by these Casper Policies:\n"
+        policy_warning = "\n\nWARNING: the current live package is in use by these Jamf Pro Policies:\n"
         policy_warning += " #{names}\n"
         policy_warning += 'You might want to update them to use the new live package.'
       end # unless empty
@@ -607,9 +607,9 @@ ENDVERS
     end # if got_scripts
 
     if @options.keep_in_jss
-      deets += "\n - Leaving the Casper package in the JSS"
+      deets += "\n - Leaving the Jamf Pro package in the JSS"
     else
-      deets += "\n - Deleting the Casper package as well as the d3 data"
+      deets += "\n - Deleting the Jamf Pro package as well as the d3 data"
     end
 
     confirm "DELETE #{pkg.edition}, JSS id #{pkg.id}\nDist.Point Filename: #{pkg.filename}", deets
@@ -808,7 +808,7 @@ ENDDEETS
       if @options.search_groups
         found_groups = JSS::ComputerGroup.all_names.select { |gn| gn =~ /#{search_target}/ }
         if found_groups.empty?
-          puts "No computer groups in Casper match '#{search_target}'"
+          puts "No computer groups in Jamf Pro match '#{search_target}'"
         else
           found_groups.each { |fgn|
             D3::Admin::Report.list_scoped_installs fgn, @options.status, :auto

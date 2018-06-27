@@ -1,7 +1,7 @@
-# d3 - Command line package and patch management for Casper
+# d3 - Command line package and patch management for Jamf Pro
 
 d3 (a.k.a. depot3) is a package deployment and patch management system for OS X that enhances
-[Jamf Pro](https://www.jamf.com/products/jamf-pro/), an enterprise-level management system for Apple devices from [JAMF Software](http://www.jamf.com/). It was created by [Pixar Animation Studios](http://www.pixar.com/).
+[Jamf Pro](https://www.jamf.com/products/jamf-pro/), an enterprise-level management system for Apple devices. It was created by [Pixar Animation Studios](http://www.pixar.com/).
 
 
 d3 adds these capabilities and more to Jamf Pro's package handling:

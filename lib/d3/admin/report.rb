@@ -130,7 +130,7 @@ module D3
       def report_single_computer_receipts (computer_name, statuses)
 
         unless JSS::Computer.all_names.include? computer_name
-          puts "# No computer named '#{computer_name}' in Casper"
+          puts "# No computer named '#{computer_name}' in Jamf Pro"
           return
         end
 
@@ -151,7 +151,7 @@ module D3
 
           rcpt_data = JSON.parse ea_data , :symbolize_names => true
 
-        # no EA, use casper rcpts
+        # no EA, use jamf rcpts
         else
           pkg_filenames_to_ids = D3::Package.all_filenames.invert
           rcpt_data = {}
@@ -292,7 +292,7 @@ module D3
         end
 
         unless JSS::Computer.all_names.include? computer_name
-          puts "No computer named '#{computer_name}' in Casper"
+          puts "No computer named '#{computer_name}' in Jamf Pro"
           return false
         end
 
@@ -522,9 +522,9 @@ module D3
       ###### Data gathering
 
       ### Reconnect to both the API and DB with a much larger timeout, and
-      ### using an alternate DB server if one is defined. Also connect with 
+      ### using an alternate DB server if one is defined. Also connect with
       ### the read-only accts, since rw isn't needed, retrieving the pws
-      ### requires an admin keychain, which makes automated reporting 
+      ### requires an admin keychain, which makes automated reporting
       ### unpleasant.
       ###
       ### @return [Hash<String>] the hostnames of the connected JSS & MySQL servers
@@ -534,19 +534,19 @@ module D3
           jss_user = D3::CONFIG.client_jss_ro_user
           jss_user ||= JSS::CONFIG.api_username
           jss_pw =  D3::Client.get_ro_pass(:jss)
-          
+
           db_user = D3::CONFIG.client_db_ro_user
           db_user ||= JSS::CONFIG.db_username
           db_pw = D3::Client.get_ro_pass(:db)
-          
+
         else
-          api = D3::Admin::Auth.rw_credentials :jss          
+          api = D3::Admin::Auth.rw_credentials :jss
           jss_user = api[:user]
           jss_pw =  api[:password]
 
           db = D3::Admin::Auth.rw_credentials :db
           db_user = db[:user]
-          db_pw = db[:password]          
+          db_pw = db[:password]
         end
         D3.connect_for_reports jss_user, jss_pw, db_user, db_pw
       end # connect for report
@@ -568,7 +568,7 @@ module D3
       ### Get the latest data from the D3::CONFIG.report_receipts_ext_attr_name
       ### if that EA exists, nil otherwise
       ###
-      ### The result is an Array of Hashes, one for each computer in Casper.
+      ### The result is an Array of Hashes, one for each computer in Jamf Pro.
       ### Each hash contains these keys:
       ###   :computer - the name of the computer
       ###   :user - the name of the comptuer's user
@@ -642,11 +642,11 @@ WHERE eav.extension_attribute_id = #{ea.id}
         return report_data
       end # def ea_report_data
 
-      ### get the latest receipt data from Caspers receipts table
+      ### get the latest receipt data from Jamf Pro's receipts table
       ### This is used if the D3::CONFIG.report_receipts_ext_attr_name is not set
       ### and the data it returns is less useful.
       ###
-      ### The result is and Array of Hashes, one for each computer in Casper.
+      ### The result is and Array of Hashes, one for each computer in Jamf Pro.
       ### Each hash contains these keys:
       ###   :computer - the name of the computer
       ###   :user - the name of the comptuer's user
@@ -744,4 +744,3 @@ WHERE eav.extension_attribute_id = #{ea.id}
     end # module Report
   end # module Admin
 end # module D3
-

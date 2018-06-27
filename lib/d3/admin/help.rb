@@ -96,8 +96,8 @@ Action add and edit:
                                      (Multiple paths should be comma separated)
 
 Action delete:
-  --keep-scripts                     Keep pre-/post- scripts in Casper
-  --keep-in-jss                      Delete pkg from d3 but leave in Casper
+  --keep-scripts                     Keep pre-/post- scripts in Jamf Pro
+  --keep-in-jss                      Delete pkg from d3 but leave in Jamf Pro
 
 Action search or report:
   -S, --status <status>              Limit package list to this status
@@ -128,7 +128,7 @@ ENDHELP
 
 d3admin is a tool for administering packages in d3, a package/patch
 management & deployment tool that enhances the package-handling capabilities
-of the Casper Suite from JAMF Software, LLC.
+of Jamf Pro.
 
 For detailed documentation see:
 https://github.com/PixarAnimationStudios/depot3/wiki/Admin
@@ -355,12 +355,12 @@ Action add and edit:
 Action delete:
 
   --keep-scripts                     Keep any scripts associated with this pkg
-                                       in Casper. Note: scripts used by other
+                                       in Jamf Pro. Note: scripts used by other
                                        packages or polices are never deleted.
 
-  --keep-in-jss                      Leave the package in Casper after deleting
+  --keep-in-jss                      Leave the package in Jamf Pro after deleting
                                        it from d3. Note: packages used by
-                                       policies are never deleted from Casper.
+                                       policies are never deleted from Jamf Pro.
 
 
 Action search:

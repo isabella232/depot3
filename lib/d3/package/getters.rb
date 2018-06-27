@@ -94,7 +94,7 @@ Status: #{@status}
 ---------------------
 Added by: #{@added_by or 'unknown'}
 Added date: #{@added_date ? @added_date.strftime('%Y-%m-%d') : 'unknown'}
-Casper Package: #{@name} (id: #{@id})
+Jamf Pro Package: #{@name} (id: #{@id})
 Filename: #{@filename}
 Category: #{@category or 'None'}
 Needs reboot (puppytime): #{@reboot_required or 'false'}
@@ -117,7 +117,7 @@ Release date: #{@release_date ? @release_date.strftime('%Y-%m-%d') : '-'}
     end #formatted_details
 
     ### The index of this package
-    ### This is an array of paths (as Strings) from the pkg's Casper index
+    ### This is an array of paths (as Strings) from the pkg's Jamf Pro index
     ###
     ### @param files_only[Boolean] ignore directories, only return files
     ###
@@ -141,7 +141,7 @@ Release date: #{@release_date ? @release_date.strftime('%Y-%m-%d') : '-'}
       index :files_only
     end
 
-    ### An Array of ids of all Casper policies using this package
+    ### An Array of ids of all Jamf Pro policies using this package
     ###
     ### @return [Array<Integer>] the policy ids using this package.
     ###

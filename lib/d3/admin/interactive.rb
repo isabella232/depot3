@@ -282,7 +282,7 @@ the newest edition for each.
       def get_package_name(default = nil)
         desc = <<-END_DESC
 JSS PACKAGE NAME
-Enter a unique name for this package in d3 and Casper.
+Enter a unique name for this package in d3 and Jamf Pro.
 Enter 'v' to view a list of package names currently in d3.
         END_DESC
         input = 'v'
@@ -369,7 +369,7 @@ Create a multi-line description of this package:
    - what does the installed thing do?
    - where did it come from, where to get updates?
    - who maintains it in your environment?
-   - any other info useful to d3 and Casper admins.
+   - any other info useful to d3 and Jamf Pro admins.
 (don't just say "installs foo" when "foo" is the basename)
   #{current_desc_review}Enter:#{prefd_editor_choice}
    - 'n' to edit using 'nano'
@@ -887,9 +887,9 @@ Enter 'n' for none
       ###
       def get_keep_scripts(default = 'n')
         desc = <<-END_DESC
-KEEP ASSOCIATED SCRIPTS IN CASPER?
+KEEP ASSOCIATED SCRIPTS IN JAMF PRO?
 When deleting a package, should any associated scripts
-(pre-install, post-install, pre-remove, post-remove) be kept in Casper?
+(pre-install, post-install, pre-remove, post-remove) be kept in Jamf Pro?
 
 NOTE: If any other d3 packages or policies are using the scripts
 they won't be deleted. The other users of the scripts will be reported.
@@ -906,8 +906,8 @@ Enter 'y' or 'n'
       ###
       def get_keep_in_jss(default = 'n')
         desc = <<-END_DESC
-KEEP THE PACKAGE IN CASPER?
-When deleting a package, should it be kept as a Casper package
+KEEP THE PACKAGE IN JAMF PRO?
+When deleting a package, should it be kept as a Jamf Pro package
 and only deleted from d3?
 Enter 'y' or 'n'
         END_DESC
@@ -931,7 +931,7 @@ One of:
   live       - live packages
   deprecated - old packages that used to be live
   skipped    - old packages that were never made live
-  missing    - packages in d3, but not Casper
+  missing    - packages in d3, but not Jamf Pro
   auto       - packages auto-installed for a given computer group
   excluded   - packages not available to a given computer group
 END_DESC
@@ -945,7 +945,7 @@ END_DESC
       def get_computer(default = nil)
         desc = <<-END_DESC
 COMPUTER NAME
-Enter the name of a computer Casper.
+Enter the name of a computer Jamf Pro.
 Enter 'v' to view a list available computer names.
 END_DESC
         input = 'v'

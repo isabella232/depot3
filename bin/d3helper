@@ -56,6 +56,7 @@ class App
     "--display-puppy-notification" =>  :display_puppy_notification,
     "--rcpts-for-ea" => :rcpts_for_ea,
     "--puppyq-for-ea" => :puppyq_for_ea,
+    "--import-jamf-receipts" => :import_receipts,
     "--import-casper-receipts" => :import_receipts,
     "--help" => :help,
     "--version" => :show_version
@@ -80,6 +81,7 @@ class App
     opts = GetoptLong.new(
       [ '--help', '-h', '-H', GetoptLong::NO_ARGUMENT ],
       [ '--debug', '-d', GetoptLong::NO_ARGUMENT ],
+      [ '--import-jamf-receipts', GetoptLong::NO_ARGUMENT ],
       [ '--import-casper-receipts', GetoptLong::NO_ARGUMENT ],
       [ '--display-puppy-notification', GetoptLong::NO_ARGUMENT ],
       [ '--rcpts-for-ea', GetoptLong::NO_ARGUMENT ],
@@ -96,6 +98,8 @@ class App
         @action = ACTIONS[opt]
       when '--debug'
         @debug = true
+      when '--import-jamf-receipts'
+        @action = ACTIONS[opt]
       when '--import-casper-receipts'
         @action = ACTIONS[opt]
       when '--display-puppy-notification'
@@ -147,7 +151,7 @@ class App
 #{USAGE}
 
   --display-puppy-notification      Tell users that puppies need walking.
-  --import-casper-receipts          Import local Casper package receipts into
+  --import-jamf-receipts          Import local Jamf Pro package receipts into
                                     d3 receipts. Can be run repeatedly to
                                     import for packages new to d3.
   --rcpts-for-ea                    Generate Extension Attribute data about
@@ -271,7 +275,7 @@ Watch a parade of cute puppies while these items are installed:
   ###
   def import_receipts
 
-    D3.log "Importing Casper Receipts for packages in d3", :warn
+    D3.log "Importing Jamf Pro Receipts for packages in d3", :warn
 
     # this gets us a hash of jss package filenames -> pkg ids
     d3_pkg_filenames =  D3::Package.all_filenames.invert
@@ -300,7 +304,7 @@ Watch a parade of cute puppies while these items are installed:
 
       # If we're here, we need to import the receipt, so get the matching D3
       # package and make a receipt from it.
-      D3.log "Importing Casper Receipt #{jss_rcpt_name}", :warn
+      D3.log "Importing Jamf Pro Receipt #{jss_rcpt_name}", :warn
 
       begin
         d3_pkg = D3::Package.new id: pkg_id
@@ -317,7 +321,7 @@ Watch a parade of cute puppies while these items are installed:
           :basename =>  d3_pkg.basename,
           :version =>  d3_pkg.version,
           :revision =>  d3_pkg.revision,
-          :admin =>  "imported-from-casper",
+          :admin =>  "imported-from-jamf",
           :id =>  d3_pkg.id,
           :status =>  d3_pkg.status ,
           :jamf_rcpt_file =>  jss_rcpt,
@@ -332,12 +336,12 @@ Watch a parade of cute puppies while these items are installed:
         )
         D3::Client::Receipt.add_receipt d3_rcpt, :replace
       rescue
-        D3.log "ERROR importing Casper Receipt #{jss_rcpt_name}: #{$!}", :error
+        D3.log "ERROR importing Jamf Pro Receipt #{jss_rcpt_name}: #{$!}", :error
       end
 
 
     end #JSS::Client.receipts.each do |jss_rcpt|
-    D3.log "Done importing Casper Receipts for packages in d3", :warn
+    D3.log "Done importing Jamf Pro Receipts for packages in d3", :warn
 
 
   end #import_receipts
