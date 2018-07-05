@@ -37,9 +37,9 @@ module D3
       # Run the make_live script if any
       if script = D3::CONFIG.admin_make_live_script
         if JSS::Script.all_names.include? script
-          code = JSS::Script.new(name: script).code
+          code = JSS::Script.fetch(name: script).code
         elsif JSS::Script.all_ids.include? script
-          code = JSS::Script.new(id: script).code
+          code = JSS::Script.fetch(id: script).code
         else
           return nil
         end
@@ -259,7 +259,7 @@ module D3
       begin
         D3::Client.set_env :pre_install, edition
         D3.log "Running pre_install script for #{edition}", :info
-        (exit_status, output) = JSS::Script.new(:id => @pre_install_script_id).run :verbose => verbose, :show_output => verbose
+        (exit_status, output) = JSS::Script.fetch(:id => @pre_install_script_id).run :verbose => verbose, :show_output => verbose
         D3.log "Finished pre_install script for #{edition}", :debug
       rescue D3::ScriptError
         raise PreInstallError, $!
@@ -280,7 +280,7 @@ module D3
       begin
         D3::Client.set_env :post_install, edition
         D3.log "Running post_install script for #{edition}", :info
-        (exit_status, output) = JSS::Script.new(:id => @post_install_script_id).run :verbose => verbose, :show_output => verbose
+        (exit_status, output) = JSS::Script.fetch(:id => @post_install_script_id).run :verbose => verbose, :show_output => verbose
         D3.log "Finished post_install script for #{edition}", :debug
       rescue D3::ScriptError
         raise PostInstallError, $!

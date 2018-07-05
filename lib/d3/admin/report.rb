@@ -134,7 +134,7 @@ module D3
           return
         end
 
-        computer = JSS::Computer.new name: computer_name
+        computer = JSS::Computer.fetch name: computer_name
 
         ea_name = D3::CONFIG.report_receipts_ext_attr_name
 
@@ -296,7 +296,7 @@ module D3
           return false
         end
 
-        computer = JSS::Computer.new name: computer_name
+        computer = JSS::Computer.fetch name: computer_name
         ea_data = computer.extension_attributes.select{|ea| ea[:name] == ea_name}.first[:value]
         if ea_data.empty?
           puts "No puppies in the queue on computer '#{computer_name}'"
@@ -593,7 +593,7 @@ module D3
         return nil unless D3::CONFIG.report_receipts_ext_attr_name
         connect_for_reports
 
-        ea = JSS::ComputerExtensionAttribute.new :name => D3::CONFIG.report_receipts_ext_attr_name
+        ea = JSS::ComputerExtensionAttribute.fetch :name => D3::CONFIG.report_receipts_ext_attr_name
 
         # while we could get the data via the API by calling: result = ea.latest_values
         # but thats very slow, because it creates a temporary AdvancedSearch,
@@ -699,7 +699,7 @@ ENDQ
       ### get the latest puppy queue data from the puppy q EA, if available.
       def computer_puppyq_data
         return nil unless D3::CONFIG.report_puppyq_ext_attr_name
-        ea = JSS::ComputerExtensionAttribute.new :name => D3::CONFIG.report_puppyq_ext_attr_name
+        ea = JSS::ComputerExtensionAttribute.fetch :name => D3::CONFIG.report_puppyq_ext_attr_name
         q = <<-ENDQ
 SELECT c.computer_id, c.computer_name, c.username, c.last_report_date_epoch AS as_of, eav.value_on_client AS value
 FROM computers_denormalized c

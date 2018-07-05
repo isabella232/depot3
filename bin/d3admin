@@ -671,7 +671,7 @@ ENDVERS
         d3_users = (D3::Package.packages_for_script(victim_script_id) - [pkgid])
         d3_users.each { |pid| puts "Script '#{victim_script_name}' in use by d3 edition '#{D3::Package.ids_to_editions[pid]}'" }
         if pol_users.empty? && d3_users.empty?
-          JSS::Script.new(id: victim_script_id).delete
+          JSS::Script.fetch(id: victim_script_id).delete
           puts "Deleted script '#{victim_script_name}'"
         end
       end # do script id

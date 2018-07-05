@@ -558,7 +558,7 @@ module D3
 
       args[:revision] ||= 1
 
-      jss_pkg = JSS::Package.new :id => id
+      jss_pkg = JSS::Package.fetch :id => id
 
       tmp_edition = "#{args[:basename]}-#{args[:version]}-#{args[:revision]}"
       if self.all_editions.include? tmp_edition

@@ -741,7 +741,7 @@ module D3
     def self.computer_groups(refresh = false)
       @@computer_groups = nil if refresh
       return @@computer_groups if @@computer_groups
-      @@computer_groups = JSS::Computer.new(udid: JSS::Client.udid).computer_groups
+      @@computer_groups = JSS::Computer.fetch(udid: JSS::Client.udid).computer_groups
     end
 
     ### The cloud dist point to use for installs

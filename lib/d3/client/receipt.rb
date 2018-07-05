@@ -646,7 +646,7 @@ module D3
           if JSS::Package.all_ids.include? @id
             # uninstall the pkg
             D3.log "Running 'jamf uninstall' of #{edition}", :debug
-            uninstall_worked = JSS::Package.new(:id => @id).uninstall(:verbose => verbose).exitstatus == 0
+            uninstall_worked = JSS::Package.fetch(:id => @id).uninstall(:verbose => verbose).exitstatus == 0
 
           # if it isn't on the server any more....
           else
@@ -715,7 +715,7 @@ module D3
         D3::Client.set_env :pre_remove, edition
         D3.log "Running pre_remove script", :debug
         begin
-          result = JSS::Script.new(:id => @pre_remove_script_id).run :verbose => verbose, :show_output => verbose
+          result = JSS::Script.fetch(:id => @pre_remove_script_id).run :verbose => verbose, :show_output => verbose
         rescue D3::ScriptError
           raise PreRemoveError, $!
         ensure
@@ -735,7 +735,7 @@ module D3
         D3::Client.set_env :post_remove, edition
         D3.log "Running post_remove script", :debug
         begin
-          result = JSS::Script.new(:id => @post_remove_script_id).run :verbose => verbose, :show_output => verbose
+          result = JSS::Script.fetch(:id => @post_remove_script_id).run :verbose => verbose, :show_output => verbose
         rescue D3::ScriptError
           raise PostRemoveError, $!
         ensure

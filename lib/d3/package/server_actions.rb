@@ -281,7 +281,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
       end
 
       # get the new script into the JSS
-      script = JSS::Script.new :id => :new, :name => args[:script_name]
+      script = JSS::Script.make :name => args[:script_name]
       script.contents = code
       script.category = args[:script_category]
       new_script_id = script.save
@@ -306,7 +306,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
 
       # delete the old?
       if args[:delete_current] and old_script_id
-        JSS::Script.new(:id => old_script_id).delete if JSS::Script.all_ids.include? old_script_id
+        JSS::Script.fetch(:id => old_script_id).delete if JSS::Script.all_ids.include? old_script_id
       end
 
       new_script_id

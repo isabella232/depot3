@@ -209,7 +209,7 @@ module D3
 
         if d3_users.empty? and policy_users.empty?
           # delete the script!
-          JSS::Script.new(id: victim_script_id).delete
+          JSS::Script.fetch(id: victim_script_id).delete
           script_deletion_actions << "deleted #{type_display} script '#{victim_script_name}'"
         else
           # add the info to the returned report
