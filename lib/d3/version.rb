@@ -25,6 +25,6 @@
 ###
 module D3
 
-  VERSION = '3.0.22'.freeze
+  VERSION = '3.0.23'.freeze
 
 end # module
