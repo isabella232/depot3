@@ -398,8 +398,7 @@ END_HEADER
       ###
       def add_new_package(new_package_options)
         # new_package_options should now have all the validated data we need to make a new pkg
-        new_pilot = D3::Package.new(
-          id: :new,
+        new_pilot = D3::Package.make(
           basename: new_package_options.basename,
           name: new_package_options.package_name,
           version: new_package_options.version,

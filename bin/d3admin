@@ -461,7 +461,7 @@ ENDVERS
       puts 'No edition given to make live or no matching package found'
       return
     end
-    pkg = D3::Package.new id: pkg_id
+    pkg = D3::Package.fetch id: pkg_id
 
     if pkg.status == :live
       puts "Doh, '#{pkg.edition}' is already live"
@@ -479,7 +479,7 @@ ENDVERS
     policy_warning = ''
     pkg_id_being_deprecated = D3::Package.basenames_to_live_ids[pkg.basename]
     if pkg_id_being_deprecated
-      outgoing_pkg = D3::Package.new(id: pkg_id_being_deprecated)
+      outgoing_pkg = D3::Package.fetch(id: pkg_id_being_deprecated)
       pols_used_by_old_pkg = outgoing_pkg.policy_ids
       unless pols_used_by_old_pkg.empty?
         names = pols_used_by_old_pkg.map { |pid| JSS::Policy.map_all_ids_to(:name)[pid] }.join(', ')
@@ -508,7 +508,7 @@ ENDVERS
   def edit_package(pkg = nil)
     unless pkg
       pkg_id = get_pkg_from_cli_or_prompt
-      pkg = pkg_id ? D3::Package.new(id: pkg_id) : nil
+      pkg = pkg_id ? D3::Package.fetch(id: pkg_id) : nil
     end
     if pkg.nil?
       puts 'No targets given to edit or no matching package found'
@@ -583,7 +583,7 @@ ENDVERS
       delete_missing_package pkg_id
       return
     else
-      pkg = D3::Package.new id: pkg_id
+      pkg = D3::Package.fetch id: pkg_id
     end
 
     got_scripts = !pkg.script_ids.values.empty?
@@ -734,7 +734,7 @@ ENDVERS
       return
     end
 
-    pkg = D3::Package.new id: pkg_id
+    pkg = D3::Package.fetch id: pkg_id
 
     pkg_deets = <<-ENDDEETS
 *****************************************

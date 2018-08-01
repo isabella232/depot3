@@ -76,7 +76,7 @@ module D3
         @custom_expiration = args[:custom_expiration]
         @status = args[:status]
 
-        @id =  D3::Package.ids_to_editions.invert[edition]
+        @id = D3::Package.ids_to_editions.invert[edition]
 
         raise JSS::InvalidDataError, "Edition #{edition} doesn't exist in d3." unless @id
 
@@ -95,7 +95,7 @@ module D3
           install_args[:expiration] =  @custom_expiration if @custom_expiration
 
           # install it  - this will remove it from the queue if successful
-          D3::Package.new(:edition => edition).install(install_args)
+          D3::Package.fetch(:edition => edition).install(install_args)
         ensure
           # but we need to remove it even if not successfull, so it doesn't
           # keep trying and failing (and reminding the users)

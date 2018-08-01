@@ -307,7 +307,7 @@ Watch a parade of cute puppies while these items are installed:
       D3.log "Importing Jamf Pro Receipt #{jss_rcpt_name}", :warn
 
       begin
-        d3_pkg = D3::Package.new id: pkg_id
+        d3_pkg = D3::Package.fetch id: pkg_id
 
         # do we already have a rcpt for the package's basename? if so,
         # delete it - we can only have on rcpt per basename
