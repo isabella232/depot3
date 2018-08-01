@@ -161,7 +161,7 @@ module D3
     ###
     ### @return [Array<Integer>] the pkg ids known to d3
     ###
-    def self.all_ids(refresh = false)
+    def self.all_ids(refresh = false, api: JSS.api)
       self.package_data(refresh).keys
     end
 
@@ -171,7 +171,7 @@ module D3
     ###
     ### @return [Array<String>] the pkg names known to d3
     ###
-    def self.all_names(refresh = false)
+    def self.all_names(refresh = false, api: JSS.api)
       self.package_data(refresh).values.map{|p| p[:name]}
     end
 
