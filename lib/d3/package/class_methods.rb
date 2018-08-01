@@ -370,7 +370,7 @@ module D3
 
       return nil unless id and id.is_a? Fixnum
 
-      return type == :pkg ? D3::Package.new(:id => id) : self.package_data[id]
+      return type == :pkg ? D3::Package.fetch(:id => id) : self.package_data[id]
     end
 
     ### Get the most recent package on the server
@@ -386,7 +386,7 @@ module D3
       # start with the highest id until we find an existing one
       self.ids_for_basename(basename).sort.reverse.each do |id|
         begin
-          pkg = D3::Package.new :id => id
+          pkg = D3::Package.fetch :id => id
           return pkg
         rescue JSS::NoSuchItemError
           next

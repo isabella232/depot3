@@ -346,7 +346,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # delete them if we should
       deprecated_ids.each do |id|
         next if deprecated_ids_to_keep.include? id
-        victim = D3::Package.new(:id => id)
+        victim = D3::Package.fetch(:id => id)
         victim.delete(
           admin: admin,
           keep_scripts: false,
@@ -378,7 +378,7 @@ INSERT INTO #{P_TABLE[:table_name]} (
       # delete them if we should
       skipped_ids.each do |id|
         next if skipped_ids_to_keep.include? id
-        victim = D3::Package.new(:id => id)
+        victim = D3::Package.fetch(:id => id)
         victim.delete(
           admin: admin,
           keep_scripts: false,

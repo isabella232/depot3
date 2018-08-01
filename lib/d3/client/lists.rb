@@ -236,7 +236,7 @@ module D3
           lines = []
           ids.each do |id|
             begin
-              pkg = D3::Package.new id: id
+              pkg = D3::Package.fetch id: id
               lines << [pkg.edition, pkg.status.to_s, (pkg.installed? ? "yes" : "no")]
             rescue
               D3.log "Couldn't get pkg for id #{id}", :error
@@ -316,4 +316,3 @@ module D3
 
   end # class
 end # module D3
-

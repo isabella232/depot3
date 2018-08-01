@@ -800,7 +800,7 @@ module D3
       def repair
         raise JSS::UnsupportedError, "This receipt has been deleted" if @deleted
 
-        d3_pkg = D3::Package.new :id => @id
+        d3_pkg = D3::Package.fetch :id => @id
 
         @basename = d3_pkg.basename
         @version = d3_pkg.version

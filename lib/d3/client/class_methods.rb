@@ -405,7 +405,7 @@ module D3
             # the update_installed_pkgs method during sync.
             next if D3::Client::Receipt.all.keys.include? auto_install_basename
 
-            new_pkg = D3::Package.new id: live_id
+            new_pkg = D3::Package.fetch id: live_id
 
             if new_pkg.reboot?
               queued_id = puppy_in_queue new_pkg.basename
@@ -527,7 +527,7 @@ module D3
           expiration = rcpt.custom_expiration ? rcpt.expiration : nil
 
           # heres the pkg
-          live_pkg = D3::Package.new id: live_basenames_to_ids[rcpt.basename]
+          live_pkg = D3::Package.fetch id: live_basenames_to_ids[rcpt.basename]
 
           begin
             cloud = cloud_dist_point_to_use(pkg: live_pkg)
@@ -622,7 +622,7 @@ module D3
       D3::PUPPY_Q.q.each do |basename, puppy|
         begin
           D3.log "Installing #{puppy.edition} from puppy-queue during sync with --puppies", :debug
-          new_pkg = D3::Package.new id: puppy.id
+          new_pkg = D3::Package.fetch id: puppy.id
           cloud = cloud_dist_point_to_use(pkg: new_pkg)
           new_pkg.install(
             admin: puppy.admin,

@@ -61,8 +61,4 @@ For details, see http://pixaranimationstudios.github.io/depot3/index.html
   s.add_runtime_dependency 'ruby-jss', '>= 0.6.6', '< 2.0'
   s.add_runtime_dependency 'ruby-keychain', '~> 0.2', '> 0.2.0'
 
-  # Rdoc
-  s.has_rdoc = true
-  s.extra_rdoc_files = [ 'README.md', 'LICENSE.txt', 'CHANGES.md', 'THANKS.md']
-  s.rdoc_options << '--title' << 'Depot3' << '--line-numbers' << '--main' << 'README.md'
 end
