@@ -22,7 +22,7 @@ Full user/administrator documentation is available at the [GitHub project's wiki
 
 The developer documentation for the D3 ruby module is at [http://www.rubydoc.info/gems/depot3](http://www.rubydoc.info/gems/depot3).
 
-Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Jamf Pro REST API in any project.
+Also check out [ruby-jss](https://github.com/PixarAnimationStudios/ruby-jss), which is used by d3, but is useful for working with the Jamf Pro Classic REST API in any project.
 
 
 ## CONTACT
