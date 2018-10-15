@@ -1,5 +1,5 @@
 #!/usr/bin/ruby
-### Copyright 2016 Pixar
+### Copyright 2018 Pixar
 ###
 ###    Licensed under the Apache License, Version 2.0 (the "Apache License")
 ###    with the following modification; you may not use this file except in
@@ -28,7 +28,7 @@
 # d3 - a commandline interface to Jamf Pro package maintenance
 # and Patch Management
 #
-# Copyright 2010 Pixar Animation Studios
+# Copyright 2018 Pixar Animation Studios
 #
 # Chris Lasell  chrisl@pixar.com  2010-04-22
 
