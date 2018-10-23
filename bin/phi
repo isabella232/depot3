@@ -1,0 +1,292 @@
+#!/bin/bash
+### Copyright 2018 Pixar
+###
+###    Licensed under the Apache License, Version 2.0 (the "Apache License")
+###    with the following modification; you may not use this file except in
+###    compliance with the Apache License and the following modification to it:
+###    Section 6. Trademarks. is deleted and replaced with:
+###
+###    6. Trademarks. This License does not grant permission to use the trade
+###       names, trademarks, service marks, or product names of the Licensor
+###       and its affiliates, except as required to comply with Section 4(c) of
+###       the License and to reproduce the content of the NOTICE file.
+###
+###    You may obtain a copy of the Apache License at
+###
+###        http://www.apache.org/licenses/LICENSE-2.0
+###
+###    Unless required by applicable law or agreed to in writing, software
+###    distributed under the Apache License with the above modification is
+###    distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+###    KIND, either express or implied. See the Apache License for the specific
+###    language governing permissions and limitations under the Apache License.
+###
+###
+
+
+######################################
+# phi - a wrapper around /usr/libexec/PlistBuddy for manipulating a Host Info File
+#
+#
+# Chris Lasell  chrisl@pixar.com  2018-09-26
+# Dan Berman  dx@pixar.com  2018-09-26
+# Dan Hoffman  dhoffman@pixar.com  2018-09-26
+
+#
+# PlistHostInfo
+
+# PHI is a tool for manipulating data in a "host info file". It is a simple wrapper around
+# the Plistbuddy tool (/usr/libexec/PlistBuddy).
+
+# A host info file is a convenient location for storing simple data about the Mac it
+# lives on. It is a standard plist, and so can accept standard plist data types such as
+# defaults (/usr/bin/defaults) and the aforementioned PlistBuddy.
+
+# PHI was designed to be used with Jamf Pro. A standard way of using it would be a
+# Jamf Pro policy to run a daily script. That script queries Jamf Pro for information
+# about the client running the script. Whatever relevant data being queried can be
+# cached into PHI.
+
+# Some sample Jamf Pro values that are handy to have available are:
+# jamf_computer_id
+# jamf_os_build
+# jamf_username
+
+# PHI works extremely well with the ruby-jss framework available here:
+# https://github.com/PixarAnimationStudios/ruby-jss
+
+# PHI is released as part of D3, which is another open source tool available here:
+# https://github.com/PixarAnimationStudios/depot3
+
+# The primary value of PHI to d3 is a convenient place to store a timestamp for:
+# last_d3_sync
+
+# In addition to Jamf Pro, values can also come from an LDAP server, the client itself,
+# or any data source you can think of.
+
+# Interact with your host info file using phi.
+# You can read, set, or delete any key you choose to include.
+
+# Be sure to set a path to your host info file in the PHI_PLIST constant below!
+
+# Note about the 'TZ=GMT' in front of all the 'PlistBuddy -c print' commands:
+#
+# There's a bug between PlistBuddy and /bin/date which causes date values
+# to ignore DaylightSavingTime and be incorrect by up to an hour.
+# Setting the TZ env. var to 'GMT' causes PlistBuddy to output the date value in
+# GMT/UTC, which is then interpreted properly by /bin/date when converting to
+# local time for displaying the date.
+#
+# We can't set the variable for this whole script (e.g. with 'export TZ=GMT' above)
+# because then /bin/date also sees it and we will get the time displayed in GMT.
+#
+# Interestingly, PlistBuddy will output the right thing with TZ set to GMT or
+# UTC, but /bin/date doesn't recognize UTC as a valid timezone.
+
+
+# Define path to the host info file
+# Example: /etc/com.my-company.host-info.plist
+PHI_PLIST=""
+
+
+# if $1 isn't one of these, its a key.
+KNOWN_ACTIONS='read
+set
+delete
+keys
+help'
+
+#usage
+USAGE='Usage: phi [action] [key] [value] [type] [-H]'
+
+DATETIME_DISPLAY_FORMAT='+%Y-%m-%d %H:%M:%S'
+
+# Process the command line
+############################################################
+while getopts H clarg ; do
+  case $clarg in
+
+    H)   HELP=1;;
+
+    \?)  echo $USAGE
+         echo "use  -H  for  help"
+         exit 2;;
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
+ACTION=$1
+if echo "$KNOWN_ACTIONS" | grep -q "^$ACTION$" ; then
+  KEY=$2
+  VALUE="$3"
+  TYPE=$4
+
+# If $1 isn't a known action, we assume its a key and
+# we're reading.
+else
+  ACTION=read
+  KEY=$1
+fi
+
+# HELP!!
+############################################################
+
+function show_help() {
+  cat<<EOT
+Manipulate the Host Info file at $PHI_PLIST
+
+$USAGE
+
+  action is one of:
+    read:          Return the value of <key>, or all keys & values, to stdout
+    set:           Set the value of <key> to <value>, as <type>
+    delete:        Delete the key and value for <key>
+    keys:          List all current keys to stdout
+    help:          Show this help
+
+  If omitted, the default action is 'read'
+
+  key:           The key to read, set, or delete. If omitted with 'read'
+                 all keys and values are displayed.
+  value:         The value to set for the key
+  type:          The data type of the value, one of: string, integer, real,
+                 date, or bool
+                 If ommitted defaults to the same as the existing value for the,
+                 key or 'string' if no value exists.
+
+When reading values, if the value doesn't exist, phi will exit with status 2
+
+EOT
+}
+
+# if -H was given, show help and exit
+if [[ $HELP ]] ; then
+  show_help
+  exit 0
+fi
+
+if ! [[ $PHI_PLIST ]] ; then
+  echo "There is no path entered for the PHI_PLIST variable. Please choose the location of your plist."
+  exit 1
+fi
+
+# Functions
+############################################################
+
+# List Keys
+################################
+function list_keys {
+ PlistBuddy -c print $PHI_PLIST | grep = | cut -f1 -d= | tr -d ' ' | sort
+}
+
+
+# Error if a given key has any whitespace
+###############################
+function check_key {
+  [[ $1 =~ [[:space:]] ]] && >&2 echo 'Key names may not contain whitespace' && exit 52
+}
+
+# convert dates to the desired format or return the raw value if not a date
+###############################
+function parse_for_display {
+  VAL="$1"
+  DATE_VAL=`/bin/date -j -f '%a %b %d %H:%M:%S %Z %Y' "$VAL" "$DATETIME_DISPLAY_FORMAT" 2>/dev/null`
+  [ "$?" = 0 ] && echo $DATE_VAL || echo $VAL
+}
+
+# Read - see note above explaining `TZ=GMT`
+################################
+function phi_read() {
+  if [[ $KEY ]] ; then
+    if echo "`list_keys`" | grep -q "^$KEY$" ; then
+      VAL=`TZ=GMT PlistBuddy -c "print :$KEY" $PHI_PLIST 2> /dev/null`
+      [ "$?" = 0 ] || exit 2
+      parse_for_display "$VAL"
+    else
+       exit 2
+    fi
+
+  else
+    for k in `list_keys` ; do
+      VAL=`TZ=GMT PlistBuddy -c "print :$k" $PHI_PLIST`
+      echo $k: `parse_for_display "$VAL"`
+    done
+  fi
+}
+
+# Delete
+################################
+function phi_delete() {
+  check_key "$KEY"
+  PlistBuddy -c "delete :$KEY" $PHI_PLIST 2>/dev/null
+}
+
+# convert dates to a format that PlistBuddy likes.
+# Enforces the current local time zone if none is set in the date string.
+# So '2018-06-22 10:28:30 EST' will evaluate to Eastern Standard Time
+# but '2018-06-22 10:28:30' will have PDT or PST appended if the machine
+# is in Pacific Daylight or Standard time.
+#
+############################
+function parse_date() {
+  if [ "$TYPE" = 'date' ] ; then
+    # this gets the current time zone abbrev, e.g. PDT or PST
+    Z=`date | awk '{print $5}'`
+
+    # append the time zone unless the given date already has one
+    # (1+ all cap letters, not at the start of the string, preceded by a
+    # space, followed by a space or the end)
+    echo "$VALUE" | egrep -q ' [[:upper:]]+( |$)' || VALUE="$VALUE $Z"
+
+    # use plain ruby to convert it to a format that PlistBuddy likes
+    VALUE=`/usr/bin/ruby -rdate -e "puts DateTime.parse('$VALUE').to_time.strftime '%a %b %e %H:%M:%S %Z %Y'" 2> /dev/null`
+    [ $? -gt 0 ] && echo 'Invalid date format' 1&>2 && exit 1
+  fi
+}
+
+# Set
+################################
+function phi_set() {
+  check_key "$KEY"
+  parse_date
+
+  # key already exists
+  #################
+  if echo "`list_keys`" | grep -q "^$KEY$" ; then
+
+    # if we were told a type.. force it
+    if [[ $TYPE ]] ; then
+      phi_delete $KEY
+
+      PlistBuddy -c "add :$KEY $TYPE '$VALUE'" $PHI_PLIST
+
+    # weren't told a type, use whatever type it is already
+    else
+      PlistBuddy -c "set :$KEY '$VALUE'" $PHI_PLIST
+    fi
+
+  # key doesn't yet exist
+  #################
+  else
+    [[ $TYPE ]] || TYPE=string
+    PlistBuddy -c "add :$KEY $TYPE '$VALUE'" $PHI_PLIST
+  fi
+}
+
+# Main
+################################
+case $ACTION in
+  read) phi_read  ;;
+  set) phi_set  ;;
+  delete) phi_delete ;;
+  keys) list_keys ;;
+  help) show_help ;;
+
+  # we shouldn't get here, since unknown actions
+  # are considered keys
+  \?) echo "Unknown action: $ACTION"
+      exit 69 ;;
+esac
+
+exit 0
